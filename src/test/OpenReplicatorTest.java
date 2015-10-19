@@ -31,7 +31,7 @@ public class OpenReplicatorTest {
 		or.setPort(3306);
 		or.setServerId(1);
 		or.setBinlogPosition(120);
-		or.setBinlogFileName("master-bin.000006");
+		or.setBinlogFileName("master-bin.000001");
 		or.setBinlogEventListener(new BinlogEventListener() {
 		    public void onEvents(BinlogEventV4 event) {
 		        System.out.println("new event:");

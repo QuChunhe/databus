@@ -3,20 +3,15 @@ package databus.event;
 
 import databus.core.Event;
 
-public abstract class MySQLAbstractEvent<T> implements MySQLEvent<T>{
-    protected String ipAddress;
-    protected int serverId;
+public abstract class MySQLAbstractEvent implements MySQLEvent{
+
+    protected long serverId;
     protected String databaseName;
     protected String tableName;
-    protected Type type;
+
 
     @Override
-    public String getIpAddress() {
-        return ipAddress;
-    }
-
-    @Override
-    public int getServerId() {
+    public long getServerId() {
         return serverId;
     }
 
@@ -31,17 +26,13 @@ public abstract class MySQLAbstractEvent<T> implements MySQLEvent<T>{
     }
 
     @Override
-    public Type getType() {
-        return type;
-    }
-
-    @Override
     public Source source() {
         return Event.Source.MYSQL;
     }
 
     @Override
     public String topic() {
-        return source()+":"+getTableName();
+        return source()+":"+getServerId()+":"+
+               getDatabaseName()+":"+getTableName();
     }
 }

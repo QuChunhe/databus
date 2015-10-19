@@ -41,12 +41,16 @@ public class MySQLListener  implements Listener{
     @Override
     public void start() {
         openRelicator = new OpenReplicator();
-        initiate(openRelicator);        
+        initiate(openRelicator); 
+        try {
+            openRelicator.start();
+        } catch (Exception e) {
+            log.error("OpenRelicator throws a Exception",e);
+        }
     }
     
     public void onEvent(MySQLEvent event) {
-        
-        
+        publisher.publish(event);        
     }
 
     private void initiate(OpenReplicator openRelicator){
