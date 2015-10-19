@@ -2,7 +2,6 @@ package databus.event;
 
 
 import databus.core.Event;
-import databus.core.MySQLEvent;
 
 public abstract class MySQLAbstractEvent<T> implements MySQLEvent<T>{
     protected String ipAddress;

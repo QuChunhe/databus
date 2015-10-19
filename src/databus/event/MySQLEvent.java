@@ -1,6 +1,8 @@
-package databus.core;
+package databus.event;
 
 import java.util.List;
+
+import databus.core.Event;
 
 public interface MySQLEvent<T>  extends Event{   
     

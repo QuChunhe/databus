@@ -12,8 +12,8 @@ import com.google.code.or.OpenReplicator;
 
 
 import databus.core.Listener;
-import databus.core.MySQLEvent;
 import databus.core.Publisher;
+import databus.event.MySQLEvent;
 
 public class MySQLListener  implements Listener{
 
