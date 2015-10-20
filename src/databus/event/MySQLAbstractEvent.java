@@ -8,20 +8,26 @@ public abstract class MySQLAbstractEvent implements MySQLEvent{
     protected long serverId;
     protected String databaseName;
     protected String tableName;
+    protected long time;
 
 
     @Override
-    public long getServerId() {
+    public long time() {
+        return time;
+    }
+
+    @Override
+    public long serverId() {
         return serverId;
     }
 
     @Override
-    public String getDatabaseName() {
+    public String databaseName() {
         return databaseName;
     }
 
     @Override
-    public String getTableName() {
+    public String tableName() {
         return tableName;
     }
 
@@ -32,7 +38,7 @@ public abstract class MySQLAbstractEvent implements MySQLEvent{
 
     @Override
     public String topic() {
-        return source()+":"+getServerId()+":"+
-               getDatabaseName()+":"+getTableName();
+        return source()+":"+serverId()+":"+
+               databaseName()+":"+tableName();
     }
 }

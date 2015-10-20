@@ -6,4 +6,6 @@ public interface Event {
     public Source source();
     
     public String topic();
+    
+    public long time();
 }

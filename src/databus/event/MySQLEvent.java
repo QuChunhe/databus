@@ -8,11 +8,11 @@ public interface MySQLEvent  extends Event{
         INSERT, UPDATE, DELETE        
     }
     
-    public long getServerId();
+    public long serverId();
     
-    public String getDatabaseName();
+    public String databaseName();
     
-    public String getTableName();
+    public String tableName();
     
     public Type type();
 

@@ -13,21 +13,17 @@ public class MySQLInsertEventWrapper extends MySQLInsertEvent{
     public MySQLInsertEventWrapper(long serverId,
                                   String databaseName, 
                                   String tableName) {
-        this.serverId = serverId;
-        this.databaseName = databaseName;
-        this.tableName = tableName;
-        rows = new LinkedList<List<String>>();
+        super(serverId,databaseName, tableName);
     }
     
-    public void setRows(List<Row> rows) {
-        for(Row row : rows) {
+    public void setRows(List<Row> binLogRows) {
+        for(Row row : binLogRows) {
             LinkedList<String> newRow = new LinkedList<String>();
             List<Column> columns = row.getColumns();
-            for(Column column : columns) {
-                newRow.addLast(column.toString());
+            for(Column c : columns) {
+                newRow.addLast(c.toString());
             }
-            this.rows.add(newRow);
-        }
-        
+            rows.add(newRow);
+        }        
     }
 }

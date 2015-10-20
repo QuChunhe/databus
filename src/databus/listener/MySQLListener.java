@@ -84,7 +84,7 @@ public class MySQLListener  implements Listener{
     }    
     
     
-    final private static String CONFIG_FILE_NAME = "listener.mysql.properties";
+    final private static String CONFIG_FILE_NAME = "conf/listener.mysql.properties";
     
     final private static String MYSQL_USER = "listener.mysql.user";
     final private static String MYSQL_PASSWORD = "listener.mysql.password";

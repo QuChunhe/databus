@@ -19,36 +19,44 @@ public class TableManager {
         return instance;
     }
     
-    public List<String> getColumns(String databaseName, String tableName) {
-        LinkedList<String> columns = new LinkedList<String>();
-        
-        return columns;
+    public List<String> getColumn(String databaseName, String tableName) {
+         
+        return columns.get(databaseName+"."+tableName);
     }
  
     private TableManager() {
+        String tableFileName = Configuration.TABLE_FILE_NAME;
         try {
             Properties tables = new Properties();
-            tables.load(new FileReader(CONFIG_FILE_NAME));
+            tables.load(new FileReader(tableFileName));
             for(Entry<Object, Object> t : tables.entrySet()) {
-                
-            }
+                columns.put(t.getKey().toString(), parse(t.getValue().toString()));
+            }            
         } catch (FileNotFoundException e) {
-            log.error("Cannot find "+CONFIG_FILE_NAME, e);;
+            log.error("Cannot find "+tableFileName, e);
+            e.printStackTrace();
         } catch (IOException e) {
-            log.error("cannot reed "+CONFIG_FILE_NAME, e);
+            log.error("cannot reed "+tableFileName, e);
+            e.printStackTrace();
         }
     }
     
     private List<String> parse(String columnString) {
         LinkedList<String> column = new LinkedList<String>();
-        
-        String[] columnArray = 
-                columnString.substring(1, columnString.length()).split(",");
+        int begin = columnString.indexOf('(');
+        int end = columnString.indexOf(')');
+        if ((-1 == begin) || (-1 == end)) {
+            log.error("Cannot parse "+columnString);
+        } else {
+            String[] columnArray = columnString.substring(begin+1, end)
+                                               .split(",");
+            for (String c : columnArray) {
+                column.addLast(c.trim());
+            }
+        }
         
         return column;
     }
-
-    private static final String CONFIG_FILE_NAME = "tables.properties";
     
     private static TableManager instance = new TableManager();  
     private static Log log = LogFactory.getLog(TableManager.class);

@@ -2,11 +2,12 @@ package databus.event;
 
 import java.util.List;
 
-public class MySQLInsertEvent extends MySQLAbstractEvent{    
-    protected List<List<String>> rows;
+public class MySQLInsertEvent extends MySQLWriteEvent<List<String>>{    
 
-    public List<List<String>> getInsertedRows() {
-        return rows;
+    public MySQLInsertEvent(long serverId, 
+                            String databaseName,
+                            String tableName) {
+        super(serverId, databaseName, tableName);
     }
 
     @Override
