@@ -1,16 +1,11 @@
 package databus.network;
 
-import java.text.DateFormat;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import databus.core.Event;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -18,23 +13,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.GenericFutureListener;
 
-public class Client {
+public class Client  implements Runnable{
 
     public Client() {
         taskQueue = new LinkedBlockingQueue<Task>();
-        gson = new GsonBuilder().enableComplexMapKeySerialization() 
-                                .serializeNulls()   
-                                .setDateFormat(DateFormat.LONG)
-                                .create();
-    }
+    }    
 
-    public void start() {
+    @Override
+    public void run() {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(group).channel(NioSocketChannel.class);
             
-            while (true) {
+            while (doRun) {
                 try {
                     Task task = taskQueue.take();
                     TransportListener listener = new TransportListener(task);
@@ -47,9 +39,17 @@ public class Client {
 
         } finally {
             group.shutdownGracefully();
-        }
+        }        
     }
 
+    public boolean  isRunning() {
+        return doRun;
+    }
+    
+    public void stop() {
+        doRun = false;
+    }
+    
     public void addTask(Task task) {
         try {
             taskQueue.put(task);
@@ -89,8 +89,7 @@ public class Client {
     }
 
     private static Log log = LogFactory.getLog(Client.class);
-    private static Gson gson;
     
     private BlockingQueue<Task> taskQueue;
-
+    private volatile boolean doRun = true;
 }
