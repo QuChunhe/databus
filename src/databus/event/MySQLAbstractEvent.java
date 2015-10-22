@@ -41,4 +41,5 @@ public abstract class MySQLAbstractEvent implements MySQLEvent{
         return source()+":"+serverId()+":"+
                databaseName()+":"+tableName();
     }
+    
 }

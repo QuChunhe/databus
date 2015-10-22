@@ -8,4 +8,5 @@ public interface Event {
     public String topic();
     
     public long time();
+    
 }
