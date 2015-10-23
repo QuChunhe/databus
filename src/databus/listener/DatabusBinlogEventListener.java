@@ -10,6 +10,9 @@ import com.google.code.or.binlog.impl.event.UpdateRowsEventV2;
 import com.google.code.or.binlog.impl.event.WriteRowsEventV2;
 import com.google.code.or.common.util.MySQLConstants;
 
+import databus.event.mysql.MysqlInsertEventWrapper;
+import databus.event.mysql.MysqlUpdateEventWrapper;
+
 public class DatabusBinlogEventListener implements BinlogEventListener {
 
     public DatabusBinlogEventListener(MySQLListener listener) {
@@ -69,7 +72,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:
             WriteRowsEventV2 writeRowsEvent = (WriteRowsEventV2) curBinlogEvent;          
             time = writeRowsEvent.getHeader().getTimestamp();
-            MySQLInsertEventWrapper insertEvent = new MySQLInsertEventWrapper(
+            MysqlInsertEventWrapper insertEvent = new MysqlInsertEventWrapper(
                                                    serverId, 
                                                    databaseName, 
                                                    tableName);
@@ -81,7 +84,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         case MySQLConstants.UPDATE_ROWS_EVENT_V2:
             UpdateRowsEventV2 updateRowsEvent = (UpdateRowsEventV2) curBinlogEvent;
             time = updateRowsEvent.getHeader().getTimestamp();
-            MySQLUpdateEventWrapper updateEvent = new MySQLUpdateEventWrapper(
+            MysqlUpdateEventWrapper updateEvent = new MysqlUpdateEventWrapper(
                                                     serverId, 
                                                     databaseName, 
                                                     tableName);

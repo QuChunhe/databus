@@ -14,7 +14,7 @@ import com.google.gson.GsonBuilder;
 
 import databus.core.Event;
 import databus.core.Publisher;
-import databus.event.MySQLEvent;
+import databus.event.MysqlEvent;
 
 public class PublisherServer implements Publisher{   
     
@@ -69,7 +69,7 @@ public class PublisherServer implements Publisher{
         Event.Source source = event.source();
         String title = null;
         if (source == Event.Source.MYSQL) {
-            MySQLEvent e = (MySQLEvent) event;
+            MysqlEvent e = (MysqlEvent) event;
             title = e.source().name()+":"+e.type();
         } else {
             title = event.source().name();

@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -13,7 +14,7 @@ import com.google.code.or.OpenReplicator;
 
 import databus.core.Listener;
 import databus.core.Publisher;
-import databus.event.MySQLEvent;
+import databus.event.MysqlEvent;
 
 public class MySQLListener  implements Listener{
 
@@ -28,14 +29,17 @@ public class MySQLListener  implements Listener{
     
     @Override
     public boolean doesRun() {
-        // TODO Auto-generated method stub
-        return false;
+        return openRelicator.isRunning();
     }
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-        
+        try {
+            openRelicator.stop(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            log.error("cannot stop sucessfully", e);
+            openRelicator.stopQuietly(1, TimeUnit.SECONDS);
+        }        
     }
 
     @Override
@@ -49,7 +53,7 @@ public class MySQLListener  implements Listener{
         }
     }
     
-    public void onEvent(MySQLEvent event) {
+    public void onEvent(MysqlEvent event) {
         publisher.publish(event);        
     }
 
@@ -98,4 +102,5 @@ public class MySQLListener  implements Listener{
     private Publisher publisher;
     private OpenReplicator openRelicator;
     private String configFileName;
+
 }

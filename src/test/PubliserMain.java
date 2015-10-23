@@ -34,6 +34,7 @@ public class PubliserMain implements Publisher{
         Listener listener = new MySQLListener(publisher);
         
         listener.start();
+        System.out.println("!!!!!!!!!!!!!!!!!!");
 
     }
     
