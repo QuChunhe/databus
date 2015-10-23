@@ -11,11 +11,9 @@ import com.google.code.or.binlog.impl.event.UpdateRowsEventV2;
 import com.google.code.or.binlog.impl.event.WriteRowsEventV2;
 import com.google.code.or.common.util.MySQLConstants;
 
-import databus.event.MysqlEvent;
 import databus.event.mysql.MysqlDeleteEventWrapper;
 import databus.event.mysql.MysqlInsertEventWrapper;
 import databus.event.mysql.MysqlUpdateEventWrapper;
-import databus.event.mysql.MysqlWriteEventWrapper;
 
 public class DatabusBinlogEventListener implements BinlogEventListener {
 
@@ -72,47 +70,38 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         int curBinlogEventType = curBinlogEvent.getHeader().getEventType();        
         TableMapEvent tableMapEvent = (TableMapEvent) preBinlogEvent;
         long serverId = tableMapEvent.getHeader().getServerId();
-        String databaseName = tableMapEvent.getDatabaseName().toString();
+        String dbName = tableMapEvent.getDatabaseName().toString();
         String tableName = tableMapEvent.getTableName().toString();
-        long time;
-        
+            
         switch (curBinlogEventType) {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:
             WriteRowsEventV2 writeRowsEvent = (WriteRowsEventV2) curBinlogEvent;          
-            time = writeRowsEvent.getHeader().getTimestamp();
-            MysqlInsertEventWrapper insertEvent = new MysqlInsertEventWrapper(
-                                                   serverId, 
-                                                   databaseName, 
-                                                   tableName);
+            MysqlInsertEventWrapper insertEvent = 
+                      new MysqlInsertEventWrapper(serverId, dbName, tableName);
             insertEvent.setRows(writeRowsEvent.getRows());
-            insertEvent.setTime(time);
+            insertEvent.setTime(writeRowsEvent.getHeader().getTimestamp());
             listener.onEvent(insertEvent);
             break;
             
         case MySQLConstants.UPDATE_ROWS_EVENT_V2:
             UpdateRowsEventV2 updateRowsEvent = (UpdateRowsEventV2) curBinlogEvent;
-            time = updateRowsEvent.getHeader().getTimestamp();
-            MysqlUpdateEventWrapper updateEvent = new MysqlUpdateEventWrapper(
-                                                    serverId, 
-                                                    databaseName, 
-                                                    tableName);
+            MysqlUpdateEventWrapper updateEvent = 
+                      new MysqlUpdateEventWrapper(serverId, dbName, tableName);
             updateEvent.setRows(updateRowsEvent.getRows());
-            updateEvent.setTime(time);
+            updateEvent.setTime(updateRowsEvent.getHeader().getTimestamp());
             listener.onEvent(updateEvent);            
             break;
+            
         case MySQLConstants.DELETE_ROWS_EVENT_V2:
             DeleteRowsEventV2 deleteRowEvent = (DeleteRowsEventV2)curBinlogEvent;
-            time = deleteRowEvent.getHeader().getTimestamp();
-            MysqlDeleteEventWrapper deleteEvent = new MysqlDeleteEventWrapper(
-                                                    serverId, 
-                                                    databaseName, 
-                                                    tableName);
-            deleteEvent.setRows(deleteRowEvent.getRows());
-            deleteEvent.setTime(time);
+            MysqlDeleteEventWrapper deleteEvent = 
+                      new MysqlDeleteEventWrapper(serverId, dbName, tableName);
+            deleteEvent.setTime(deleteRowEvent.getHeader().getTimestamp());
             listener.onEvent(deleteEvent);
             break;
+            
         default:
-            log.error("Current BinlogEven isnot Write event: "+
+            log.error("Current BinlogEven is not Write event: "+
                       curBinlogEvent.toString());
         }
     
