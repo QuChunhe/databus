@@ -5,13 +5,17 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.code.or.binlog.BinlogEventListener;
 import com.google.code.or.binlog.BinlogEventV4;
+import com.google.code.or.binlog.impl.event.DeleteRowsEventV2;
 import com.google.code.or.binlog.impl.event.TableMapEvent;
 import com.google.code.or.binlog.impl.event.UpdateRowsEventV2;
 import com.google.code.or.binlog.impl.event.WriteRowsEventV2;
 import com.google.code.or.common.util.MySQLConstants;
 
+import databus.event.MysqlEvent;
+import databus.event.mysql.MysqlDeleteEventWrapper;
 import databus.event.mysql.MysqlInsertEventWrapper;
 import databus.event.mysql.MysqlUpdateEventWrapper;
+import databus.event.mysql.MysqlWriteEventWrapper;
 
 public class DatabusBinlogEventListener implements BinlogEventListener {
 
@@ -51,14 +55,17 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
     public boolean isConsistent(BinlogEventV4 nextBinlogEvent) {        
         return true;
     }
+    
     private void buildMySQLEvent(BinlogEventV4 nextBinlogEvent) {
         if (!isConsistent(nextBinlogEvent)) {
+            log.error("tableId is not consistent");
             return;
         }
         
-        int preBinlogEventType = preBinlogEvent.getHeader()
-                                               .getEventType();        
+        int preBinlogEventType = preBinlogEvent.getHeader().getEventType();        
         if (preBinlogEventType != MySQLConstants.TABLE_MAP_EVENT) {
+            log.error("Previous BinLogEvnt is not TableMapEvent: "+
+                      preBinlogEvent.toString());
             return;
         }
         
@@ -68,6 +75,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         String databaseName = tableMapEvent.getDatabaseName().toString();
         String tableName = tableMapEvent.getTableName().toString();
         long time;
+        
         switch (curBinlogEventType) {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:
             WriteRowsEventV2 writeRowsEvent = (WriteRowsEventV2) curBinlogEvent;          
@@ -92,9 +100,20 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             updateEvent.setTime(time);
             listener.onEvent(updateEvent);            
             break;
-        default:
-            
+        case MySQLConstants.DELETE_ROWS_EVENT_V2:
+            DeleteRowsEventV2 deleteRowEvent = (DeleteRowsEventV2)curBinlogEvent;
+            time = deleteRowEvent.getHeader().getTimestamp();
+            MysqlDeleteEventWrapper deleteEvent = new MysqlDeleteEventWrapper(
+                                                    serverId, 
+                                                    databaseName, 
+                                                    tableName);
+            deleteEvent.setRows(deleteRowEvent.getRows());
+            deleteEvent.setTime(time);
+            listener.onEvent(deleteEvent);
             break;
+        default:
+            log.error("Current BinlogEven isnot Write event: "+
+                      curBinlogEvent.toString());
         }
     
     }
