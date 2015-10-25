@@ -5,7 +5,6 @@ import java.util.List;
 import com.google.code.or.common.glossary.Row;
 
 import databus.event.MysqlDeleteEvent;
-import databus.event.MysqlEvent;
 
 public class MysqlDeleteEventWrapper extends MysqlWriteEventWrapper<List<String>>
                                      implements MysqlDeleteEvent {
@@ -22,8 +21,8 @@ public class MysqlDeleteEventWrapper extends MysqlWriteEventWrapper<List<String>
     }
     
     @Override
-    public Type type() {
-        return MysqlEvent.Type.DELETE;
+    public String type() {
+        return Type.DELETE.toString();
     }   
 
 }

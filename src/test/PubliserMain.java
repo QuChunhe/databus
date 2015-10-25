@@ -23,7 +23,7 @@ public class PubliserMain implements Publisher{
     
     @Override
     public void publish(Event event) {
-        System.out.println(event.topic() +
+        System.out.println(event.type() +
                            "=" +
                            gson.toJson(event));
         

@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.google.code.or.common.glossary.Row;
 
-import databus.event.MysqlEvent;
 import databus.event.MysqlInsertEvent;
 
 
@@ -23,7 +22,7 @@ public class MysqlInsertEventWrapper extends MysqlWriteEventWrapper<List<String>
     }
 
     @Override
-    public Type type() {
-        return MysqlEvent.Type.INSERT;
+    public String type() {
+        return Type.INSERT.toString();
     }
 }

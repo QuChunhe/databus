@@ -41,6 +41,6 @@ public abstract class MysqlAbstractEvent implements MysqlEvent{
     public String topic() {
         return source()+":"+serverId()+":"+
                databaseName()+":"+tableName();
-    }
+    }    
     
 }

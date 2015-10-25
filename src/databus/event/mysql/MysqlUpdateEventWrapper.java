@@ -6,7 +6,6 @@ import java.util.List;
 import com.google.code.or.common.glossary.Pair;
 import com.google.code.or.common.glossary.Row;
 
-import databus.event.MysqlEvent;
 import databus.event.MysqlUpdateEvent;
 
 
@@ -28,8 +27,8 @@ public class MysqlUpdateEventWrapper
     }
     
     @Override
-    public Type type() {
-        return MysqlEvent.Type.UPDATE;
+    public String type() {
+        return Type.UPDATE.toString();
     }
 
 }

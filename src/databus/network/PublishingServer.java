@@ -56,24 +56,13 @@ public class PublishingServer implements Publisher{
         String topic = event.topic();
         Set<InternetAddress> addressSet = subscribers.get(topic);
         if (null != addressSet) {
-            String message = getTitle(event)+"="+gson.toJson(event);
+            String message = event.source().toString()+":"+
+                             event.type()+"="+gson.toJson(event);
             for(InternetAddress address : addressSet) {
                 Task task = new Task(address, message);
                 client.addTask(task);
             }
         }        
-    }
-    
-    private String getTitle(Event event) {
-        Event.Source source = event.source();
-        String title = null;
-        if (source == Event.Source.MYSQL) {
-            MysqlEvent e = (MysqlEvent) event;
-            title = e.source().name()+":"+e.type();
-        } else {
-            title = event.source().name();
-        }
-        return title;
     }
     
     private static Log log = LogFactory.getLog(PublishingServer.class);
