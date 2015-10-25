@@ -14,7 +14,6 @@ import com.google.gson.GsonBuilder;
 
 import databus.core.Event;
 import databus.core.Publisher;
-import databus.event.MysqlEvent;
 
 public class PublishingServer implements Publisher{   
     

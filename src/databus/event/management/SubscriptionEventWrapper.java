@@ -8,6 +8,10 @@ public class SubscriptionEventWrapper extends AbstractManagementEvent
     public SubscriptionEventWrapper(String topic) {
         super(topic);
     }
+    
+    public SubscriptionEventWrapper() {
+        this(null);
+    }
 
     @Override
     public String type() {

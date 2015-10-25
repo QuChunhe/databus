@@ -9,6 +9,7 @@ import databus.core.Event;
 import databus.core.Listener;
 import databus.core.Publisher;
 import databus.listener.MySQLListener;
+import databus.network.MessageParser;
 
 public class PubliserMain implements Publisher{
     Gson gson;    

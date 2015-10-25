@@ -1,7 +1,6 @@
 package databus.event.mysql;
 
 
-import databus.core.Event;
 import databus.event.MysqlEvent;
 
 public abstract class MysqlAbstractEvent implements MysqlEvent{
@@ -34,7 +33,7 @@ public abstract class MysqlAbstractEvent implements MysqlEvent{
 
     @Override
     public Source source() {
-        return Event.Source.MYSQL;
+        return Source.MYSQL;
     }
 
     @Override

@@ -18,6 +18,10 @@ public class MysqlUpdateEventWrapper
         super(serverId, databaseName, tableName);
     }
     
+    public MysqlUpdateEventWrapper() {
+        this(-1, null, null);
+    }
+    
     public void setRows(List<Pair<Row>> binLogRows) {
         for(Pair<Row> pair : binLogRows) {
             LinkedList<String> before = transform(pair.getBefore());

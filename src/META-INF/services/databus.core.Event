@@ -1,0 +1,11 @@
+
+#MysqEvent
+databus.event.mysql.MysqlInsertEventWrapper
+databus.event.mysql.MysqlDeleteEventWrapper
+databus.event.mysql.MysqlUpdateEventWrapper
+
+
+#ManagementEvent
+databus.event.management.CountermandEventWrapper
+databus.event.management.SubscriptionEventWrapper
+

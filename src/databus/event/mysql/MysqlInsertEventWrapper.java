@@ -15,6 +15,10 @@ public class MysqlInsertEventWrapper extends MysqlWriteEventWrapper<List<String>
         super(serverId,databaseName, tableName);
     }
     
+    public MysqlInsertEventWrapper() {
+        this(-1, null, null);
+    }
+    
     public void setRows(List<Row> binLogRows) {
         for(Row row : binLogRows) {            
             rows.add(transform(row));

@@ -8,6 +8,10 @@ public class CountermandEventWrapper extends AbstractManagementEvent
     public CountermandEventWrapper(String topic) {
         super(topic);
     }
+    
+    public CountermandEventWrapper() {
+        this(null);
+    }
 
     @Override
     public String type() {

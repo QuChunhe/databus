@@ -13,6 +13,10 @@ public class MysqlDeleteEventWrapper extends MysqlWriteEventWrapper<List<String>
                                    String tableName) {
         super(serverId, databaseName, tableName);
     }
+    
+    public MysqlDeleteEventWrapper() {
+        this(-1, null, null);
+    }
 
     public void setRows(List<Row> binLogRows) {
         for(Row row : binLogRows) {            
