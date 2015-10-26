@@ -14,36 +14,36 @@ import com.google.gson.GsonBuilder;
 
 import databus.core.Event;
 import databus.core.Publisher;
+import databus.util.InternetAddress;
 
 public class PublishingServer implements Publisher{   
     
-    public PublishingServer(Client client) {
+    public PublishingServer() {
         gson = new GsonBuilder().enableComplexMapKeySerialization() 
                                 .serializeNulls()   
                                 .setDateFormat(DateFormat.LONG)
                                 .create();
         subscribers = new ConcurrentHashMap<String,Set<InternetAddress>>();
-        this.client = client;
+        client = new Client();
+        new Thread(client).start();
     }
 
-    public void subscribe(String topic, String ipAddress, int port) {
-        InternetAddress address = new InternetAddress(ipAddress, port);
+    public void subscribe(String topic, InternetAddress remoteAddress) {
         Set<InternetAddress> addressSet = subscribers.get(topic);
         if (null == addressSet) {
             addressSet = new CopyOnWriteArraySet<InternetAddress>();
-            addressSet.add(address);
+            addressSet.add(remoteAddress);
             subscribers.put(topic, addressSet);
-        } else if (addressSet.contains(address)){
-            log.info(address.toString()+" has subscribeed before");
+        } else if (addressSet.contains(remoteAddress)){
+            log.info(remoteAddress.toString()+" has subscribeed before");
         } else {
-            addressSet.add(address);
+            addressSet.add(remoteAddress);
         }        
     }
     
-    public void unsubscribe(String topic, String ipAddress, int port) {
-        InternetAddress address = new InternetAddress(ipAddress, port);
+    public void unsubscribe(String topic, InternetAddress remoteAddress) {
         Set<InternetAddress> addressSet = subscribers.get(topic);
-        if (addressSet.remove(address)) {
+        if (addressSet.remove(remoteAddress)) {
             if (addressSet.isEmpty()) {
                 subscribers.remove(topic);
             }
@@ -53,15 +53,27 @@ public class PublishingServer implements Publisher{
     @Override
     public void publish(Event event) {
         String topic = event.topic();
-        Set<InternetAddress> addressSet = subscribers.get(topic);
-        if (null != addressSet) {
-            String message = event.source().toString()+":"+
-                             event.type()+"="+gson.toJson(event);
-            for(InternetAddress address : addressSet) {
-                Task task = new Task(address, message);
-                client.addTask(task);
+        Set<InternetAddress> remoteAddressSet = subscribers.get(topic);
+        if (null != remoteAddressSet) {
+            String message = stringOf(event);
+            for(InternetAddress address : remoteAddressSet) {
+                releaseMessage(address, message);
             }
         }        
+    }
+    
+    @Override
+    public void publish(InternetAddress address, Event event) {
+        releaseMessage(address,stringOf(event));
+    }
+    
+    private void releaseMessage(InternetAddress remoteAddress, String message) {
+        Task task = new Task(remoteAddress, message);
+        client.addTask(task);
+    }
+    
+    private String stringOf(Event e) {
+        return e.source().toString()+":"+e.type()+"="+gson.toJson(e);
     }
     
     private static Log log = LogFactory.getLog(PublishingServer.class);

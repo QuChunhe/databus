@@ -1,9 +1,9 @@
-package databus.network;
+package databus.util;
 
 public class InternetAddress {
+
     public InternetAddress(String ipAddress, int port) {
-        super();
-        this.ipAddress = ipAddress;
+        this.ipAddress = ipAddress.trim();
         this.port = port;
     }
     
@@ -28,7 +28,6 @@ public class InternetAddress {
 
     @Override
     public String toString() {
-        // TODO Auto-generated method stub
         return ipAddress+":"+port;
     }
 

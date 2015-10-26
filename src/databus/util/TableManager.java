@@ -25,7 +25,7 @@ public class TableManager {
     }
  
     private TableManager() {
-        String tableFileName = Configuration.TABLE_FILE_NAME;
+        String tableFileName = Configuration.instance().TABLE_FILE_NAME;
         try {
             Properties tables = new Properties();
             tables.load(new FileReader(tableFileName));
@@ -36,7 +36,7 @@ public class TableManager {
             log.error("Cannot find "+tableFileName, e);
             e.printStackTrace();
         } catch (IOException e) {
-            log.error("cannot reed "+tableFileName, e);
+            log.error("cannot read "+tableFileName, e);
             e.printStackTrace();
         }
     }

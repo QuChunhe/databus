@@ -1,5 +1,6 @@
-package databus.network;
+package databus.bootstrap;
 
+import databus.network.ServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;

@@ -17,5 +17,4 @@ public class SubscriptionEventWrapper extends AbstractManagementEvent
     public String type() {
         return Type.SUBSCRIPTION.toString();
     }
-
 }

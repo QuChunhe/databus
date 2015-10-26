@@ -10,6 +10,7 @@ import databus.core.Listener;
 import databus.core.Publisher;
 import databus.listener.MySQLListener;
 import databus.network.MessageParser;
+import databus.util.InternetAddress;
 
 public class PubliserMain implements Publisher{
     Gson gson;    
@@ -28,9 +29,19 @@ public class PubliserMain implements Publisher{
                            "=" +
                            gson.toJson(event));
         
-    }
+    }    
     
+    
+    @Override
+    public void publish(InternetAddress remoteAddress, Event event) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
     public static void main(String[] args) {
+        MessageParser parser = new MessageParser();
+        System.exit(1);
         Publisher publisher = new PubliserMain();
         Listener listener = new MySQLListener(publisher);
         

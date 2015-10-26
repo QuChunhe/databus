@@ -1,5 +1,6 @@
 package databus.network;
 
+import databus.util.InternetAddress;
 
 public class Task {    
     

@@ -30,6 +30,10 @@ public class BatchSubscriber implements Subscriber{
         return subscribers.remove(subscrber);
     }
     
+    public int size() {
+        return subscribers.size();
+    }
+    
     /**
      * 
      * @return aaa.bbb.ccc.ddd:port/MYSQL/serverId

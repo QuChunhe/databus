@@ -1,20 +1,15 @@
 package databus.event.mysql;
 
 
+import databus.event.AbstractEvent;
 import databus.event.MysqlEvent;
 
-public abstract class MysqlAbstractEvent implements MysqlEvent{
+public abstract class MysqlAbstractEvent extends AbstractEvent
+                                         implements MysqlEvent{
 
     protected long serverId;
     protected String databaseName;
     protected String tableName;
-    protected long time;
-
-
-    @Override
-    public long time() {
-        return time;
-    }
 
     @Override
     public long serverId() {
