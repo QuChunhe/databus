@@ -1,5 +1,6 @@
 package databus.network;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -8,9 +9,12 @@ import databus.core.Subscriber;
 
 public class BatchSubscriber implements Subscriber{
 
-    public BatchSubscriber(String topic) {
-        this.topic = topic;
+    public BatchSubscriber() {
         subscribers = new CopyOnWriteArraySet<Subscriber>();
+    }
+    
+    public BatchSubscriber(Collection<Subscriber> subscribers){
+        this.subscribers = new CopyOnWriteArraySet<Subscriber>(subscribers);
     }
 
     @Override
@@ -26,6 +30,10 @@ public class BatchSubscriber implements Subscriber{
         return subscribers.add(subscriber);
     }
     
+    public boolean add(Collection<Subscriber> subscribers) {
+        return this.subscribers.addAll(subscribers);
+    }
+    
     public boolean remove(Subscriber subscrber) {
         return subscribers.remove(subscrber);
     }
@@ -34,15 +42,5 @@ public class BatchSubscriber implements Subscriber{
         return subscribers.size();
     }
     
-    /**
-     * 
-     * @return aaa.bbb.ccc.ddd:port/MYSQL/serverId
-     *         /databaseName/tableName
-     */
-    public String topic() {
-        return topic;
-    }
-    
     private Set<Subscriber> subscribers;
-    private String topic;
 }

@@ -1,5 +1,6 @@
 package databus.event.management;
 
+import databus.core.Publisher;
 import databus.event.SubscriptionEvent;
 
 public class SubscriptionEventWrapper extends AbstractManagementEvent 
@@ -16,5 +17,11 @@ public class SubscriptionEventWrapper extends AbstractManagementEvent
     @Override
     public String type() {
         return Type.SUBSCRIPTION.toString();
+    }
+
+    @Override
+    public void execute(Publisher pulisher) {
+        // TODO Auto-generated method stub
+        
     }
 }

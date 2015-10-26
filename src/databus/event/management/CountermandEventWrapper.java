@@ -1,5 +1,6 @@
 package databus.event.management;
 
+import databus.core.Publisher;
 import databus.event.CountermandEvent;
 
 public class CountermandEventWrapper extends AbstractManagementEvent 
@@ -16,5 +17,11 @@ public class CountermandEventWrapper extends AbstractManagementEvent
     @Override
     public String type() {
         return Type.COUNTERMAND.toString();
+    }
+
+    @Override
+    public void execute(Publisher pulisher) {
+        // TODO Auto-generated method stub
+        
     }
 }

@@ -49,6 +49,20 @@ public class PubliserMain implements Publisher{
         System.out.println("!!!!!!!!!!!!!!!!!!");
 
     }
+
+
+    @Override
+    public void subscribe(String topic, InternetAddress remoteAddress) {
+        // TODO Auto-generated method stub
+        
+    }
+
+
+    @Override
+    public void unsubscribe(String topic, InternetAddress remoteAddress) {
+        // TODO Auto-generated method stub
+        
+    }
     
 
 }
