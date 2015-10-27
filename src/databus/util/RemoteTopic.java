@@ -25,8 +25,15 @@ public class RemoteTopic {
             }
         }
         return false;
-    }
+    }    
     
+    @Override
+    public String toString() {
+        return remoteAddress.toString()+"/"+topic.replace(":", "/");
+    }
+
+
+
     private InternetAddress remoteAddress;
     private String topic;
 }

@@ -2,6 +2,7 @@ package databus.event.management;
 
 import databus.core.Publisher;
 import databus.event.CountermandEvent;
+import databus.util.InternetAddress;
 
 public class CountermandEventWrapper extends AbstractManagementEvent 
                                     implements CountermandEvent{
@@ -20,8 +21,9 @@ public class CountermandEventWrapper extends AbstractManagementEvent
     }
 
     @Override
-    public void execute(Publisher pulisher) {
-        // TODO Auto-generated method stub
-        
+    public void execute(Publisher publisher) {
+        InternetAddress remoteAddress = address();
+        String topic = topic();
+        publisher.unsubscribe(topic, remoteAddress);
     }
 }

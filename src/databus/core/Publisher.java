@@ -10,7 +10,7 @@ public interface Publisher {
     
     public void subscribe(String topic, InternetAddress remoteAddress);
 
-    void unsubscribe(String topic, InternetAddress remoteAddress);
+    public void unsubscribe(String topic, InternetAddress remoteAddress);
     
     
 

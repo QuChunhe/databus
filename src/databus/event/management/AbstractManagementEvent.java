@@ -18,7 +18,7 @@ public abstract class AbstractManagementEvent extends AbstractEvent
     @Override
     public String topic() {
         return topic;
-    } 
+    }
   
     protected String topic;    
 }

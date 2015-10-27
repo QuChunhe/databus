@@ -2,6 +2,7 @@ package databus.event.management;
 
 import databus.core.Publisher;
 import databus.event.SubscriptionEvent;
+import databus.util.InternetAddress;
 
 public class SubscriptionEventWrapper extends AbstractManagementEvent 
                                       implements SubscriptionEvent{
@@ -20,8 +21,9 @@ public class SubscriptionEventWrapper extends AbstractManagementEvent
     }
 
     @Override
-    public void execute(Publisher pulisher) {
-        // TODO Auto-generated method stub
-        
+    public void execute(Publisher publisher) {
+        InternetAddress remoteAddress = address();
+        String topic = topic();
+        publisher.subscribe(topic, remoteAddress);        
     }
 }
