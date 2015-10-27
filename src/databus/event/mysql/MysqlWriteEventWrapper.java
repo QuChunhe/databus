@@ -32,10 +32,21 @@ public abstract class MysqlWriteEventWrapper<T> extends MysqlAbstractEvent
         return column;
     }
 
+    @Override
+    public String toString() {
+        String name = this.getClass().getSimpleName()+"="+"["+
+                      "time="+time+","+
+                      "address="+address()+","+
+                      "topic="+topic()+","+
+                      "rows="+rows.toString()+
+                      "]";
+        return name;
+    } 
+    
     public void setTime(long time) {
         this.time = time;
     }
-    
+
     protected LinkedList<String> transform(Row row) {
         LinkedList<String> newRow = new LinkedList<String>();
         for(Column c : row.getColumns()) {

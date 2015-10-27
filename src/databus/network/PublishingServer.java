@@ -16,7 +16,7 @@ import databus.core.Event;
 import databus.core.Publisher;
 import databus.util.InternetAddress;
 
-public class PublishingServer implements Publisher{   
+public class PublishingServer implements Publisher, Startable{   
     
     public PublishingServer() {
         gson = new GsonBuilder().enableComplexMapKeySerialization() 
@@ -25,7 +25,7 @@ public class PublishingServer implements Publisher{
                                 .create();
         subscribers = new ConcurrentHashMap<String,Set<InternetAddress>>();
         client = new Client();
-        new Thread(client).start();
+        client.start();
     }
 
     @Override
@@ -69,6 +69,22 @@ public class PublishingServer implements Publisher{
         releaseMessage(address,stringOf(event));
     }
     
+    @Override
+    public void start() {
+        client.start();
+        
+    }
+
+    @Override
+    public boolean isRunning() {
+        return client.isRunning();
+    }
+
+    @Override
+    public void stop() {
+        client.stop();        
+    }  
+    
     private void releaseMessage(InternetAddress remoteAddress, String message) {
         Task task = new Task(remoteAddress, message);
         client.addTask(task);
@@ -82,5 +98,6 @@ public class PublishingServer implements Publisher{
     
     private Map<String,Set<InternetAddress>> subscribers;
     private Gson gson;
-    private Client client;    
+    private Client client;
+  
 }

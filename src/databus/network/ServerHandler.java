@@ -1,13 +1,10 @@
 package databus.network;
 
-import java.text.DateFormat;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
+import databus.core.Event;
+import databus.core.Subscriber;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -20,26 +17,33 @@ import io.netty.util.CharsetUtil;
  */
 public class ServerHandler  extends ChannelInboundHandlerAdapter{    
 
-    public ServerHandler() {
-        gson = new GsonBuilder().enableComplexMapKeySerialization() 
-                                .serializeNulls()   
-                                .setDateFormat(DateFormat.LONG)
-                                .create();
+
+    public ServerHandler(Subscriber subscriber) {
+        this.subscriber = subscriber;
+        parser = new MessageParser();
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, 
-                            Object msg) throws Exception {
+                            Object data) throws Exception {
         ByteBuf in;
-        if (msg instanceof ByteBuf) {
-             in = (ByteBuf) msg;
+        if (data instanceof ByteBuf) {
+             in = (ByteBuf) data;
         } else {
-            log.error(msg.getClass().getName()+" cannot cast to ByteBuf");
+            log.error(data.getClass().getName()+" cannot cast to ByteBuf");
             return;
         }
         
-        String data = in.toString(CharsetUtil.UTF_8);
-        System.out.println(data);        
+        String message = in.toString(CharsetUtil.UTF_8);
+        System.out.println(message);
+        Event event = parser.parse(message);
+        if (null == event) {            
+            log.error(message+" from "+
+                      ctx.channel().remoteAddress().toString()+
+                      " cannot be parsed as Event");
+            return;
+        }
+        subscriber.receive(event);
     }
 
     @Override
@@ -51,10 +55,11 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, 
                                 Throwable cause) throws Exception {
-
+        
     }
     
     private static Log log = LogFactory.getLog(ServerHandler.class);
-    
-    private Gson gson;
+    private MessageParser parser;
+    private Subscriber subscriber;
+
 }

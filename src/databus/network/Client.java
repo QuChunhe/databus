@@ -13,11 +13,33 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.GenericFutureListener;
 
-public class Client  implements Runnable{
+public class Client  implements Runnable, Startable {
 
     public Client() {
         taskQueue = new LinkedBlockingQueue<Task>();
-    }    
+        thread = new Thread(this, "DataBus Client");
+    }
+    
+    @Override
+    public void start() {
+        if (false == doRun) {
+            doRun = true;
+            thread.start(); 
+        }           
+    }
+
+    @Override
+    public boolean  isRunning() {
+        return doRun;
+    }
+    
+    @Override
+    public void stop() {
+        if (true == doRun) {
+            doRun = false;
+            thread.interrupt();
+        }        
+    }
 
     @Override
     public void run() {
@@ -34,20 +56,13 @@ public class Client  implements Runnable{
                              .addListener(listener);
                 } catch (InterruptedException e) {
                     log.warn("Has been interrupped!", e);
+                    Thread.interrupted();
                 }
             }
 
         } finally {
             group.shutdownGracefully();
         }        
-    }
-
-    public boolean  isRunning() {
-        return doRun;
-    }
-    
-    public void stop() {
-        doRun = false;
     }
     
     public void addTask(Task task) {
@@ -91,5 +106,7 @@ public class Client  implements Runnable{
     private static Log log = LogFactory.getLog(Client.class);
     
     private BlockingQueue<Task> taskQueue;
-    private volatile boolean doRun = true;
+    private volatile boolean doRun = false;
+    private Thread thread;
+
 }
