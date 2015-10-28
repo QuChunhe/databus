@@ -5,11 +5,7 @@ import databus.event.AbstractEvent;
 import databus.event.MysqlEvent;
 
 public abstract class MysqlAbstractEvent extends AbstractEvent
-                                         implements MysqlEvent{
-
-    protected long serverId;
-    protected String databaseName;
-    protected String tableName;
+                                         implements MysqlEvent {
 
     @Override
     public long serverId() {
@@ -35,6 +31,24 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
     public String topic() {
         return source()+":"+serverId()+":"+
                databaseName()+":"+tableName();
-    }    
+    }
     
+    public MysqlAbstractEvent serverId(long serverId) {
+        this.serverId = serverId;
+        return this;
+    }
+    
+    public MysqlAbstractEvent databaseName(String databaseName) {
+        this.databaseName = databaseName;
+        return this;
+    }
+    
+    public MysqlAbstractEvent tableName(String tableName) {
+        this.tableName = tableName;
+        return this;
+    }
+    
+    private long serverId;
+    private String databaseName;
+    private String tableName;    
 }

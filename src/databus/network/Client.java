@@ -29,7 +29,7 @@ public class Client  implements Runnable, Startable {
     }
 
     @Override
-    public boolean  isRunning() {
+    public boolean isRunning() {
         return doRun;
     }
     
@@ -51,7 +51,7 @@ public class Client  implements Runnable, Startable {
             while (doRun) {
                 try {
                     Task task = taskQueue.take();
-                    TransportListener listener = new TransportListener(task);
+                    ConnectionListener listener = new ConnectionListener(task);
                     bootstrap.connect(task.ipAddress(), task.port())
                              .addListener(listener);
                 } catch (InterruptedException e) {
@@ -73,10 +73,10 @@ public class Client  implements Runnable, Startable {
         }
     }
 
-    private static class TransportListener
+    private static class ConnectionListener
                               implements GenericFutureListener<ChannelFuture> {
        
-        public TransportListener(Task task) {
+        public ConnectionListener(Task task) {
             this.task = task;
         }
 

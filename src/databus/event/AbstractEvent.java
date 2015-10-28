@@ -9,18 +9,24 @@ public abstract class AbstractEvent implements Event{
     public long time() {
         return time;
     }
-
+    
+    @Override
+    public Event time(long time) {
+        this.time = time;
+        return this;
+    }
+    
     @Override
     public InternetAddress address() {
         return address;
     }
 
     @Override
-    public void address(InternetAddress localAddress) {
+    public Event address(InternetAddress localAddress) {
         address = localAddress;
-        
+        return this;
     }
     
-    protected InternetAddress address;
-    protected long time;
+    private InternetAddress address;
+    private long time;
 }

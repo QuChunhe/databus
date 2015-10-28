@@ -40,8 +40,7 @@ public class PubliserMain implements Publisher{
 
 
     public static void main(String[] args) {
-        MessageParser parser = new MessageParser();
-        System.exit(1);
+      
         Publisher publisher = new PubliserMain();
         Listener listener = new MySQLListener(publisher);
         

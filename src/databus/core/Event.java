@@ -12,10 +12,12 @@ public interface Event {
     
     public long time();
     
+    public Event time(long time);
+    
     public String type();
     
     public InternetAddress address();
     
-    public void address(InternetAddress localAddress);
+    public Event address(InternetAddress localAddress);
     
 }

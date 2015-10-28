@@ -23,18 +23,17 @@ public class PublishingServer implements Publisher, Startable{
                                 .serializeNulls()   
                                 .setDateFormat(DateFormat.LONG)
                                 .create();
-        subscribers = new ConcurrentHashMap<String,Set<InternetAddress>>();
+        subscriberMap = new ConcurrentHashMap<String,Set<InternetAddress>>();
         client = new Client();
-        client.start();
     }
 
     @Override
     public void subscribe(String topic, InternetAddress remoteAddress) {
-        Set<InternetAddress> addressSet = subscribers.get(topic);
+        Set<InternetAddress> addressSet = subscriberMap.get(topic);
         if (null == addressSet) {
             addressSet = new CopyOnWriteArraySet<InternetAddress>();
             addressSet.add(remoteAddress);
-            subscribers.put(topic, addressSet);
+            subscriberMap.put(topic, addressSet);
         } else if (addressSet.contains(remoteAddress)){
             log.info(remoteAddress.toString()+" has subscribeed before");
         } else {
@@ -44,18 +43,20 @@ public class PublishingServer implements Publisher, Startable{
     
     @Override
     public void unsubscribe(String topic, InternetAddress remoteAddress) {
-        Set<InternetAddress> addressSet = subscribers.get(topic);
+        Set<InternetAddress> addressSet = subscriberMap.get(topic);
         if (addressSet.remove(remoteAddress)) {
             if (addressSet.isEmpty()) {
-                subscribers.remove(topic);
+                subscriberMap.remove(topic);
             }
+        } else {
+            log.error(remoteAddress.toString()+" hasnot subscribe "+topic);
         }
     }
 
     @Override
     public void publish(Event event) {
         String topic = event.topic();
-        Set<InternetAddress> remoteAddressSet = subscribers.get(topic);
+        Set<InternetAddress> remoteAddressSet = subscriberMap.get(topic);
         if (null != remoteAddressSet) {
             String message = stringOf(event);
             for(InternetAddress address : remoteAddressSet) {
@@ -96,7 +97,7 @@ public class PublishingServer implements Publisher, Startable{
     
     private static Log log = LogFactory.getLog(PublishingServer.class);
     
-    private Map<String,Set<InternetAddress>> subscribers;
+    private Map<String,Set<InternetAddress>> subscriberMap;
     private Gson gson;
     private Client client;
   
