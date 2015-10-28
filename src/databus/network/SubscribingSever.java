@@ -37,10 +37,10 @@ public class SubscribingSever implements Subscriber, Startable {
     
     @Override
     public void start() {
-        if (!server.isRunning())  {
+        
             server.start();
             subscribe();
-        }
+      
     }
 
     @Override
