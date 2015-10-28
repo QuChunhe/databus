@@ -13,12 +13,26 @@ public class Startup {
         Listener listener = new MysqlListener(publisher);
         Thread publisherThread = publisher.start();
         Thread subscriberThread = subscriber.start();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+        subscriber.subscribe();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
         listener.start();
         try {
             publisherThread.join();
             subscriberThread.join();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
+            publisher.stop();
+            subscriber.stop();
             e.printStackTrace();
         }
         

@@ -35,16 +35,14 @@ public class SubscribingSever implements Subscriber, Startable {
     } 
     
     public Thread start() {
-        Thread thread = server.start();
-        subscribe();
-        return thread;
+        return server.start();
     }
 
     public void stop() {
        server.stop();
     }
     
-    private void subscribe() {
+    public void subscribe() {
         for(RemoteTopic remoteTopic : subscriberMap.keySet()) {
             InternetAddress remoteAddress = remoteTopic.remoteAddress();
             String topic = remoteTopic.topic();

@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import databus.util.InternetAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -48,13 +49,18 @@ public class Client  implements Runnable, Startable {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(group).channel(NioSocketChannel.class);
+            bootstrap.group(group)
+                     .channel(NioSocketChannel.class)
+                     .option(ChannelOption.TCP_NODELAY, true);
             
             while (doRun) {
                 try {
                     Task task = taskQueue.take();
-                    ConnectionListener listener = new ConnectionListener(task);
-                    bootstrap.connect(task.ipAddress(), task.port())
+                    String message = task.message();
+                    ClientHandler handler = new ClientHandler(message);  
+                    SendingListener listener = new SendingListener(message);
+                    bootstrap.handler(handler)
+                             .connect(task.ipAddress(), task.port())
                              .addListener(listener);
                 } catch (InterruptedException e) {
                     log.warn("Has been interrupped!", e);
@@ -86,56 +92,31 @@ public class Client  implements Runnable, Startable {
             log.error("LinkedBlockingQueue overflow", e);
         }
     }
-
-    private static class ConnectionListener
-                              implements GenericFutureListener<ChannelFuture> {
-       
-        public ConnectionListener(Task task) {
-            this.task = task;
-        }
-
-        @Override
-        public void operationComplete(ChannelFuture future) throws Exception {
-            if(future.isDone()) {
-                if (future.isSuccess()) {
-                    String message = task.message();
-                    future.channel()
-                          .write(message).addListener(new SendingListener());
-                    log.info("begin to send "+message);
-                }else {
-                    logError("connection has failed ", future.cause());
-                }
-                
-            } else {
-                logError("cannot connect ", future.cause());
-            }
-            
-        }
-
-        private void logError(String msg, Throwable cause) {
-            log.error(msg+task.ipAddress()+":"+task.port(), cause);
-        }
-        
-        private Task task;
-    }
     
     private static class SendingListener 
                               implements GenericFutureListener<ChannelFuture> {
+
+        
+        public SendingListener(String message) {
+            this.message = message;
+        }
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
             String address = future.channel().remoteAddress().toString();
             if(future.isDone()) {
                 if (future.isSuccess()) {
-                    log.info("have sent to "+address);
+                    log.info(message+" have sent to "+address);
                 }else {
-                    log.error(address+" sending has failed", future.cause());
+                    log.error(message+" has faied to send "+address, future.cause());
                 }
                 
             } else {
-                log.error("cannot connect to "+address, future.cause());
+                log.error(message+"cannot send to "+address, future.cause());
             }            
-        }        
+        }  
+        
+        private String message;
     }
 
     private static Log log = LogFactory.getLog(Client.class);

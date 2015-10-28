@@ -25,7 +25,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, 
-                            Object data) throws Exception {
+                                                Object data) throws Exception {
         ByteBuf in;
         if (data instanceof ByteBuf) {
              in = (ByteBuf) data;
@@ -35,7 +35,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
         }
         
         String message = in.toString(CharsetUtil.UTF_8);
-        System.out.println(message);
+        log.info("Has receive "+message);
         Event event = parser.parse(message);
         if (null == event) {            
             log.error(message+" from "+
@@ -48,7 +48,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx)
-                                                  throws Exception {
+                                    throws Exception {
        
     }
 
