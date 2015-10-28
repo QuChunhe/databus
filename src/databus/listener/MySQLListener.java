@@ -28,7 +28,7 @@ public class MySQLListener  implements Listener{
     }
     
     @Override
-    public boolean doesRun() {
+    public boolean isRunning() {
         return openRelicator.isRunning();
     }
 

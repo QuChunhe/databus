@@ -1,4 +1,4 @@
-package databus.network;
+package databus.core;
 
 public interface Startable {
     

@@ -8,6 +8,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Publisher;
+import databus.core.Startable;
 import databus.core.Subscriber;
 
 import databus.event.ManagementEvent;
