@@ -1,18 +1,12 @@
 package databus.event.management;
 
 import databus.core.Publisher;
-import databus.event.CountermandEvent;
 import databus.util.InternetAddress;
 
-public class CountermandEventWrapper extends AbstractManagementEvent 
-                                    implements CountermandEvent{
+public class CountermandEvent extends AbstractManagementEvent {
 
-    public CountermandEventWrapper(String topic) {
+    public CountermandEvent(String topic) {
         super(topic);
-    }
-    
-    public CountermandEventWrapper() {
-        this(null);
     }
 
     @Override

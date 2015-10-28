@@ -54,9 +54,14 @@ public class Server implements Startable{
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
         
-    }   
+    } 
+    
+    public InternetAddress getListeningAddress() {
+        return localAddress;
+    }
     
     private Subscriber subscriber;
-    EventLoopGroup bossGroup;
-    EventLoopGroup workerGroup;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
+    private InternetAddress localAddress;
 }

@@ -28,15 +28,17 @@ public class Configuration {
     
     public static Configuration instance() {
         return instance;
-    }
-    
+    }    
     
     public InternetAddress loadListeningAddress() {
-        Properties properties = loadProperties(SERVER_CONFIGURATION_NAME);
-        String ipAddress = properties.getProperty("server.ip", "127.0.0.1");
-        int port = Integer.parseInt(
-                               properties.getProperty("server.port", "8765"));
-        return new InternetAddress(ipAddress, port);
+        if (null== listeningAddress) {
+            Properties properties = loadProperties(SERVER_CONFIGURATION_NAME);
+            String ip = properties.getProperty("server.ip", "127.0.0.1");
+            int port = Integer.parseInt(
+                                properties.getProperty("server.port", "8765"));
+            listeningAddress = new InternetAddress(ip, port); 
+        }
+        return listeningAddress;
     }
     
     /**
@@ -146,5 +148,7 @@ public class Configuration {
     
     private static Log log = LogFactory.getLog(Configuration.class);
     private static Configuration instance = new Configuration();
+    
+    private InternetAddress listeningAddress = null;
 
 }

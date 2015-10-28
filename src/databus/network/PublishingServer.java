@@ -14,6 +14,7 @@ import com.google.gson.GsonBuilder;
 
 import databus.core.Event;
 import databus.core.Publisher;
+import databus.util.Configuration;
 import databus.util.InternetAddress;
 
 public class PublishingServer implements Publisher, Startable{   
@@ -25,6 +26,7 @@ public class PublishingServer implements Publisher, Startable{
                                 .create();
         subscriberMap = new ConcurrentHashMap<String,Set<InternetAddress>>();
         client = new Client();
+        listeningAddress = Configuration.instance().loadListeningAddress();
     }
 
     @Override
@@ -59,21 +61,20 @@ public class PublishingServer implements Publisher, Startable{
         Set<InternetAddress> remoteAddressSet = subscriberMap.get(topic);
         if (null != remoteAddressSet) {
             String message = stringOf(event);
-            for(InternetAddress address : remoteAddressSet) {
-                releaseMessage(address, message);
-            }
-        }        
+            client.send(message, remoteAddressSet);
+        }
     }
     
     @Override
-    public void publish(InternetAddress address, Event event) {
-        releaseMessage(address,stringOf(event));
+    public void publish(InternetAddress remoteAddress, Event event) {
+        client.send(stringOf(event), remoteAddress);
     }
     
     @Override
     public void start() {
-        client.start();
-        
+        if (!client.isRunning()) {
+            client.start(); 
+        }
     }
 
     @Override
@@ -83,15 +84,13 @@ public class PublishingServer implements Publisher, Startable{
 
     @Override
     public void stop() {
-        client.stop();        
-    }  
-    
-    private void releaseMessage(InternetAddress remoteAddress, String message) {
-        Task task = new Task(remoteAddress, message);
-        client.addTask(task);
+        if (client.isRunning()) {
+           client.stop(); 
+        }
     }
     
     private String stringOf(Event e) {
+        e.address(listeningAddress);
         return e.source().toString()+":"+e.type()+"="+gson.toJson(e);
     }
     
@@ -99,6 +98,6 @@ public class PublishingServer implements Publisher, Startable{
     
     private Map<String,Set<InternetAddress>> subscriberMap;
     private Gson gson;
-    private Client client;
-  
+    private Client client; 
+    private InternetAddress listeningAddress;
 }

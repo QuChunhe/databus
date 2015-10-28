@@ -1,11 +1,13 @@
 package databus.network;
 
+import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.util.InternetAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -25,7 +27,7 @@ public class Client  implements Runnable, Startable {
         if (false == doRun) {
             doRun = true;
             thread.start(); 
-        }           
+        }
     }
 
     @Override
@@ -38,7 +40,7 @@ public class Client  implements Runnable, Startable {
         if (true == doRun) {
             doRun = false;
             thread.interrupt();
-        }        
+        }
     }
 
     @Override
@@ -62,10 +64,20 @@ public class Client  implements Runnable, Startable {
 
         } finally {
             group.shutdownGracefully();
-        }        
+        }
     }
     
-    public void addTask(Task task) {
+    public void send(String message, Collection<InternetAddress> destinations){
+        for(InternetAddress address: destinations) {
+            send(message, address);
+        }
+    }
+    
+    public void send(String message, InternetAddress destination) {
+        add(new Task(destination, message));
+    }
+    
+   private void add(Task task) {
         try {
             taskQueue.put(task);
         } catch (InterruptedException e) {
@@ -85,7 +97,8 @@ public class Client  implements Runnable, Startable {
             if(future.isDone()) {
                 if (future.isSuccess()) {
                     String message = task.message();
-                    future.channel().write(message);
+                    future.channel()
+                          .write(message).addListener(new SendingListener());
                 }else {
                     log("connection has failed ", future.cause());
                 }
@@ -101,6 +114,25 @@ public class Client  implements Runnable, Startable {
         }
         
         private Task task;
+    }
+    
+    private static class SendingListener 
+                              implements GenericFutureListener<ChannelFuture> {
+
+        @Override
+        public void operationComplete(ChannelFuture future) throws Exception {
+            String address = future.channel().remoteAddress().toString();
+            if(future.isDone()) {
+                if (future.isSuccess()) {
+                    log.info("");
+                }else {
+                    log.error(address+" sending has failed", future.cause());
+                }
+                
+            } else {
+                log.error("cannot connect to "+address, future.cause());
+            }            
+        }        
     }
 
     private static Log log = LogFactory.getLog(Client.class);

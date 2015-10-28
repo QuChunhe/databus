@@ -11,15 +11,16 @@ import databus.core.Publisher;
 import databus.core.Subscriber;
 
 import databus.event.ManagementEvent;
-import databus.event.management.SubscriptionEventWrapper;
+import databus.event.management.SubscriptionEvent;
 import databus.util.Configuration;
 import databus.util.InternetAddress;
 import databus.util.RemoteTopic;
 
-public class SubscribingSever implements Subscriber, Startable{    
+public class SubscribingSever implements Subscriber, Startable {    
     
     public SubscribingSever(Publisher publisher) {
-        subscriberMap = Configuration.instance().loadSubscribers();
+        Configuration config = Configuration.instance();
+        subscriberMap = config.loadSubscribers();
         this.publisher = publisher;
         server = new Server(this);
     }  
@@ -35,26 +36,29 @@ public class SubscribingSever implements Subscriber, Startable{
     
     @Override
     public void start() {
-                
+        if (!server.isRunning())  {
+            server.start();
+            subscribe();
+        }
     }
 
     @Override
     public boolean isRunning() {
-        // TODO Auto-generated method stub
-        return false;
+        return server.isRunning();
     }
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-        
+        if (server.isRunning()) {
+            server.start();
+        }
     }
     
     private void subscribe() {
         for(RemoteTopic remoteTopic : subscriberMap.keySet()) {
             InternetAddress remoteAddress = remoteTopic.remoteAddress();
             String topic = remoteTopic.topic();
-            ManagementEvent event = new SubscriptionEventWrapper(topic);
+            ManagementEvent event = new SubscriptionEvent(topic);
             publisher.publish(remoteAddress, event);
         }
     } 
@@ -75,7 +79,7 @@ public class SubscribingSever implements Subscriber, Startable{
     
     private static Log log = LogFactory.getLog(SubscribingSever.class);
     private Publisher publisher;
-    private Server server;
+    private Server server = null;
     private Map<RemoteTopic, Set<Subscriber>> subscriberMap;
     
 }
