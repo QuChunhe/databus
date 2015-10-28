@@ -16,13 +16,13 @@ import databus.core.Listener;
 import databus.core.Publisher;
 import databus.event.MysqlEvent;
 
-public class MySQLListener  implements Listener{
+public class MysqlListener  implements Listener{
 
-    public MySQLListener(Publisher publisher) {
+    public MysqlListener(Publisher publisher) {
         this(publisher, CONFIG_FILE_NAME);
     }
     
-    public MySQLListener(Publisher publisher, String configFileName) {
+    public MysqlListener(Publisher publisher, String configFileName) {
         this.configFileName = configFileName;
         this.publisher = publisher;
     }
@@ -97,7 +97,7 @@ public class MySQLListener  implements Listener{
     final private static String MYSQL_SERVER_ID = "listener.mysql.serverId";
     final private static String MYSQL_BINLOG_FILE_NAME = "listener.mysql.binlogFileName";
     
-    private static Log log = LogFactory.getLog(MySQLListener.class);
+    private static Log log = LogFactory.getLog(MysqlListener.class);
     
     private Publisher publisher;
     private OpenReplicator openRelicator;

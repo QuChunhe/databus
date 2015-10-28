@@ -46,6 +46,7 @@ public class Client  implements Runnable, Startable {
 
     @Override
     public void run() {
+        log.info("begin run");
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();
@@ -61,6 +62,7 @@ public class Client  implements Runnable, Startable {
                     log.warn("Has been interrupped!", e);
                     Thread.interrupted();
                 }
+                log.info("run once");
             }
 
         } finally {
@@ -79,6 +81,7 @@ public class Client  implements Runnable, Startable {
     }
     
    private void add(Task task) {
+       log.info(task.toString());
         try {
             taskQueue.put(task);
         } catch (InterruptedException e) {
@@ -100,17 +103,18 @@ public class Client  implements Runnable, Startable {
                     String message = task.message();
                     future.channel()
                           .write(message).addListener(new SendingListener());
+                    log.info("begin to send "+message);
                 }else {
-                    log("connection has failed ", future.cause());
+                    logError("connection has failed ", future.cause());
                 }
                 
             } else {
-                log("cannot connect ", future.cause());
+                logError("cannot connect ", future.cause());
             }
             
         }
 
-        private void log(String msg, Throwable cause) {
+        private void logError(String msg, Throwable cause) {
             log.error(msg+task.ipAddress()+":"+task.port(), cause);
         }
         
@@ -125,7 +129,7 @@ public class Client  implements Runnable, Startable {
             String address = future.channel().remoteAddress().toString();
             if(future.isDone()) {
                 if (future.isSuccess()) {
-                    log.info("");
+                    log.info("have sent to "+address);
                 }else {
                     log.error(address+" sending has failed", future.cause());
                 }

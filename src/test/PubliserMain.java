@@ -8,7 +8,7 @@ import com.google.gson.GsonBuilder;
 import databus.core.Event;
 import databus.core.Listener;
 import databus.core.Publisher;
-import databus.listener.MySQLListener;
+import databus.listener.MysqlListener;
 import databus.network.MessageParser;
 import databus.util.InternetAddress;
 
@@ -42,7 +42,7 @@ public class PubliserMain implements Publisher{
     public static void main(String[] args) {
       
         Publisher publisher = new PubliserMain();
-        Listener listener = new MySQLListener(publisher);
+        Listener listener = new MysqlListener(publisher);
         
         listener.start();
         System.out.println("!!!!!!!!!!!!!!!!!!");

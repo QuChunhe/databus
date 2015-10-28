@@ -19,8 +19,15 @@ public class Task {
     
     public String message() {
         return message;
-    }
+    }   
     
+    @Override
+    public String toString() {
+        return address.toString()+" : "+message;
+    }
+
+
+
     private InternetAddress address;
     private String message;
 

@@ -15,7 +15,7 @@ import databus.event.mysql.MysqlUpdateEvent;
 
 public class DatabusBinlogEventListener implements BinlogEventListener {
 
-    public DatabusBinlogEventListener(MySQLListener listener) {
+    public DatabusBinlogEventListener(MysqlListener listener) {
         this.listener = listener;
         curBinlogEvent = null;
         preBinlogEvent = null;
@@ -98,7 +98,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
 
     private static Log log = LogFactory.getLog(DatabusBinlogEventListener.class);
 
-    private MySQLListener listener;
+    private MysqlListener listener;
     private BinlogEventV4 preBinlogEvent;
     private BinlogEventV4 curBinlogEvent;
 }
