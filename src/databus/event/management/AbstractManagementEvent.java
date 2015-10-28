@@ -8,6 +8,7 @@ public abstract class AbstractManagementEvent extends AbstractEvent
     
     public AbstractManagementEvent(String topic) {
         this.topic = topic;
+        time(System.currentTimeMillis());
     }
 
     @Override

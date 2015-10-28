@@ -1,5 +1,9 @@
 package databus.core;
 
-public interface Listener extends Startable {
-
+public interface Listener  {
+    public void start();
+    
+    public boolean isRunning();
+    
+    public void stop();
 }

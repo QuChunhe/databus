@@ -1,6 +1,8 @@
 package databus.network;
 
-import databus.core.Startable;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import databus.core.Subscriber;
 import databus.util.Configuration;
 import databus.util.InternetAddress;
@@ -11,7 +13,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-public class Server implements Startable{    
+public class Server implements Runnable, Startable{    
     
     public Server(Subscriber subscriber) {
         this.subscriber = subscriber;
@@ -20,7 +22,19 @@ public class Server implements Startable{
     }
     
     @Override
-    public void start() {
+    public Thread start() {
+        if (null == thread) {
+            thread = new Thread(this, "Databus Server");
+            
+        } 
+        if (thread.getState() == Thread.State.NEW) {
+            thread.start();
+        }        
+        return thread;
+    }
+
+    @Override
+    public void run() { 
         ServerHandler childHandler = new ServerHandler(subscriber);
         
         InternetAddress address = 
@@ -36,33 +50,29 @@ public class Server implements Startable{
             Channel channel = bootstrap.bind().sync().channel();
             channel.closeFuture().sync();
         } catch (InterruptedException e) {
-            
-            e.printStackTrace();
+            log.error("Server Thread is interrupted", e);
         } finally {
-            stop();
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
     }
-    
-    @Override
-    public boolean isRunning() {
-        boolean isShuttingDown = bossGroup.isShuttingDown() || 
-                                 workerGroup.isShuttingDown();
-        return !isShuttingDown;
-    }
 
-    @Override
-    public void stop() {
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
-        
+    public void stop() {        
+        if (null != thread) {
+            thread.interrupt();
+        }
     } 
     
     public InternetAddress getListeningAddress() {
         return localAddress;
     }
     
+    private static Log log = LogFactory.getLog(Server.class);
+    
     private Subscriber subscriber;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private InternetAddress localAddress;
+    private Thread thread = null;
+
 }

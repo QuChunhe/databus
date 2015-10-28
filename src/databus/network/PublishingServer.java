@@ -14,7 +14,6 @@ import com.google.gson.GsonBuilder;
 
 import databus.core.Event;
 import databus.core.Publisher;
-import databus.core.Startable;
 import databus.util.Configuration;
 import databus.util.InternetAddress;
 
@@ -73,16 +72,14 @@ public class PublishingServer implements Publisher, Startable{
     }
     
     @Override
-    public void start() {        
-        client.start();
+    public Thread start() {        
+        return client.start();
     }
-
-    @Override
+    
     public boolean isRunning() {
         return client.isRunning();
     }
-
-    @Override
+    
     public void stop() {
         if (client.isRunning()) {
            client.stop(); 

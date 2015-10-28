@@ -11,9 +11,17 @@ public class Startup {
         PublishingServer publisher = new PublishingServer();
         SubscribingSever subscriber = new SubscribingSever(publisher);
         Listener listener = new MysqlListener(publisher);
-        publisher.start();
-        subscriber.start();
+        Thread publisherThread = publisher.start();
+        Thread subscriberThread = subscriber.start();
         listener.start();
+        try {
+            publisherThread.join();
+            subscriberThread.join();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
         System.out.println("*******************************");   
         
 

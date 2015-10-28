@@ -8,7 +8,6 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Publisher;
-import databus.core.Startable;
 import databus.core.Subscriber;
 
 import databus.event.ManagementEvent;
@@ -33,26 +32,16 @@ public class SubscribingSever implements Subscriber, Startable {
             return true;
         }        
         return receive0(event);
-    }    
+    } 
     
-    @Override
-    public void start() {
-        
-            server.start();
-            subscribe();
-      
+    public Thread start() {
+        Thread thread = server.start();
+        subscribe();
+        return thread;
     }
 
-    @Override
-    public boolean isRunning() {
-        return server.isRunning();
-    }
-
-    @Override
     public void stop() {
-        if (server.isRunning()) {
-            server.start();
-        }
+       server.stop();
     }
     
     private void subscribe() {

@@ -7,7 +7,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Startable;
 import databus.util.InternetAddress;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -24,19 +23,18 @@ public class Client  implements Runnable, Startable {
     }
     
     @Override
-    public void start() {
+    public Thread start() {
         if (false == doRun) {
             doRun = true;
             thread.start(); 
         }
+        return thread;
     }
 
-    @Override
     public boolean isRunning() {
         return doRun;
     }
     
-    @Override
     public void stop() {
         if (true == doRun) {
             doRun = false;
@@ -62,7 +60,7 @@ public class Client  implements Runnable, Startable {
                     log.warn("Has been interrupped!", e);
                     Thread.interrupted();
                 }
-                log.info("run once");
+ 
             }
 
         } finally {
