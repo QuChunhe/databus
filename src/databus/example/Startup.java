@@ -14,14 +14,14 @@ public class Startup {
         Thread publisherThread = publisher.start();
         Thread subscriberThread = subscriber.start();
         try {
-            Thread.sleep(1000);
+            Thread.sleep(500);
         } catch (InterruptedException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
         subscriber.subscribe();
         try {
-            Thread.sleep(1000);
+            Thread.sleep(500);
         } catch (InterruptedException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();

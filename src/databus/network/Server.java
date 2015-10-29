@@ -39,7 +39,6 @@ public class Server implements Runnable, Startable{
         
         InternetAddress address = 
                 Configuration.instance().loadListeningAddress();
-        log.info("Server listening Address "+address);
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)

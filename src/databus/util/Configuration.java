@@ -91,7 +91,6 @@ public class Configuration {
         InternetAddress netAddress = new InternetAddress(addressInfo[0],port);
         
         String topic = result[1].replace('/', ':');
-        log.info("configuration "+topic);
         return new RemoteTopic(netAddress, topic);
     }
     

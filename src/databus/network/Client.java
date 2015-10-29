@@ -84,7 +84,6 @@ public class Client  implements Runnable, Startable {
     }
     
    private void add(Task task) {
-       log.info(task.toString());
         try {
             taskQueue.put(task);
         } catch (InterruptedException e) {
@@ -105,7 +104,7 @@ public class Client  implements Runnable, Startable {
             String address = future.channel().remoteAddress().toString();
             if(future.isDone()) {
                 if (future.isSuccess()) {
-                    log.info(message+" have sent to "+address);
+                    log.info("Message have sent to "+address+" : "+message);
                 }else {
                     log.error(message+" has faied to send "+address, future.cause());
                 }

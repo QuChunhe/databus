@@ -41,7 +41,6 @@ public class PublishingServer implements Publisher, Startable{
         } else {
             addressSet.add(remoteAddress);
         }
-        log.info(subscriberMap.toString());
     }
     
     @Override
@@ -58,7 +57,6 @@ public class PublishingServer implements Publisher, Startable{
 
     @Override
     public void publish(Event event) {
-        log.info(event);
         String topic = event.topic();
         Set<InternetAddress> remoteAddressSet = subscriberMap.get(topic);
         if (null != remoteAddressSet) {

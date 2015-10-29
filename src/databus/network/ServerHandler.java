@@ -36,7 +36,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
         }
         
         String message = in.toString(CharsetUtil.UTF_8);
-        log.info("Have receive "+message);
+        log.info("Have received message : "+message);
         Event event = parser.parse(message);
         if (null == event) {            
             log.error("Message from "+ctx.channel().remoteAddress().toString()+
