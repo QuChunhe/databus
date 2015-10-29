@@ -10,6 +10,10 @@ public abstract class AbstractManagementEvent extends AbstractEvent
         this.topic = topic;
         time(System.currentTimeMillis());
     }
+    
+    public AbstractManagementEvent() {
+        
+    }
 
     @Override
     public Source source() {

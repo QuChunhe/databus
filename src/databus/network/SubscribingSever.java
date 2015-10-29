@@ -52,10 +52,12 @@ public class SubscribingSever implements Subscriber, Startable {
     } 
     
     private boolean receive0(Event event) {
+        log.info("event "+event.topic());
         RemoteTopic key = new RemoteTopic(event.address(),event.topic());
         Set<Subscriber> subscribers = subscriberMap.get(key); 
         if (null == subscribers) {
             log.error(key.toString()+" has not been subscribed!");
+            log.info(subscriberMap.toString());
             return false;
         }
         boolean doSucceed = true;

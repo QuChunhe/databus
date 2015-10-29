@@ -4,7 +4,7 @@ public class RemoteTopic {
     
     public RemoteTopic(InternetAddress remoteAddress, String topic) {
         this.remoteAddress = remoteAddress;
-        this.topic = topic;
+        this.topic = topic.toUpperCase();
     }
     
     public InternetAddress remoteAddress() {
@@ -30,6 +30,13 @@ public class RemoteTopic {
     @Override
     public String toString() {
         return remoteAddress.toString()+"/"+topic.replace(":", "/");
+    }
+
+
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
     }
 
 

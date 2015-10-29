@@ -6,6 +6,6 @@ databus.event.mysql.MysqlUpdateEvent
 
 
 #ManagementEvent
-#databus.event.management.CountermandEvent
-#databus.event.management.SubscriptionEvent
+databus.event.management.CountermandEvent
+databus.event.management.SubscriptionEvent
 

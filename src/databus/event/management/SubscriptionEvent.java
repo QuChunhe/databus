@@ -9,6 +9,11 @@ public class SubscriptionEvent extends AbstractManagementEvent {
         super(topic);
     }
 
+    public SubscriptionEvent() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
     @Override
     public String type() {
         return Type.SUBSCRIPTION.toString();

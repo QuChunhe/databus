@@ -7,7 +7,12 @@ public class CountermandEvent extends AbstractManagementEvent {
 
     public CountermandEvent(String topic) {
         super(topic);
+    }    
+
+    public CountermandEvent() {
+        super();
     }
+
 
     @Override
     public String type() {

@@ -45,7 +45,6 @@ public class Client  implements Runnable, Startable {
 
     @Override
     public void run() {
-        log.info("begin run");
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap bootstrap = new Bootstrap();

@@ -39,12 +39,12 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
     }
     
     public MysqlAbstractEvent databaseName(String databaseName) {
-        this.databaseName = databaseName;
+        this.databaseName = databaseName.toUpperCase();
         return this;
     }
     
     public MysqlAbstractEvent tableName(String tableName) {
-        this.tableName = tableName;
+        this.tableName = tableName.toUpperCase();
         return this;
     }
     

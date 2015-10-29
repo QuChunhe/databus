@@ -40,7 +40,8 @@ public class PublishingServer implements Publisher, Startable{
             log.info(remoteAddress.toString()+" has subscribeed before");
         } else {
             addressSet.add(remoteAddress);
-        }        
+        }
+        log.info(subscriberMap.toString());
     }
     
     @Override
@@ -63,6 +64,8 @@ public class PublishingServer implements Publisher, Startable{
         if (null != remoteAddressSet) {
             String message = stringOf(event);
             client.send(message, remoteAddressSet);
+        } else {
+            log.info(event.toString()+" hasnot subscriber!");
         }
     }
     
