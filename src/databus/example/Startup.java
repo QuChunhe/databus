@@ -7,38 +7,26 @@ import databus.network.SubscribingSever;
 
 public class Startup {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         PublishingServer publisher = new PublishingServer();
         SubscribingSever subscriber = new SubscribingSever(publisher);
         Listener listener = new MysqlListener(publisher);
         Thread publisherThread = publisher.start();
         Thread subscriberThread = subscriber.start();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
+        
+        Thread.sleep(500);
+        
         subscriber.subscribe();
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
+        
+        Thread.sleep(500);
+       
         listener.start();
         try {
             publisherThread.join();
             subscriberThread.join();
-        } catch (InterruptedException e) {
+        } finally {
             publisher.stop();
             subscriber.stop();
-            e.printStackTrace();
         }
-        
-        System.out.println("*******************************");   
-        
-
     }
-
 }
