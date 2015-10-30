@@ -32,14 +32,10 @@ public class RemoteTopic {
         return remoteAddress.toString()+"/"+topic.replace(":", "/");
     }
 
-
-
     @Override
     public int hashCode() {
-        return toString().hashCode();
+        return (remoteAddress.ipAddress()+topic).hashCode();
     }
-
-
 
     private InternetAddress remoteAddress;
     private String topic;
