@@ -19,10 +19,11 @@ public class TableManager {
         return instance;
     }
     
-    public List<String> getColumn(String databaseName, String tableName) {
-         
+    public List<String> getColumns(String databaseName, String tableName) {         
         return columns.get(databaseName+"."+tableName);
     }
+    
+    
  
     private TableManager() {
         String tableFileName = Configuration.instance().TABLE_FILE_NAME;

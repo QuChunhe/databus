@@ -3,6 +3,7 @@ package test;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.text.DateFormat;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -12,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import com.google.code.or.OpenReplicator;
 import com.google.code.or.binlog.BinlogEventListener;
 import com.google.code.or.binlog.BinlogEventV4;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class OpenReplicatorTest {
 	//
@@ -22,7 +25,10 @@ public class OpenReplicatorTest {
 	 */
 	public static void main(String args[]) throws Exception {
 
-	    Class.forName("com.mysql.jdbc.Driver").newInstance();
+	    Gson gson = new GsonBuilder().enableComplexMapKeySerialization() 
+                .serializeNulls()   
+                .setDateFormat(DateFormat.LONG)
+                .create();
 		
 		final OpenReplicator or = new OpenReplicator(); 
 		or.setUser("root");
@@ -37,6 +43,7 @@ public class OpenReplicatorTest {
 		        System.out.println("new event:");
 		        System.out.println(event.getClass().getSimpleName());
 		    	System.out.println(event);
+
 		    	System.out.println(" ");
 		    	System.out.println(" ");
 		    }

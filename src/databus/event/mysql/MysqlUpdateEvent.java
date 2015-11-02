@@ -32,17 +32,12 @@ public class MysqlUpdateEvent
         private List<String> after;
     }
     
-    public MysqlUpdateEvent(long serverId, String databaseName, 
-                            String tableName) {
-        super(serverId, databaseName, tableName);
-    }
-    
     public MysqlUpdateEvent() {
         super();
     }
     
     @Override
-    public MysqlWriteEvent<Entity> setRow(BinlogEventV4 binlogEvent) {
+    public MysqlWriteEvent<Entity> setRows(BinlogEventV4 binlogEvent) {
         if (binlogEvent instanceof UpdateRowsEventV2) {
             setRows(((UpdateRowsEventV2) binlogEvent).getRows());
         }

@@ -8,8 +8,14 @@ public interface MysqlWriteEvent<T> extends MysqlEvent{
 
     public List<T> rows();
     
-    public List<String> column() ;
+    public List<String> columnNames();
     
-    public MysqlWriteEvent<T> setRow(BinlogEventV4 binlogEvent);
+    public MysqlWriteEvent<T> columnNames(List<String> columnNames);
+    
+    public List<Integer> columnTypes();
+    
+    public MysqlWriteEvent<T> columnTypes(List<Integer> columnTypes);
+    
+    public MysqlWriteEvent<T> setRows(BinlogEventV4 binlogEvent);
     
 }

@@ -8,7 +8,7 @@ import com.google.code.or.binlog.BinlogEventV4;
 import com.google.code.or.binlog.impl.event.TableMapEvent;
 import com.google.code.or.common.util.MySQLConstants;
 
-import databus.event.MysqlWriteEvent;
+import databus.event.mysql.MysqlAbstractWriteEvent;
 import databus.event.mysql.MysqlDeleteEvent;
 import databus.event.mysql.MysqlInsertEvent;
 import databus.event.mysql.MysqlUpdateEvent;
@@ -49,7 +49,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
     public boolean isConsistent(BinlogEventV4 nextBinlogEvent) {        
         return true;
     }
-    
 
     private void buildMySQLEvent(BinlogEventV4 nextBinlogEvent) {
         if (!isConsistent(nextBinlogEvent)) {
@@ -63,26 +62,28 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
                       preBinlogEvent.toString());
             return;
         }
-        
-        int curBinlogEventType = curBinlogEvent.getHeader().getEventType();        
+       
         TableMapEvent tableMapEvent = (TableMapEvent) preBinlogEvent;
-        long serverId = tableMapEvent.getHeader().getServerId();
         String dbName = tableMapEvent.getDatabaseName().toString();
         String tableName = tableMapEvent.getTableName().toString();
+        String fullName = dbName.toLowerCase()+"."+tableName.toLowerCase();
+        if (!listener.doPermit(fullName)) {
+            return;
+        }
         
-        @SuppressWarnings("rawtypes")
-        MysqlWriteEvent newEvent;
-        switch (curBinlogEventType) {
+    
+        MysqlAbstractWriteEvent<?> newEvent;
+        switch (curBinlogEvent.getHeader().getEventType()) {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:         
-            newEvent = new MysqlInsertEvent(serverId, dbName, tableName);
+            newEvent = new MysqlInsertEvent();
             break;
             
         case MySQLConstants.UPDATE_ROWS_EVENT_V2:
-            newEvent = new MysqlUpdateEvent(serverId, dbName, tableName);           
+            newEvent = new MysqlUpdateEvent();           
             break;
             
         case MySQLConstants.DELETE_ROWS_EVENT_V2:
-            newEvent = new MysqlDeleteEvent(serverId, dbName, tableName);
+            newEvent = new MysqlDeleteEvent();
             break;
             
         default:
@@ -90,8 +91,16 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
                       curBinlogEvent.toString());
             return;
         }
-        newEvent.setRow(curBinlogEvent);
-        newEvent.time(curBinlogEvent.getHeader().getTimestamp());
+        
+        long serverId = tableMapEvent.getHeader().getServerId();
+        newEvent.columnNames(listener.getColumns(fullName))
+                .columnTypes(listener.getTypes(fullName))
+                .setRows(curBinlogEvent) ;
+        newEvent.serverId(serverId)
+                .tableName(tableName)
+                .databaseName(dbName)
+                .time(curBinlogEvent.getHeader().getTimestamp());
+                
         listener.onEvent(newEvent);
     }
 

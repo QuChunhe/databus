@@ -9,18 +9,13 @@ import com.google.code.or.common.glossary.Row;
 import databus.event.MysqlWriteEvent;
 
 public class MysqlInsertEvent extends MysqlAbstractWriteEvent<List<String>> {    
-    
-    public MysqlInsertEvent(long serverId,String databaseName, 
-                            String tableName) {
-        super(serverId,databaseName, tableName);
-    }
-    
+
     public MysqlInsertEvent() {
         super();
     }   
     
     @Override
-    public MysqlWriteEvent<List<String>> setRow(BinlogEventV4 binlogEvent) {
+    public MysqlWriteEvent<List<String>> setRows(BinlogEventV4 binlogEvent) {
         if (binlogEvent instanceof WriteRowsEventV2) {
             setRows(((WriteRowsEventV2) binlogEvent).getRows());
         }

@@ -10,11 +10,6 @@ import databus.event.MysqlWriteEvent;
 
 public class MysqlDeleteEvent extends MysqlAbstractWriteEvent<List<String>> {
 
-    public MysqlDeleteEvent(long serverId, String databaseName,
-                            String tableName) {
-        super(serverId, databaseName, tableName);
-    }
-
     public MysqlDeleteEvent() {
         super();
     }
@@ -25,7 +20,7 @@ public class MysqlDeleteEvent extends MysqlAbstractWriteEvent<List<String>> {
     }
 
     @Override
-    public MysqlWriteEvent<List<String>> setRow(BinlogEventV4 binlogEvent) {
+    public MysqlWriteEvent<List<String>> setRows(BinlogEventV4 binlogEvent) {
         if (binlogEvent instanceof DeleteRowsEventV2) {
             setRows(((DeleteRowsEventV2) binlogEvent).getRows());
         }

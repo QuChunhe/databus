@@ -30,6 +30,30 @@ public class Configuration {
         return instance;
     }    
     
+    public Properties loadProperties(String fileName) {
+        Properties properties= new Properties();
+        Reader reader = null;
+        try {
+            reader = new FileReader(fileName);
+            properties.load(reader);                      
+        } catch (FileNotFoundException e) {
+            log.error("Cannot find "+fileName, e);
+            return null;
+        } catch (IOException e) {
+            log.error("Cannot read "+fileName, e);
+            return null;
+        } finally {
+            if(null != reader) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    log.error("Cannot close "+fileName, e);
+                }
+            }
+        }
+        return properties;
+    }
+    
     public InternetAddress loadListeningAddress() {
         if (null== listeningAddress) {
             Properties properties = loadProperties(SERVER_CONFIGURATION_NAME);
@@ -116,31 +140,7 @@ public class Configuration {
         }
         return subscribers;
     }
-    
-    private Properties loadProperties(String fileName) {
-        Properties properties= new Properties();
-        Reader reader = null;
-        try {
-            reader = new FileReader(fileName);
-            properties.load(reader);                      
-        } catch (FileNotFoundException e) {
-            log.error("Cannot find "+fileName, e);
-            return null;
-        } catch (IOException e) {
-            log.error("Cannot read "+fileName, e);
-            return null;
-        } finally {
-            if(null != reader) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    log.error("Cannot close "+fileName, e);
-                }
-            }
-        }
-        return properties;
-    }
-    
+     
     private Configuration() {
         
     }
