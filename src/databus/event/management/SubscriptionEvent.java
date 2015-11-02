@@ -5,10 +5,6 @@ import databus.util.InternetAddress;
 
 public class SubscriptionEvent extends AbstractManagementEvent {
 
-    public SubscriptionEvent(String topic) {
-        super(topic);
-    }
-
     public SubscriptionEvent() {
         super();
         // TODO Auto-generated constructor stub

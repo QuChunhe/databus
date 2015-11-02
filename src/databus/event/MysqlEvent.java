@@ -13,4 +13,6 @@ public interface MysqlEvent  extends Event{
     public String databaseName();
     
     public String tableName();  
+    
+    public Type mysqlType();
 }

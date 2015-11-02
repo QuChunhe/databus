@@ -6,13 +6,8 @@ import databus.event.ManagementEvent;
 public abstract class AbstractManagementEvent extends AbstractEvent
                                               implements ManagementEvent{   
     
-    public AbstractManagementEvent(String topic) {
-        this.topic = topic;
-        time(System.currentTimeMillis());
-    }
-    
     public AbstractManagementEvent() {
-        
+        time(System.currentTimeMillis());
     }
 
     @Override
@@ -24,6 +19,11 @@ public abstract class AbstractManagementEvent extends AbstractEvent
     public String topic() {
         return topic;
     }
+    
+    public AbstractManagementEvent topic(String topic) {
+        this.topic = topic;
+        return this;
+    }
   
-    protected String topic;    
+    private String topic;    
 }

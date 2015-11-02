@@ -45,8 +45,8 @@ public class SubscribingSever implements Subscriber, Startable {
     public void subscribe() {
         for(RemoteTopic remoteTopic : subscriberMap.keySet()) {
             InternetAddress remoteAddress = remoteTopic.remoteAddress();
-            String topic = remoteTopic.topic();
-            ManagementEvent event = new SubscriptionEvent(topic);
+            SubscriptionEvent event = new SubscriptionEvent();
+            event.topic(remoteTopic.topic());
             publisher.publish(remoteAddress, event);
         }
     } 

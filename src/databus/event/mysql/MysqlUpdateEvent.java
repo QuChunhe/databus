@@ -8,6 +8,7 @@ import com.google.code.or.binlog.impl.event.UpdateRowsEventV2;
 import com.google.code.or.common.glossary.Pair;
 import com.google.code.or.common.glossary.Row;
 
+import databus.event.MysqlEvent.Type;
 import databus.event.MysqlWriteEvent;
 
 public class MysqlUpdateEvent 
@@ -49,6 +50,11 @@ public class MysqlUpdateEvent
         return Type.UPDATE.toString();
     }
     
+    @Override
+    public Type mysqlType() {
+        return Type.UPDATE;
+    }
+
     private void setRows(List<Pair<Row>> binLogRows) {
         for(Pair<Row> pair : binLogRows) {
             LinkedList<String> before = transform(pair.getBefore());
