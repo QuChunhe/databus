@@ -17,7 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Receiver;
-import databus.subscriber.AbstractSubscriber;
+import databus.receiver.AbstractReceiver;
 
 public class Configuration {
     
@@ -51,13 +51,12 @@ public class Configuration {
     }
     
     public InternetAddress loadListeningAddress() {
-        if (null== listeningAddress) {
-            Properties properties = loadProperties(SERVER_CONFIGURATION_NAME);
-            String ip = properties.getProperty("server.ip", "127.0.0.1");
-            int port = Integer.parseInt(
-                                properties.getProperty("server.port", "8765"));
-            listeningAddress = new InternetAddress(ip, port); 
-        }
+        Properties properties = loadProperties(SERVER_CONFIGURATION_NAME);
+        String ip = properties.getProperty("server.ip", "127.0.0.1");
+        int port = Integer.parseInt(properties.getProperty("server.port", 
+                                                           "8765"));
+        listeningAddress = new InternetAddress(ip, port);
+        
         return listeningAddress;
     }
     
@@ -85,8 +84,8 @@ public class Configuration {
                 continue;
             }            
             for(Receiver s : subscribers) {
-                if (s instanceof AbstractSubscriber) {
-                    ((AbstractSubscriber) s).remoteTopic(remoteTopic);
+                if (s instanceof AbstractReceiver) {
+                    ((AbstractReceiver) s).remoteTopic(remoteTopic);
                 }
             }
             Set<Receiver> subscriberSet = 

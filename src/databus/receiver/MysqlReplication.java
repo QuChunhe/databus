@@ -1,4 +1,4 @@
-package databus.subscriber;
+package databus.receiver;
 
 import databus.core.Event;
 import databus.core.Receiver;

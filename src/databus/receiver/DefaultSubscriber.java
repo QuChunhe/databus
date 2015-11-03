@@ -1,4 +1,4 @@
-package databus.subscriber;
+package databus.receiver;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

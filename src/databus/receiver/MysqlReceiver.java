@@ -1,10 +1,12 @@
-package databus.subscriber;
+package databus.receiver;
 
 import java.sql.Connection;
 
-public abstract class MysqlSubscriber extends AbstractSubscriber{
+public abstract class MysqlReceiver extends AbstractReceiver{
     
     protected Connection getConnection() {
+        
+        
         return null;
     }
 

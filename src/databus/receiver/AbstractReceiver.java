@@ -1,9 +1,9 @@
-package databus.subscriber;
+package databus.receiver;
 
 import databus.core.Receiver;
 import databus.util.RemoteTopic;
 
-public abstract class AbstractSubscriber implements Receiver{
+public abstract class AbstractReceiver implements Receiver{
     
     public void remoteTopic(RemoteTopic remoteTopic) {
         this.remoteTopic = remoteTopic;
