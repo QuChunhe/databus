@@ -6,7 +6,6 @@ import com.google.code.or.binlog.BinlogEventV4;
 import com.google.code.or.binlog.impl.event.WriteRowsEventV2;
 import com.google.code.or.common.glossary.Row;
 
-import databus.event.MysqlEvent.Type;
 import databus.event.MysqlWriteEvent;
 
 public class MysqlInsertEvent extends MysqlAbstractWriteEvent<List<String>> {    
@@ -27,11 +26,6 @@ public class MysqlInsertEvent extends MysqlAbstractWriteEvent<List<String>> {
     public String type() {
         return Type.INSERT.toString();
     }    
-
-    @Override
-    public Type mysqlType() {
-        return Type.INSERT;
-    }
 
     private void setRows(List<Row> binlogRows) {
         for (Row row : binlogRows) {

@@ -6,7 +6,6 @@ import com.google.code.or.binlog.BinlogEventV4;
 import com.google.code.or.binlog.impl.event.DeleteRowsEventV2;
 import com.google.code.or.common.glossary.Row;
 
-import databus.event.MysqlEvent.Type;
 import databus.event.MysqlWriteEvent;
 
 public class MysqlDeleteEvent extends MysqlAbstractWriteEvent<List<String>> {
@@ -27,11 +26,6 @@ public class MysqlDeleteEvent extends MysqlAbstractWriteEvent<List<String>> {
         }
         return this;
     }    
-    
-    @Override
-    public Type mysqlType() {
-        return Type.DELETE;
-    }
 
     private void setRows(List<Row> binlogRows) {
         for (Row row : binlogRows) {

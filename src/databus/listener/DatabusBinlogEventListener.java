@@ -70,7 +70,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         if (!listener.doPermit(fullName)) {
             return;
         }
-        
     
         MysqlAbstractWriteEvent<?> newEvent;
         switch (curBinlogEvent.getHeader().getEventType()) {
@@ -95,7 +94,8 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         long serverId = tableMapEvent.getHeader().getServerId();
         newEvent.columnNames(listener.getColumns(fullName))
                 .columnTypes(listener.getTypes(fullName))
-                .setRows(curBinlogEvent) ;
+                .primaryKeys(listener.getPrimaryKeys(fullName))
+                .setRows(curBinlogEvent);
         newEvent.serverId(serverId)
                 .tableName(tableName)
                 .databaseName(dbName)

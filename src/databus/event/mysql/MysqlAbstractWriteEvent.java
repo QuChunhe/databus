@@ -53,6 +53,18 @@ public abstract class MysqlAbstractWriteEvent<T> extends MysqlAbstractEvent
         return name;
     }
 
+    
+    @Override
+    public List<String> primaryKeys() {
+        return primaryKeys;
+    }
+
+    @Override
+    public MysqlWriteEvent<T> primaryKeys(List<String> primaryKey) {
+        this.primaryKeys = primaryKey;
+        return this;
+    }
+
     protected LinkedList<String> transform(Row row) {
         LinkedList<String> newRow = new LinkedList<String>();
         for(Column c : row.getColumns()) {
@@ -64,4 +76,5 @@ public abstract class MysqlAbstractWriteEvent<T> extends MysqlAbstractEvent
     private List<T> rows = null;
     private List<String> columnNames = null;
     private List<Integer> columnTyps = null;
+    private List<String> primaryKeys;
 }

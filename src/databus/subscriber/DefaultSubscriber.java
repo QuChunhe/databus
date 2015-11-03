@@ -4,9 +4,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.core.Subscriber;
+import databus.core.Receiver;
 
-public class DefaultSubscriber implements Subscriber{
+public class DefaultSubscriber implements Receiver{
 
     @Override
     public boolean receive(Event event) {

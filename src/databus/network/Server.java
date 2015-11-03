@@ -3,8 +3,6 @@ package databus.network;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Subscriber;
-import databus.util.Configuration;
 import databus.util.InternetAddress;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -18,8 +16,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class Server implements Runnable, Startable{    
     
-    public Server(Subscriber subscriber) {
-        this.subscriber = subscriber;
+    public Server(InternetAddress localAddress) {
+        this.localAddress = localAddress;
+        childHandler = new ServerHandler();
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup();
     }
@@ -34,17 +33,14 @@ public class Server implements Runnable, Startable{
     }
 
     @Override
-    public void run() { 
-        ServerHandler childHandler = new ServerHandler(subscriber);
-        
-        InternetAddress address = 
-                Configuration.instance().loadListeningAddress();
+    public void run() {        
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)
                      .group(bossGroup, workerGroup)
                      .channel(NioServerSocketChannel.class)
-                     .localAddress(address.ipAddress(), address.port())
+                     .localAddress(localAddress.ipAddress(), 
+                                   localAddress.port())
                      .childHandler(new ChannelInitializer<SocketChannel>(){
 
                         @Override
@@ -70,18 +66,24 @@ public class Server implements Runnable, Startable{
         if (null != thread) {
             thread.interrupt();
         }
-    } 
+    }
+
+    public Server setPublisher(Publisher publisher) {
+        childHandler.setPublisher(publisher);
+        return this;
+    }
     
-    public InternetAddress getListeningAddress() {
-        return localAddress;
+    public Server setSubscriber(Subscriber subscriber) {
+        childHandler.setSubscriber(subscriber);
+        return this;
     }
     
     private static Log log = LogFactory.getLog(Server.class);
     
-    private Subscriber subscriber;
+    private ServerHandler childHandler = new ServerHandler();
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private InternetAddress localAddress;
-    private Thread thread = null;
+    private Thread thread = null;   
 
 }

@@ -2,17 +2,30 @@ package databus.example;
 
 import databus.core.Listener;
 import databus.listener.MysqlListener;
-import databus.network.PublishingServer;
-import databus.network.SubscribingSever;
+import databus.network.Client;
+import databus.network.Publisher;
+import databus.network.Server;
+import databus.network.Subscriber;
+import databus.util.Configuration;
+import databus.util.InternetAddress;
 
 public class Startup {
 
     public static void main(String[] args) throws InterruptedException {
-        PublishingServer publisher = new PublishingServer();
-        SubscribingSever subscriber = new SubscribingSever(publisher);
+        
+        InternetAddress localAddress = Configuration.instance()
+                                                    .loadListeningAddress();
+        Server server = new Server(localAddress);
+        Client client = new Client(localAddress);
+        
+        Publisher publisher = new Publisher(client);
+        Subscriber subscriber = new Subscriber(client); 
+        server.setPublisher(publisher).setSubscriber(subscriber);
+        
+        Thread serverThread = server.start();       
+        Thread clientThread = client.start();
+        
         Listener listener = new MysqlListener(publisher);
-        Thread publisherThread = publisher.start();
-        Thread subscriberThread = subscriber.start();
         
         Thread.sleep(500);
         
@@ -22,11 +35,11 @@ public class Startup {
        
         listener.start();
         try {
-            publisherThread.join();
-            subscriberThread.join();
+            serverThread.join();
+            clientThread.join();
         } finally {
-            publisher.stop();
-            subscriber.stop();
+            client.stop();
+            server.stop();
         }
     }
 }

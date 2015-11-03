@@ -4,7 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.core.Subscriber;
+import databus.event.ManagementEvent;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,8 +19,7 @@ import io.netty.util.CharsetUtil;
 @Sharable
 public class ServerHandler  extends ChannelInboundHandlerAdapter{
 
-    public ServerHandler(Subscriber subscriber) {
-        this.subscriber = subscriber;
+    public ServerHandler() {
         parser = new MessageParser();
     }
 
@@ -43,7 +42,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
                       " cannot be parsed as Event : "+message);
             return;
         }
-        subscriber.receive(event);
+        dispatch(event);
     }
 
     @Override
@@ -59,8 +58,26 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
         log.error("Cannot read from "+address, cause);
     }
     
+    public void setPublisher(Publisher publisher) {
+        this.publisher = publisher;
+    }
+    
+    public void setSubscriber(Subscriber subscriber) {
+        this.subscriber = subscriber;
+    }
+    
+    private void dispatch(Event event) {
+        if (event.source() == Event.Source.MANAGEMENT) {
+            if (null != publisher) {
+                ((ManagementEvent)event).execute(publisher);
+            }
+        } else if (null != subscriber) {
+           subscriber.receive(event);
+        }            
+    }
+        
     private static Log log = LogFactory.getLog(ServerHandler.class);
     private MessageParser parser;
-    private Subscriber subscriber;
-
+    private Publisher publisher = null;
+    private Subscriber subscriber = null;
 }

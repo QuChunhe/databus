@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -21,8 +20,8 @@ import com.google.code.or.OpenReplicator;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.core.Listener;
-import databus.core.Publisher;
 import databus.event.MysqlEvent;
+import databus.network.Publisher;
 import databus.util.Configuration;
 
 public class MysqlListener implements Listener{
@@ -77,6 +76,10 @@ public class MysqlListener implements Listener{
     protected List<Integer> getTypes(String fullName) {
         return typesMap.get(fullName);
     }
+    
+    protected List<String> getPrimaryKeys(String fullName) {
+        return primaryKeysMap.get(fullName);
+    }
 
     private void initiate(Properties config){        
         String user = config.getProperty(USER, "root");
@@ -123,6 +126,7 @@ public class MysqlListener implements Listener{
     private void loadSchema(MysqlDataSource ds) {
         columnsMap = new HashMap<String, List<String>>();
         typesMap = new HashMap<String, List<Integer>>();
+        primaryKeysMap = new HashMap<String, List<String>>();
         for(String fullName : permittedTableSet) {
             String[] r = fullName.split("\\.");
             if (r.length != 2) {
@@ -134,20 +138,29 @@ public class MysqlListener implements Listener{
             ds.setDatabaseName(databaseName);
             try {
                 Connection conn = ds.getConnection();
-                DatabaseMetaData metaData = conn.getMetaData();                
-                ResultSet resultSet = metaData.getColumns(null, "%", 
+                DatabaseMetaData metaData = conn.getMetaData();  
+                
+                ResultSet resultSet1 = metaData.getColumns(null, "%", 
                                                           tableName, "%");
                 LinkedList<String> columns = new LinkedList<String>();
                 LinkedList<Integer> types = new LinkedList<Integer>();
-                while (resultSet.next()) {
-                    int index = resultSet.getRow();
-                    columns.addLast(resultSet.getString("COLUMN_NAME"));
-                    types.addLast(resultSet.getInt("DATA_TYPE"));
+                while (resultSet1.next()) {
+                    columns.addLast(resultSet1.getString("COLUMN_NAME"));
+                    types.addLast(resultSet1.getInt("DATA_TYPE"));
                 }
                 columnsMap.put(fullName, columns);
                 typesMap.put(fullName, types);
+                
+                LinkedList<String> keys = new LinkedList<String>();
+                ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName);
+                while(resultSet2.next()) {
+                    keys.addLast(resultSet2.getString("COLUMN_NAME"));
+                }
+                primaryKeysMap.put(fullName, keys);                
             } catch (SQLException e) {
                 log.error("Cannot load the schema of "+fullName, e);
+            } finally {
+                
             }
         }
     }    
@@ -168,5 +181,6 @@ public class MysqlListener implements Listener{
     private OpenReplicator openRelicator;
     private Map<String, List<String>> columnsMap;
     private Map<String, List<Integer>> typesMap;
+    private Map<String, List<String>> primaryKeysMap;
     private Set<String> permittedTableSet;
 }

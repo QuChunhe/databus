@@ -16,6 +16,10 @@ public interface MysqlWriteEvent<T> extends MysqlEvent{
     
     public MysqlWriteEvent<T> columnTypes(List<Integer> columnTypes);
     
+    public List<String> primaryKeys();
+    
+    public MysqlWriteEvent<T> primaryKeys(List<String> primaryKeys);
+    
     public MysqlWriteEvent<T> setRows(BinlogEventV4 binlogEvent);
     
 }

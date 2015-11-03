@@ -1,6 +1,6 @@
 package databus.event.management;
 
-import databus.core.Publisher;
+import databus.network.Publisher;
 import databus.util.InternetAddress;
 
 public class SubscriptionEvent extends AbstractManagementEvent {

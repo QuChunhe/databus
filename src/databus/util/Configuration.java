@@ -16,14 +16,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Subscriber;
+import databus.core.Receiver;
+import databus.subscriber.AbstractSubscriber;
 
 public class Configuration {
     
-    public String TABLE_FILE_NAME = "conf/tables.properties";
-    
-    public String SERVER_CONFIGURATION_NAME = "conf/server.properties";
-    
+    public String SERVER_CONFIGURATION_NAME = "conf/server.properties";    
     public String SUBSCRIBING_CONFIGURATION_NAME = "conf/subscribers.properties";
     
     public static Configuration instance() {
@@ -38,10 +36,8 @@ public class Configuration {
             properties.load(reader);                      
         } catch (FileNotFoundException e) {
             log.error("Cannot find "+fileName, e);
-            return null;
         } catch (IOException e) {
             log.error("Cannot read "+fileName, e);
-            return null;
         } finally {
             if(null != reader) {
                 try {
@@ -69,10 +65,10 @@ public class Configuration {
      * 
      * @return must be thread-safety
      */
-    public Map<RemoteTopic, Set<Subscriber>>  loadSubscribers() {
+    public Map<RemoteTopic, Set<Receiver>>  loadSubscribers() {
         Properties properties = loadProperties(SUBSCRIBING_CONFIGURATION_NAME);
-        Map<RemoteTopic, Set<Subscriber>> subscriberMap = 
-                          new ConcurrentHashMap<RemoteTopic,Set<Subscriber>>();
+        Map<RemoteTopic, Set<Receiver>> subscriberMap = 
+                          new ConcurrentHashMap<RemoteTopic,Set<Receiver>>();
                
         for(Entry<Object, Object> entry : properties.entrySet()) {
             String key = entry.getKey().toString();
@@ -83,14 +79,18 @@ public class Configuration {
             }
             
             String value = entry.getValue().toString();
-            Collection<Subscriber> subscribers = parseSubscribers(value);
+            Collection<Receiver> subscribers = parseSubscribers(value);
             if((null == subscribers) || (subscribers.size()==0)) {
                 log.error(value+" cannot be parsed as Subcribers");
                 continue;
             }            
-            
-            Set<Subscriber> subscriberSet = 
-                              new CopyOnWriteArraySet<Subscriber>(subscribers);
+            for(Receiver s : subscribers) {
+                if (s instanceof AbstractSubscriber) {
+                    ((AbstractSubscriber) s).remoteTopic(remoteTopic);
+                }
+            }
+            Set<Receiver> subscriberSet = 
+                              new CopyOnWriteArraySet<Receiver>(subscribers);
             subscriberMap.put(remoteTopic, subscriberSet);
         }
         if (subscriberMap.size()==0) {
@@ -118,15 +118,15 @@ public class Configuration {
         return new RemoteTopic(netAddress, topic);
     }
     
-    private Set<Subscriber> parseSubscribers(String rawString) {
-        Set<Subscriber> subscribers = new HashSet<Subscriber>();
+    private Set<Receiver> parseSubscribers(String rawString) {
+        Set<Receiver> subscribers = new HashSet<Receiver>();
         String[] classNames = rawString.split(",");
         for(String aClassName : classNames) {
             try {
                 String aName = aClassName.trim();
-                Class<? extends Subscriber> subscriberClass = 
-                             Class.forName(aName).asSubclass(Subscriber.class);
-                Subscriber subscriber = subscriberClass.newInstance();
+                Class<? extends Receiver> subscriberClass = 
+                             Class.forName(aName).asSubclass(Receiver.class);
+                Receiver subscriber = subscriberClass.newInstance();
                 subscribers.add(subscriber);
             } catch (ClassNotFoundException e) {
                 log.error(aClassName+" isnot a class name", e);
