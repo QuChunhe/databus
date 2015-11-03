@@ -7,11 +7,10 @@ import databus.event.mysql.MysqlInsertEvent;
 public class MysqlReplication implements Receiver{
 
     @Override
-    public boolean receive(Event event) {
+    public void receive(Event event) {
         if (event instanceof MysqlInsertEvent) {
             
         }
-        return false;
     }
     
     

@@ -9,9 +9,8 @@ import databus.core.Receiver;
 public class DefaultSubscriber implements Receiver{
 
     @Override
-    public boolean receive(Event event) {
+    public void receive(Event event) {
         log.info(event.toString());        
-        return true;
     }
     
     private Log log = LogFactory.getLog(DefaultSubscriber.class);
