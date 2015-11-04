@@ -9,7 +9,7 @@ import databus.network.Subscriber;
 import databus.util.Configuration;
 import databus.util.InternetAddress;
 
-public class Startup {
+public class BothStartup {
 
     public static void main(String[] args) throws InterruptedException {
         

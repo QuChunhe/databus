@@ -1,10 +1,12 @@
 package databus.util;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -23,10 +25,24 @@ public class Configuration {
     
     public String SERVER_CONFIGURATION_NAME = "conf/server.properties";    
     public String SUBSCRIBING_CONFIGURATION_NAME = "conf/subscribers.properties";
+    public String MYSQL_PROPERTIES_DIR_NAME ="conf/mysql";
     
     public static Configuration instance() {
         return instance;
-    }    
+    }
+    
+    public Map<String, Properties> loadMysqlProperties() {
+        File dir = new File(MYSQL_PROPERTIES_DIR_NAME);
+        String[] fileNames = dir.list();
+        HashMap<String, Properties> propertiesMap
+                                           = new HashMap<String, Properties>();
+        for(String name : fileNames) {
+            String fullName = MYSQL_PROPERTIES_DIR_NAME+"/"+name;
+            String[] nameParts = name.split("\\.");
+            propertiesMap.put(nameParts[0],loadProperties(fullName));
+        }
+        return propertiesMap;
+    }
     
     public Properties loadProperties(String fileName) {
         Properties properties= new Properties();
@@ -55,7 +71,7 @@ public class Configuration {
         String ip = properties.getProperty("server.ip", "127.0.0.1");
         int port = Integer.parseInt(properties.getProperty("server.port", 
                                                            "8765"));
-        listeningAddress = new InternetAddress(ip, port);
+        InternetAddress listeningAddress = new InternetAddress(ip, port);
         
         return listeningAddress;
     }
@@ -146,7 +162,5 @@ public class Configuration {
     
     private static Log log = LogFactory.getLog(Configuration.class);
     private static Configuration instance = new Configuration();
-    
-    private InternetAddress listeningAddress = null;
 
 }
