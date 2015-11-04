@@ -12,6 +12,8 @@ import org.apache.commons.dbcp2.BasicDataSourceFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.example.Configuration;
+
 public class ConnectionPool {
     
     public static ConnectionPool instance() {

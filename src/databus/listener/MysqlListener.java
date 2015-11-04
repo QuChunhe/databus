@@ -19,22 +19,18 @@ import org.apache.commons.logging.LogFactory;
 import com.google.code.or.OpenReplicator;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
-import databus.core.Listener;
 import databus.event.MysqlEvent;
 import databus.network.Publisher;
-import databus.util.Configuration;
 
-public class MysqlListener implements Listener{
-
-    public MysqlListener(Publisher publisher) {
-        this(publisher, CONFIG_FILE_NAME);
-    }
+public class MysqlListener extends AbstractListener{  
     
-    public MysqlListener(Publisher publisher, String configFileName) {
-        Properties config = Configuration.instance()
-                                         .loadProperties(configFileName);
+    public MysqlListener(Publisher publisher, Properties properties) {
         this.publisher = publisher;
-        initiate(config);
+        initialize(properties);
+    }
+
+    public MysqlListener() {
+        super();
     }
     
     @Override
@@ -54,12 +50,45 @@ public class MysqlListener implements Listener{
 
     @Override
     public void start() {
+        if(openRelicator.isRunning()) {
+            return;
+        }
         try {
             openRelicator.start();
         } catch (Exception e) {
             log.error("OpenRelicator throws a Exception",e);
         }
     }
+    
+    @Override
+    public void initialize(Properties properties){        
+        String user = properties.getProperty(USER, "root");
+        String password = properties.getProperty(PASSWORD, "");
+        String host = properties.getProperty(HOST, "127.0.0.1");
+        int port = Integer.valueOf(properties.getProperty(PORT, "3306"));
+
+        int serverId = Integer.valueOf(properties.getProperty(SERVER_ID, "1"));
+        String binlogFileName = 
+                properties.getProperty(BINLOG_FILE_NAME, "master-bin.000001");
+        openRelicator = new OpenReplicator();
+        openRelicator.setUser(user);
+        openRelicator.setPassword(password);
+        openRelicator.setHost(host);
+        openRelicator.setPort(port);
+        openRelicator.setServerId(serverId);
+        openRelicator.setBinlogFileName(binlogFileName); 
+        openRelicator.setBinlogEventListener(new DatabusBinlogEventListener(this));
+       
+        loadPermittedTables(properties);
+        
+        MysqlDataSource ds = new MysqlDataSource();
+        ds.setUser(user);
+        ds.setPassword(password);
+        ds.setServerName(host);
+        ds.setPort(port);
+        
+        loadSchema(ds);
+    } 
     
     public void onEvent(MysqlEvent event) {
         publisher.publish(event);        
@@ -79,35 +108,6 @@ public class MysqlListener implements Listener{
     
     protected List<String> getPrimaryKeys(String fullName) {
         return primaryKeysMap.get(fullName);
-    }
-
-    private void initiate(Properties config){        
-        String user = config.getProperty(USER, "root");
-        String password = config.getProperty(PASSWORD, "");
-        String host = config.getProperty(HOST, "127.0.0.1");
-        int port = Integer.valueOf(config.getProperty(PORT, "3306"));
-
-        int serverId = Integer.valueOf(config.getProperty(SERVER_ID, "1"));
-        String binlogFileName = 
-                config.getProperty(BINLOG_FILE_NAME, "master-bin.000001");
-        openRelicator = new OpenReplicator();
-        openRelicator.setUser(user);
-        openRelicator.setPassword(password);
-        openRelicator.setHost(host);
-        openRelicator.setPort(port);
-        openRelicator.setServerId(serverId);
-        openRelicator.setBinlogFileName(binlogFileName); 
-        openRelicator.setBinlogEventListener(new DatabusBinlogEventListener(this));
-       
-        loadPermittedTables(config);
-        
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setUser(user);
-        ds.setPassword(password);
-        ds.setServerName(host);
-        ds.setPort(port);
-        
-        loadSchema(ds);
     }
     
     private void loadPermittedTables(Properties config){        
@@ -165,8 +165,6 @@ public class MysqlListener implements Listener{
         }
     }    
     
-    final private static String CONFIG_FILE_NAME = "conf/listener.mysql.properties";
-    
     final private static String USER = "listener.mysql.user";
     final private static String PASSWORD = "listener.mysql.password";
     final private static String HOST = "listener.mysql.host";
@@ -177,10 +175,11 @@ public class MysqlListener implements Listener{
     
     private static Log log = LogFactory.getLog(MysqlListener.class);
     
-    private Publisher publisher;
+
     private OpenReplicator openRelicator;
     private Map<String, List<String>> columnsMap;
     private Map<String, List<Integer>> typesMap;
     private Map<String, List<String>> primaryKeysMap;
     private Set<String> permittedTableSet;
+ 
 }

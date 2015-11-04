@@ -1,6 +1,6 @@
 package databus.core;
 
-public interface Listener  {
+public interface Listener extends Initializable {
     public void start();
     
     public boolean isRunning();

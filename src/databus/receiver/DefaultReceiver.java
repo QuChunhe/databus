@@ -1,18 +1,25 @@
 package databus.receiver;
 
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
 
-public class DefaultSubscriber implements Receiver{
+public class DefaultReceiver implements Receiver{
 
     @Override
     public void receive(Event event) {
         log.info(event.toString());        
     }
     
-    private Log log = LogFactory.getLog(DefaultSubscriber.class);
+    @Override
+    public void initialize(Properties properties) {
+        
+    }
+
+    private Log log = LogFactory.getLog(DefaultReceiver.class);
 
 }

@@ -2,7 +2,9 @@ package databus.receiver;
 
 import java.sql.Connection;
 
-public abstract class MysqlReceiver extends AbstractReceiver{
+import databus.core.Receiver;
+
+public abstract class MysqlReceiver implements Receiver{
     
     protected Connection getConnection() {
         

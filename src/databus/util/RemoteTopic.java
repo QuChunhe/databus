@@ -5,7 +5,7 @@ public class RemoteTopic {
     public RemoteTopic(InternetAddress remoteAddress, String topic) {
         this.remoteAddress = remoteAddress;
         this.topic = topic.toUpperCase();
-        name = remoteAddress.toString()+"/"+topic.replace(":", "/");
+        name = remoteAddress.toString()+"/"+topic;
     }
     
     public InternetAddress remoteAddress() {
