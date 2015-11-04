@@ -14,16 +14,16 @@ import databus.util.InternetAddress;
 public class Publisher{   
     
     public Publisher(Client client) {
-        subscriberMap = new ConcurrentHashMap<String,Set<InternetAddress>>();
+        subscribersMap = new ConcurrentHashMap<String,Set<InternetAddress>>();
         this.client = client;
     }
 
     public void subscribe(String topic, InternetAddress remoteAddress) {
-        Set<InternetAddress> addressSet = subscriberMap.get(topic);
+        Set<InternetAddress> addressSet = subscribersMap.get(topic);
         if (null == addressSet) {
             addressSet = new CopyOnWriteArraySet<InternetAddress>();
             addressSet.add(remoteAddress);
-            subscriberMap.put(topic, addressSet);
+            subscribersMap.put(topic, addressSet);
         } else if (addressSet.contains(remoteAddress)){
             log.info(remoteAddress.toString()+" has subscribeed before");
         } else {
@@ -32,32 +32,29 @@ public class Publisher{
     }
     
     public void unsubscribe(String topic, InternetAddress remoteAddress) {
-        Set<InternetAddress> addressSet = subscriberMap.get(topic);
+        Set<InternetAddress> addressSet = subscribersMap.get(topic);
         if (addressSet.remove(remoteAddress)) {
             if (addressSet.isEmpty()) {
-                subscriberMap.remove(topic);
+                subscribersMap.remove(topic);
             }
         } else {
-            log.error(remoteAddress.toString()+" hasnot subscribe "+topic);
+            log.error(remoteAddress.toString()+" has't subscribe "+topic);
         }
     }
 
     public void publish(Event event) {
         String topic = event.topic();
-        Set<InternetAddress> remoteAddressSet = subscriberMap.get(topic);
+        Set<InternetAddress> remoteAddressSet = subscribersMap.get(topic);
         if (null != remoteAddressSet) {
             client.send(event, remoteAddressSet);
         } else {
-            log.info(event.toString()+" hasnot subscriber!");
+            log.info(event.toString()+" has't subscriber!");
         }
     }    
 
-    public void publish(InternetAddress remoteAddress, Event event) {
-        client.send(event, remoteAddress);
-    }
     
     private static Log log = LogFactory.getLog(Publisher.class);
     
-    private Map<String,Set<InternetAddress>> subscriberMap;    
+    private Map<String,Set<InternetAddress>> subscribersMap;    
     private Client client; 
 }
