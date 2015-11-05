@@ -113,6 +113,7 @@ public class Configuration {
             if (listener instanceof AbstractListener) {
                 ((AbstractListener) listener).setPublisher(publisher);
             }
+            batchListener.add(listener);
         }
         return batchListener;
     }

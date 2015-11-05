@@ -24,7 +24,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
     @Override
     public void onEvents(BinlogEventV4 event) {
         int type = event.getHeader().getEventType();
-
         switch (type) {
         case MySQLConstants.XID_EVENT:
             buildMySQLEvent(event);

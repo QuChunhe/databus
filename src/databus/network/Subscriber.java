@@ -51,21 +51,22 @@ public class Subscriber {
         receiversSet.add(receiver);
     }
     
-    public void register(String topicString, Receiver receiver) {
-        String[] topicParts = topicString.split("/",2);
-        if(topicParts.length != 2) {
-            log.error(topicString+" can't be splitted by '/'");
+    public void register(String rawString, Receiver receiver) {
+        String[] rawParts = rawString.split("/",2);
+        if(rawParts.length != 2) {
+            log.error(rawString+" can't be splitted by '/'");
             return;
         }
         
-        String[] addressInfo = topicParts[0].split(":");
+        String[] addressInfo = rawParts[0].split(":");
         if (addressInfo.length != 2) {
-            log.error(topicParts[0]+" can't be splitted by ':'");
+            log.error(rawParts[0]+" can't be splitted by ':'");
             return;
         }
         int port = Integer.parseInt(addressInfo[1]);
         InternetAddress netAddress = new InternetAddress(addressInfo[0],port);
-        RemoteTopic remoteTopic = new RemoteTopic(netAddress, topicParts[1]);
+        String topic = rawParts[1].replace("/", ":");
+        RemoteTopic remoteTopic = new RemoteTopic(netAddress, topic);
         register(remoteTopic, receiver);
     }
     

@@ -30,14 +30,14 @@ public class MessageParser {
             return null;
         }
         
-        String[] result = message.split("=",2);
-        if (result.length != 2) {
+        String[] parts = message.split("=",2);
+        if (parts.length != 2) {
             log.error(message+" cannot be splitted by '='!");
             return null;
         }
         
-        String key = result[0].trim();
-        String data = result[1].trim();         
+        String key = parts[0].trim();
+        String data = parts[1].trim();         
         Class<? extends Event> eventClass = eventClasses.get(key);
         if (null == eventClass) {
             log.error(key+" cannot map a Event Class!");

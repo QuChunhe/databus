@@ -31,6 +31,7 @@ public class Client  implements Runnable, Startable {
         taskQueue = new LinkedBlockingQueue<Task>();
         thread = new Thread(this, "DataBus Client");
         this.listeningAddress = listeningAddress;
+        log.info(listeningAddress.toString());
     }
     
     @Override

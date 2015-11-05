@@ -29,8 +29,7 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
 
     @Override
     public String topic() {
-        return source()+":"+serverId()+":"+
-               databaseName()+":"+tableName();
+        return source()+":"+serverId()+":"+databaseName();
     }
     
     public MysqlAbstractEvent serverId(long serverId) {

@@ -80,7 +80,7 @@ public class Server implements Runnable, Startable{
     
     private static Log log = LogFactory.getLog(Server.class);
     
-    private ServerHandler childHandler = new ServerHandler();
+    private ServerHandler childHandler;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private InternetAddress localAddress;

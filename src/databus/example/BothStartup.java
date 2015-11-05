@@ -1,7 +1,6 @@
 package databus.example;
 
 import databus.core.Listener;
-import databus.listener.MysqlListener;
 import databus.network.Client;
 import databus.network.Publisher;
 import databus.network.Server;
@@ -24,8 +23,10 @@ public class BothStartup {
         Thread serverThread = server.start();       
         Thread clientThread = client.start();
         
-        Listener listener = new MysqlListener(publisher,config.loadProperties(fileName));
-        
+        Listener listener = config.loadListeners(publisher);
+
+        config.loadReceivers(subscriber);
+
         Thread.sleep(500);
         
         subscriber.subscribe();
@@ -33,12 +34,15 @@ public class BothStartup {
         Thread.sleep(500);
        
         listener.start();
+
         try {
             serverThread.join();
             clientThread.join();
         } finally {
             client.stop();
             server.stop();
+            listener.stop();
         }
+        System.exit(0);
     }
 }
