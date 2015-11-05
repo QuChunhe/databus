@@ -37,11 +37,11 @@ public class MysqlReplication extends MysqlReceiver{
         sqlBuilder.append("INSERT INTO ");
         sqlBuilder.append(event.tableName().toLowerCase());
         sqlBuilder.append(" ");
-        sqlBuilder.append(convertString(event.columnNames(),EMPTY_INDEX_SET));        
-         sqlBuilder.append(" VALUES ");
+        sqlBuilder.append(toInsertPhrase(event.columnNames(),EMPTY_INDEX_SET));        
+        sqlBuilder.append(" VALUES ");
         Set<Integer> indexSet = stringIndexSet(event.columnTypes());
         for(List<String> row : event.rows()) {
-            sqlBuilder.append(convertString(row,indexSet));
+            sqlBuilder.append(toInsertPhrase(row,indexSet));
             sqlBuilder.append(",");
         }
         sqlBuilder.deleteCharAt(sqlBuilder.length()-1);
@@ -54,9 +54,20 @@ public class MysqlReplication extends MysqlReceiver{
     }
     
     private void update(MysqlUpdateEvent event) {
-        StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("UPDATE ");
-        sqlBuilder.append("event.tableName().toLowerCase()");
+        Set<Integer> indexSet = stringIndexSet(event.columnTypes());
+        List<String> columnNames = event.columnNames();
+        for(MysqlUpdateEvent.Entity entity : event.rows()) {
+            String phase = toUpdatePhrase(entity, columnNames, indexSet);
+            if (null != phase) {
+                StringBuilder sqlBuilder = new StringBuilder();
+                sqlBuilder.append("UPDATE ");
+                sqlBuilder.append("event.tableName().toLowerCase()"); 
+                sqlBuilder.append(" ");
+                sqlBuilder.append(phase);
+            }
+            
+            
+        }       
         
     }
     
@@ -77,24 +88,15 @@ public class MysqlReplication extends MysqlReceiver{
         return indexSet;
     }
     
-    private String convertString(List<String> row, Set<Integer> indexSet) {
+    private String toInsertPhrase(List<String> row, Set<Integer> indexSet) {
+        log.info(row.getClass().getName());
         StringBuilder builder = new StringBuilder();
         builder.append('(');
         ListIterator<String> it = row.listIterator();
         while(it.hasNext()) {
-            String element=it.next();
-            if (null == element) {
-                builder.append("NULL");
-            } else {
-                boolean isString = indexSet.contains(it.previousIndex());
-                if (isString) {
-                    builder.append("'");
-                }
-                builder.append(element);
-                if (isString) {
-                    builder.append("'");
-                }
-            }            
+            int index = it.nextIndex();
+            String value = it.next();
+            append(builder, value, indexSet.contains(index));            
             builder.append(',');
         }
         builder.deleteCharAt(builder.length()-1);
@@ -103,10 +105,53 @@ public class MysqlReplication extends MysqlReceiver{
         return builder.toString();
     }
     
-    private String convertString(List<String> before, List<String> after, 
+    private String toUpdatePhrase(MysqlUpdateEvent.Entity entity, 
                              List<String> columnNames, Set<Integer> indexSet) {
+        StringBuilder builder = new StringBuilder();
+        ListIterator<String> nameIt = columnNames.listIterator();
+        ListIterator<String> beforeIt = entity.before().listIterator();
+        ListIterator<String> afterIt = entity.after().listIterator();
+        while(nameIt.hasNext()) {
+            String before = beforeIt.next();
+            String after = afterIt.next();
+            if (equals(before,after)) {
+                continue;
+            }
+            int index = nameIt.nextIndex();
+            builder.append(nameIt.next());
+            builder.append('=');
+            append(builder, after, indexSet.contains(index));
+            builder.append(',');
+        }
+        builder.deleteCharAt(builder.length()-1);
         
-        return null;
+        return builder.toString();
+    }
+    
+    private void append(StringBuilder builder, String value, boolean isString) {
+        if (!isString) {
+            builder.append(value);
+        } else {
+            if (null == value) {
+                builder.append("NULL");
+            } else {
+                builder.append("'");
+                builder.append(value);
+                builder.append("'");
+            }
+        }
+    }
+    
+    private boolean equals(String one, String other) {
+        if (null == one) {
+            if (null == other) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return one.equals(other);
+        }
     }
     
     private static Log log = LogFactory.getLog(MysqlReplication.class);
