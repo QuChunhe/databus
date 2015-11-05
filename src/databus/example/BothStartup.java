@@ -24,7 +24,6 @@ public class BothStartup {
         Thread clientThread = client.start();
         
         Listener listener = config.loadListeners(publisher);
-
         config.loadReceivers(subscriber);
 
         Thread.sleep(500);
@@ -34,7 +33,6 @@ public class BothStartup {
         Thread.sleep(500);
        
         listener.start();
-
         try {
             serverThread.join();
             clientThread.join();

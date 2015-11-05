@@ -71,7 +71,12 @@ public abstract class MysqlAbstractWriteEvent<T> extends MysqlAbstractEvent
     protected LinkedList<String> transform(Row row) {
         LinkedList<String> newRow = new LinkedList<String>();
         for(Column c : row.getColumns()) {
-            newRow.addLast(c.toString());
+            if (c.getValue()==null) {
+                newRow.addLast(null);
+            } else {
+                newRow.addLast(c.toString());
+            }
+            
         }
         return newRow;
     }

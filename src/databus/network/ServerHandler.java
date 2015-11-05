@@ -13,7 +13,7 @@ import io.netty.util.CharsetUtil;
 
 /**
  * 
- * SeverHandler is thread-safety.
+ * SeverHandler is thread-safe.
  *
  */
 @Sharable
