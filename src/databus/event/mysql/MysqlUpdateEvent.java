@@ -28,6 +28,12 @@ public class MysqlUpdateEvent
             return after;
         }
         
+        @Override
+        public String toString() {
+            return "[before="+before.toString()+";"+
+                   "after="+after.toString()+"]";
+        }
+
         private List<String> before;
         private List<String> after;
     }

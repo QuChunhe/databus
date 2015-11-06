@@ -1,6 +1,8 @@
 package databus.receiver;
 
+import java.sql.Types;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
@@ -9,6 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
+import databus.event.MysqlWriteEvent;
 import databus.event.mysql.MysqlDeleteEvent;
 import databus.event.mysql.MysqlInsertEvent;
 import databus.event.mysql.MysqlUpdateEvent;
@@ -33,79 +36,119 @@ public class MysqlReplication extends MysqlReceiver{
     }
 
     private void insert(MysqlInsertEvent event) {
+        if (event.rows().size() == 0) {
+            log.error("rows size is zero :"+event.toString());
+            return;
+        }
+        
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("INSERT INTO ");
         sqlBuilder.append(event.tableName().toLowerCase());
         sqlBuilder.append(" ");
-        sqlBuilder.append(toInsertPhrase(event.columnNames(),EMPTY_INDEX_SET));        
+        sqlBuilder.append(toInsertValuesPhrase(event.columnNames(),
+                                               EMPTY_INDEX_SET));        
         sqlBuilder.append(" VALUES ");
-        Set<Integer> indexSet = stringIndexSet(event.columnTypes());
+        Set<Integer> indexSet = indexSetOfStringType(event.columnTypes());
         for(List<String> row : event.rows()) {
-            sqlBuilder.append(toInsertPhrase(row,indexSet));
+            sqlBuilder.append(toInsertValuesPhrase(row,indexSet));
             sqlBuilder.append(",");
         }
         sqlBuilder.deleteCharAt(sqlBuilder.length()-1);
         String sql = sqlBuilder.toString();
         int count = executeWrite(sql);
-        if (event.rows().size() != count) {
-            log.error(count+" rows has been inserted: "+sql);
+        
+        int expectedCount = event.rows().size();
+        if (expectedCount != count) {
+            log.error("Only "+count + " rows " + "in expected " + 
+                      expectedCount + " rows have been inserted: "+sql);
         }
-        log.info(sql);
     }
     
     private void update(MysqlUpdateEvent event) {
-        Set<Integer> indexSet = stringIndexSet(event.columnTypes());
+        if (event.rows().size() == 0) {
+            log.error("rows size is zero :"+event.toString());
+            return;
+        }
+        
+        Set<Integer> indexSet = indexSetOfStringType(event.columnTypes());
         List<String> columnNames = event.columnNames();
+        LinkedList<String> batchSql = new LinkedList<String>();
+        HashSet<String> primaryKeys = new HashSet<String>(event.primaryKeys());
+        String tableName = event.tableName().toLowerCase();
         for(MysqlUpdateEvent.Entity entity : event.rows()) {
-            String phase = toUpdatePhrase(entity, columnNames, indexSet);
-            if (null != phase) {
+            String phase = toUpdateSetPhrase(entity, columnNames, indexSet);
+            if (phase.length() > 0) {
                 StringBuilder sqlBuilder = new StringBuilder();
                 sqlBuilder.append("UPDATE ");
-                sqlBuilder.append("event.tableName().toLowerCase()"); 
-                sqlBuilder.append(" ");
+                sqlBuilder.append(tableName); 
+                sqlBuilder.append(" Set ");
                 sqlBuilder.append(phase);
-            }
-            
-            
-        }       
+                sqlBuilder.append(" WHERE ");
+                sqlBuilder.append(toWherePhrase(entity.after(), columnNames,
+                                                primaryKeys, indexSet));
+                batchSql.addLast(sqlBuilder.toString());
+            }           
+        }
         
+        checkResult(executeWrite(batchSql), event);
     }
     
     private void delete(MysqlDeleteEvent event) {
+        if (event.rows().size() == 0) {
+            log.error("rows size is zero :"+event.toString());
+            return;
+        }
         
+        Set<Integer> indexSet = indexSetOfStringType(event.columnTypes());
+        String tableName = event.tableName().toLowerCase();
+        List<String> columnNames = event.columnNames();
+        HashSet<String> primaryKeys = new HashSet<String>(event.primaryKeys());
+        LinkedList<String> batchSql = new LinkedList<String>();
+        for(List<String> row : event.rows()) {
+            StringBuilder sqlBuilder = new StringBuilder();
+            sqlBuilder.append("DELETE FROM ");
+            sqlBuilder.append(tableName);
+            sqlBuilder.append(" WHERE ");
+            sqlBuilder.append(toWherePhrase(row, columnNames, 
+                                            primaryKeys, indexSet));
+            batchSql.addLast(sqlBuilder.toString());
+        }
+
+        checkResult(executeWrite(batchSql), event);
     }
     
-    private Set<Integer> stringIndexSet(List<Integer> types) {
-        Set<Integer> indexSet = new HashSet<Integer>();
+    private Set<Integer> indexSetOfStringType(List<Integer> types) {
+        HashSet<Integer> indexSet = new HashSet<Integer>();
         ListIterator<Integer> it = types.listIterator();
         while(it.hasNext()) {
             Integer index = it.nextIndex();
             int t = it.next();
-            if((12==t) ||(1==t)) {
+            if((Types.CHAR == t) ||(Types.VARCHAR == t) ||
+               (Types.NCHAR == t) || (Types.NVARCHAR == t)) {
                 indexSet.add(index);
             }
         }
         return indexSet;
     }
     
-    private String toInsertPhrase(List<String> row, Set<Integer> indexSet) {
-        log.info(row.getClass().getName());
+    private String toInsertValuesPhrase(List<String> row, 
+                                        Set<Integer> indexSet) {
         StringBuilder builder = new StringBuilder();
         builder.append('(');
         ListIterator<String> it = row.listIterator();
         while(it.hasNext()) {
             int index = it.nextIndex();
             String value = it.next();
-            append(builder, value, indexSet.contains(index));            
-            builder.append(',');
+            append(builder, value, indexSet.contains(index));
+            if (it.hasNext()) {
+               builder.append(','); 
+            }            
         }
-        builder.deleteCharAt(builder.length()-1);
         builder.append(')');
-        
         return builder.toString();
     }
     
-    private String toUpdatePhrase(MysqlUpdateEvent.Entity entity, 
+    private String toUpdateSetPhrase(MysqlUpdateEvent.Entity entity, 
                              List<String> columnNames, Set<Integer> indexSet) {
         StringBuilder builder = new StringBuilder();
         ListIterator<String> nameIt = columnNames.listIterator();
@@ -114,18 +157,38 @@ public class MysqlReplication extends MysqlReceiver{
         while(nameIt.hasNext()) {
             String before = beforeIt.next();
             String after = afterIt.next();
-            if (equals(before,after)) {
-                continue;
-            }
             int index = nameIt.nextIndex();
-            builder.append(nameIt.next());
+            String name = nameIt.next();
+            if (equals(before, after)) {
+                continue;
+            } 
+            builder.append(name);
             builder.append('=');
             append(builder, after, indexSet.contains(index));
-            builder.append(',');
+            builder.append(',');           
         }
         builder.deleteCharAt(builder.length()-1);
-        
         return builder.toString();
+    }
+    
+    private String toWherePhrase(List<String> row, List<String> columnNames,
+                              Set<String> primaryKeys, Set<Integer> indexSet) {
+        StringBuilder builder = new StringBuilder();
+        ListIterator<String> rowIt = row.listIterator();
+        ListIterator<String> nameIt = columnNames.listIterator();
+        while(nameIt.hasNext()) {
+            int index = nameIt.nextIndex();
+            String name = nameIt.next();
+            String value = rowIt.next();            
+            if (primaryKeys.contains(name)) {
+                builder.append(name);
+                builder.append('=');
+                append(builder, value, indexSet.contains(index));
+                builder.append(',');  
+            }
+        }
+        builder.deleteCharAt(builder.length()-1);
+        return builder.toString();        
     }
     
     private void append(StringBuilder builder, String value, boolean isString) {
@@ -154,7 +217,19 @@ public class MysqlReplication extends MysqlReceiver{
         }
     }
     
+    private void checkResult(int[] count, MysqlWriteEvent<?> event) {
+        int num = 0;        
+        for(int c : count) {
+            num += c;
+        }
+        int expectedCount = event.rows().size();
+        if (num == expectedCount) {
+            return;
+        }
+        log.error("Only " + num + "rows in expected " + expectedCount + 
+                  " rows have been written : " + event.toString());
+    }
+    
     private static Log log = LogFactory.getLog(MysqlReplication.class);
     private Set<Integer> EMPTY_INDEX_SET = new HashSet<Integer>();
-
 }
