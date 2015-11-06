@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.event.management.SubscriptionEvent;
+import databus.event.management.Subscription;
 import databus.util.InternetAddress;
 import databus.util.RemoteTopic;
 
@@ -36,7 +36,7 @@ public class Subscriber {
     public void subscribe() {
         for (RemoteTopic remoteTopic : receiversMap.keySet()) {
             InternetAddress remoteAddress = remoteTopic.remoteAddress();
-            SubscriptionEvent event = new SubscriptionEvent();
+            Subscription event = new Subscription();
             event.topic(remoteTopic.topic());
             client.send(event, remoteAddress);
         }

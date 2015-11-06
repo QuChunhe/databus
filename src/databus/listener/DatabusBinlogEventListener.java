@@ -8,10 +8,10 @@ import com.google.code.or.binlog.BinlogEventV4;
 import com.google.code.or.binlog.impl.event.TableMapEvent;
 import com.google.code.or.common.util.MySQLConstants;
 
-import databus.event.mysql.MysqlAbstractWriteEvent;
-import databus.event.mysql.MysqlDeleteEvent;
-import databus.event.mysql.MysqlInsertEvent;
-import databus.event.mysql.MysqlUpdateEvent;
+import databus.event.mysql.MysqlAbstractWriteRows;
+import databus.event.mysql.MysqlDeleteRows;
+import databus.event.mysql.MysqlInsertRows;
+import databus.event.mysql.MysqlUpdateRows;
 
 public class DatabusBinlogEventListener implements BinlogEventListener {
 
@@ -70,18 +70,18 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             return;
         }
     
-        MysqlAbstractWriteEvent<?> newEvent;
+        MysqlAbstractWriteRows<?> newEvent;
         switch (curBinlogEvent.getHeader().getEventType()) {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:         
-            newEvent = new MysqlInsertEvent();
+            newEvent = new MysqlInsertRows();
             break;
             
         case MySQLConstants.UPDATE_ROWS_EVENT_V2:
-            newEvent = new MysqlUpdateEvent();           
+            newEvent = new MysqlUpdateRows();           
             break;
             
         case MySQLConstants.DELETE_ROWS_EVENT_V2:
-            newEvent = new MysqlDeleteEvent();
+            newEvent = new MysqlDeleteRows();
             break;
             
         default:

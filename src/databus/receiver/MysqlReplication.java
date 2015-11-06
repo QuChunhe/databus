@@ -11,10 +11,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.event.MysqlWriteEvent;
-import databus.event.mysql.MysqlDeleteEvent;
-import databus.event.mysql.MysqlInsertEvent;
-import databus.event.mysql.MysqlUpdateEvent;
+import databus.event.MysqlWriteRows;
+import databus.event.mysql.MysqlDeleteRows;
+import databus.event.mysql.MysqlInsertRows;
+import databus.event.mysql.MysqlUpdateRows;
 
 public class MysqlReplication extends MysqlReceiver{    
 
@@ -24,18 +24,18 @@ public class MysqlReplication extends MysqlReceiver{
 
     @Override
     public void receive(Event event) {
-        if (event instanceof MysqlInsertEvent) {
-            insert((MysqlInsertEvent) event);
-        } else if (event instanceof MysqlUpdateEvent) {
-            update((MysqlUpdateEvent)event);
-        } else if (event instanceof MysqlDeleteEvent) {
-            delete((MysqlDeleteEvent)event);
+        if (event instanceof MysqlInsertRows) {
+            insert((MysqlInsertRows) event);
+        } else if (event instanceof MysqlUpdateRows) {
+            update((MysqlUpdateRows)event);
+        } else if (event instanceof MysqlDeleteRows) {
+            delete((MysqlDeleteRows)event);
         } else {
             log.error("Can't process "+event.toString());
         }
     }
 
-    private void insert(MysqlInsertEvent event) {
+    private void insert(MysqlInsertRows event) {
         if (event.rows().size() == 0) {
             log.error("rows size is zero :"+event.toString());
             return;
@@ -64,7 +64,7 @@ public class MysqlReplication extends MysqlReceiver{
         }
     }
     
-    private void update(MysqlUpdateEvent event) {
+    private void update(MysqlUpdateRows event) {
         if (event.rows().size() == 0) {
             log.error("rows size is zero :"+event.toString());
             return;
@@ -75,7 +75,7 @@ public class MysqlReplication extends MysqlReceiver{
         LinkedList<String> batchSql = new LinkedList<String>();
         HashSet<String> primaryKeys = new HashSet<String>(event.primaryKeys());
         String tableName = event.tableName().toLowerCase();
-        for(MysqlUpdateEvent.Entity entity : event.rows()) {
+        for(MysqlUpdateRows.Entity entity : event.rows()) {
             String phase = toUpdateSetPhrase(entity, columnNames, indexSet);
             if (phase.length() > 0) {
                 StringBuilder sqlBuilder = new StringBuilder();
@@ -93,7 +93,7 @@ public class MysqlReplication extends MysqlReceiver{
         checkResult(executeWrite(batchSql), event);
     }
     
-    private void delete(MysqlDeleteEvent event) {
+    private void delete(MysqlDeleteRows event) {
         if (event.rows().size() == 0) {
             log.error("rows size is zero :"+event.toString());
             return;
@@ -148,7 +148,7 @@ public class MysqlReplication extends MysqlReceiver{
         return builder.toString();
     }
     
-    private String toUpdateSetPhrase(MysqlUpdateEvent.Entity entity, 
+    private String toUpdateSetPhrase(MysqlUpdateRows.Entity entity, 
                              List<String> columnNames, Set<Integer> indexSet) {
         StringBuilder builder = new StringBuilder();
         ListIterator<String> nameIt = columnNames.listIterator();
@@ -217,7 +217,7 @@ public class MysqlReplication extends MysqlReceiver{
         }
     }
     
-    private void checkResult(int[] count, MysqlWriteEvent<?> event) {
+    private void checkResult(int[] count, MysqlWriteRows<?> event) {
         int num = 0;        
         for(int c : count) {
             num += c;
