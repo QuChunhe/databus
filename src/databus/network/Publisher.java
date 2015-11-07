@@ -31,7 +31,7 @@ public class Publisher{
         }
     }
     
-    public void unsubscribe(String topic, InternetAddress remoteAddress) {
+    public void withdraw(String topic, InternetAddress remoteAddress) {
         Set<InternetAddress> addressSet = subscribersMap.get(topic);
         if (addressSet.remove(remoteAddress)) {
             if (addressSet.isEmpty()) {
@@ -50,8 +50,7 @@ public class Publisher{
         } else {
             log.info(event.toString()+" has't subscriber!");
         }
-    }    
-
+    }  
     
     private static Log log = LogFactory.getLog(Publisher.class);
     

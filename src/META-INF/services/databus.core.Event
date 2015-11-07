@@ -1,11 +1,11 @@
 
 #MysqEvent
-databus.event.mysql.MysqlInsertEvent
-databus.event.mysql.MysqlDeleteEvent
-databus.event.mysql.MysqlUpdateEvent
+databus.event.mysql.MysqlInsertRows
+databus.event.mysql.MysqlDeleteRows
+databus.event.mysql.MysqlUpdateRows
 
 
 #ManagementEvent
-databus.event.management.CountermandEvent
-databus.event.management.SubscriptionEvent
+databus.event.management.Withdrawal
+databus.event.management.Subscription
 

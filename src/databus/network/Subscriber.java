@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Event;
 import databus.core.Receiver;
 import databus.event.management.Subscription;
+import databus.event.management.Withdrawal;
 import databus.util.InternetAddress;
 import databus.util.RemoteTopic;
 
@@ -21,11 +22,14 @@ public class Subscriber {
         this.client = client;
     }
 
-     public void receive(Event event) {
+    public void receive(Event event) {
         RemoteTopic key = new RemoteTopic(event.address(), event.topic());
         Set<Receiver> receiversSet = receiversMap.get(key);
         if (null == receiversSet) {
             log.error(key.toString() + " has't been subscribed!");
+            Withdrawal withdrawal = new Withdrawal();
+            withdrawal.topic(event.topic());
+            client.send(withdrawal, event.address());
         } else {
             for (Receiver receiver : receiversSet) {
                 receiver.receive(event);
@@ -70,7 +74,7 @@ public class Subscriber {
         register(remoteTopic, receiver);
     }
     
-    public void unregister(RemoteTopic remoteTopic, Receiver receiver) {
+    public void withdraw(RemoteTopic remoteTopic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
            log.error("Don't contain the RemoteTopic "+remoteTopic.toString());
