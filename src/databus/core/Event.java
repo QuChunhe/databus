@@ -4,7 +4,7 @@ import databus.util.InternetAddress;
 
 public interface Event {
     
-    public static enum Source {REDIS, MYSQL, MANAGEMENT}
+    public static enum Source {REDIS, MYSQL, MANAGEMENT, CONFIRMATION}
 
     public Source source();
     

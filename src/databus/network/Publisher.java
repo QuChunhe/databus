@@ -9,6 +9,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
+import databus.event.management.SubscribingConfirmation;
+import databus.event.management.Subscription;
+import databus.event.management.Withdrawal;
 import databus.util.Backup;
 import databus.util.InternetAddress;
 
@@ -24,7 +27,7 @@ public class Publisher{
         this.hasBackup = hasBackup;
         recoverSubscribersMap();
     }
-
+    
     public void subscribe(String topic, InternetAddress remoteAddress) {
         Set<InternetAddress> addresses = subscribersMap.get(topic);
         if (null == addresses) {
@@ -39,9 +42,25 @@ public class Publisher{
         }
     }
     
+    public void receive(Event event) {
+        if (event instanceof Subscription) {
+            subscribe(event.topic(), event.address());   
+            confirm((Subscription)event);
+        } else if (event instanceof Withdrawal){
+            withdraw(event.topic(), event.address());
+        }
+        
+    }
+    
+    public void confirm(Subscription e) {
+        SubscribingConfirmation event = new SubscribingConfirmation();
+        event.setConfirmedEvent(e);
+        client.send(event, e.address());
+    }
+    
     public void withdraw(String topic, InternetAddress remoteAddress) {
         Set<InternetAddress> addresses = subscribersMap.get(topic);
-        if (addresses.remove(remoteAddress)) {
+        if ((null != addresses) && (addresses.remove(remoteAddress))) {
             if (addresses.isEmpty()) {
                 subscribersMap.remove(topic);
             }

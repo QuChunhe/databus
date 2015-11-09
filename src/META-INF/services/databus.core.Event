@@ -8,4 +8,4 @@ databus.event.mysql.MysqlUpdateRows
 #ManagementEvent
 databus.event.management.Withdrawal
 databus.event.management.Subscription
-
+databus.event.management.SubscribingConfirmation

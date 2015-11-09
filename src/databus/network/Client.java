@@ -24,14 +24,19 @@ import io.netty.util.concurrent.GenericFutureListener;
 public class Client  implements Runnable, Startable {
 
     public Client(InternetAddress listeningAddress) {
-        gson = new GsonBuilder().enableComplexMapKeySerialization() 
-                                .serializeNulls()   
+        this(listeningAddress, 1);
+    }
+    
+    public Client(InternetAddress listeningAddress, int threadPoolSize) {
+        gson = new GsonBuilder().enableComplexMapKeySerialization()
+                                .serializeNulls()
                                 .setDateFormat(DateFormat.LONG)
                                 .create();
         taskQueue = new LinkedBlockingQueue<Task>();
         thread = new Thread(this, "DataBus Client");
         this.listeningAddress = listeningAddress;
         log.info(listeningAddress.toString());
+        group = new NioEventLoopGroup(threadPoolSize);
     }
     
     @Override
@@ -56,7 +61,6 @@ public class Client  implements Runnable, Startable {
 
     @Override
     public void run() {
-        EventLoopGroup group = new NioEventLoopGroup(1);
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(group)
@@ -144,4 +148,5 @@ public class Client  implements Runnable, Startable {
     private Gson gson;
     private Thread thread;
     private InternetAddress listeningAddress;
+    private EventLoopGroup group;
 }

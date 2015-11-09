@@ -17,6 +17,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class Server implements Runnable, Startable{    
     
     public Server(InternetAddress localAddress) {
+        this(localAddress,1);
+    }
+    
+    public Server(InternetAddress localAddress, int workerPoolSize) {
         this.localAddress = localAddress;
         childHandler = new ServerHandler();
         bossGroup = new NioEventLoopGroup(1);

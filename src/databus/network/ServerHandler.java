@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.event.ManagementEvent;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -42,7 +41,12 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
                       " cannot be parsed as Event : "+message);
             return;
         }
-        dispatch(event);
+        if (null != subscriber) {
+            subscriber.receive(event);
+         } 
+         if (null != publisher) {
+             publisher.receive(event);
+         }
     }
 
     @Override
@@ -64,16 +68,6 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
     
     public void setSubscriber(Subscriber subscriber) {
         this.subscriber = subscriber;
-    }
-    
-    private void dispatch(Event event) {
-        if (event.source() == Event.Source.MANAGEMENT) {
-            if (null != publisher) {
-                ((ManagementEvent)event).execute(publisher);
-            }
-        } else if (null != subscriber) {
-           subscriber.receive(event);
-        }            
     }
         
     private static Log log = LogFactory.getLog(ServerHandler.class);
