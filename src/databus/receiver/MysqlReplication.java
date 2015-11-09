@@ -226,7 +226,7 @@ public class MysqlReplication extends MysqlReceiver{
         if (num == expectedCount) {
             return;
         }
-        log.error("Only " + num + "rows in expected " + expectedCount + 
+        log.error("Only " + num + " rows in expected " + expectedCount + 
                   " rows have been written : " + event.toString());
     }
     

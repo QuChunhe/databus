@@ -28,7 +28,7 @@ public class BothStartup {
 
         Thread.sleep(500);
         
-        subscriber.subscribe();
+//        subscriber.subscribe();
         
         Thread.sleep(500);
        

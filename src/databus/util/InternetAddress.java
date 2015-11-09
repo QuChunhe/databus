@@ -1,7 +1,11 @@
 package databus.util;
 
-public class InternetAddress {
+import java.io.Serializable;
 
+public class InternetAddress implements Serializable {
+
+    private static final long serialVersionUID = 8532528699989931341L;
+    
     public InternetAddress(String ipAddress, int port) {
         this.ipAddress = ipAddress.trim();
         this.port = port;
@@ -31,7 +35,10 @@ public class InternetAddress {
         return ipAddress+":"+port;
     }
 
-
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
 
     private String ipAddress;
     private int port;

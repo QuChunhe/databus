@@ -103,7 +103,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         listener.onEvent(newEvent);
     }
 
-
     private static Log log = LogFactory.getLog(DatabusBinlogEventListener.class);
 
     private MysqlListener listener;

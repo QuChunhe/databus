@@ -30,7 +30,7 @@ public class Configuration {
     public static String SERVER_IP = "server.ip";
     public static String SERVER_PORT = "server.port";
     
-    public String SERVER_CONFIGURATION_NAME = "conf/server.properties";    
+    public String SERVER_CONFIGURATION_NAME = "conf/databus.properties";    
     public String RECEIVERS_PROPERTIES_DIR_NAME = "conf/receivers";
     public String LISTENERS_PROPERTIES_DIR_NAME="conf/listeners";
     

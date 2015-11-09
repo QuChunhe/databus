@@ -56,7 +56,7 @@ public class Client  implements Runnable, Startable {
 
     @Override
     public void run() {
-        EventLoopGroup group = new NioEventLoopGroup();
+        EventLoopGroup group = new NioEventLoopGroup(1);
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(group)
@@ -113,8 +113,7 @@ public class Client  implements Runnable, Startable {
         return e.source().toString() + ":" + e.type() + "=" + gson.toJson(e);
     }
     
-    private static class SendingListener 
-                              implements GenericFutureListener<ChannelFuture> {
+    private static class SendingListener implements GenericFutureListener<ChannelFuture> {
 
         public SendingListener(String message) {
             this.message = message;

@@ -1,6 +1,10 @@
 package databus.util;
 
-public class RemoteTopic {
+import java.io.Serializable;
+
+public class RemoteTopic implements Serializable{
+
+    private static final long serialVersionUID = -7320388531653089553L;
     
     public RemoteTopic(InternetAddress remoteAddress, String topic) {
         this.remoteAddress = remoteAddress;
