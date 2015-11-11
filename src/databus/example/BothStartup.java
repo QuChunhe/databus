@@ -1,12 +1,11 @@
 package databus.example;
 
-import java.util.concurrent.TimeUnit;
-
 import databus.core.Listener;
+import databus.network.BackupPublisher;
 import databus.network.Client;
+import databus.network.PeriodicSubscriber;
 import databus.network.Publisher;
 import databus.network.Server;
-import databus.network.Subscriber;
 import databus.util.InternetAddress;
 
 public class BothStartup {
@@ -18,9 +17,9 @@ public class BothStartup {
         Server server = new Server(localAddress);
         Client client = new Client(localAddress);
         
-        Publisher publisher = new Publisher(client);
-        Subscriber subscriber = new Subscriber(client);
-        subscriber.setMaxSubscribingPeroid(10, TimeUnit.SECONDS);
+        Publisher publisher = new BackupPublisher(client);
+        PeriodicSubscriber subscriber = new PeriodicSubscriber(client);
+        subscriber.setMaxSubscribingPeroid(10);
         server.setPublisher(publisher).setSubscriber(subscriber);
         
         Thread serverThread = server.start();       

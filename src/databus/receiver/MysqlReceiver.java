@@ -47,8 +47,8 @@ public abstract class MysqlReceiver implements Receiver{
         int[] count = null;
         try {
             stmt = conn.createStatement();
-            stmt.setEscapeProcessing(true);
             stmt.clearBatch();
+            stmt.setEscapeProcessing(true);            
             for(String sql : batchSql) {
                 stmt.addBatch(sql);
             }

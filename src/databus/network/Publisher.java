@@ -12,23 +12,17 @@ import databus.core.Event;
 import databus.event.management.SubscribingConfirmation;
 import databus.event.management.Subscription;
 import databus.event.management.Withdrawal;
-import databus.util.Backup;
 import databus.util.InternetAddress;
 
 public class Publisher{   
-    
-    public Publisher(Client client) {        
-        this(client, true);        
-    }
 
-    public Publisher(Client client, boolean hasBackup) {
+    public Publisher(Client client) {
         this.client = client;
         subscribersMap = new ConcurrentHashMap<String, Set<InternetAddress>>();
-        this.hasBackup = hasBackup;
-        recoverSubscribersMap();
     }
     
-    public void subscribe(String topic, InternetAddress remoteAddress) {
+    public boolean subscribe(String topic, InternetAddress remoteAddress) {
+        boolean isAdded = false;
         Set<InternetAddress> addresses = subscribersMap.get(topic);
         if (null == addresses) {
             addresses = new CopyOnWriteArraySet<InternetAddress>();            
@@ -38,8 +32,9 @@ public class Publisher{
             log.info(remoteAddress.toString()+" has subscribeed before");
         } else {
             addresses.add(remoteAddress);
-            restoreSubscribersMap();
+            isAdded = true;
         }
+        return isAdded;
     }
     
     public void receive(Event event) {
@@ -48,8 +43,7 @@ public class Publisher{
             confirm((Subscription)event);
         } else if (event instanceof Withdrawal){
             withdraw(event.topic(), event.address());
-        }
-        
+        }        
     }
     
     public void confirm(Subscription e) {
@@ -58,15 +52,18 @@ public class Publisher{
         client.send(event, e.address());
     }
     
-    public void withdraw(String topic, InternetAddress remoteAddress) {
+    public boolean withdraw(String topic, InternetAddress remoteAddress) {
+        boolean isRemoved = true;
         Set<InternetAddress> addresses = subscribersMap.get(topic);
         if ((null != addresses) && (addresses.remove(remoteAddress))) {
             if (addresses.isEmpty()) {
                 subscribersMap.remove(topic);
             }
+            isRemoved = true;
         } else {
             log.error(remoteAddress.toString()+" has't subscribe "+topic);
         }
+        return isRemoved;
     }
 
     public void publish(Event event) {
@@ -78,32 +75,10 @@ public class Publisher{
             log.info(event.toString()+" has't subscriber!");
         }
     }
+    
+    protected Map<String, Set<InternetAddress>> subscribersMap; 
 
-    private void recoverSubscribersMap() {
-        if (!hasBackup) {
-            return;
-        }
-     
-        Map<String, Set<InternetAddress>> copy = 
-                        Backup.instance().restore(BACKUP_NAME, subscribersMap);
-        if (null != copy) {
-            subscribersMap = copy;
-            log.info(subscribersMap.toString()+ " has recovered");
-        }       
-    }
-    
-    private void restoreSubscribersMap() {
-        if (!hasBackup) {
-            return;
-        }
-        Backup.instance().store(BACKUP_NAME, subscribersMap);
-        log.info(subscribersMap.toString()+" has stored");
-    }
-    
-    private static String BACKUP_NAME = "publisher.receivedSubscribers";
     private static Log log = LogFactory.getLog(Publisher.class);
-    
-    private Map<String, Set<InternetAddress>> subscribersMap;    
+       
     private Client client;
-    private boolean hasBackup;
 }

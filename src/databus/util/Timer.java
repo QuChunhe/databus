@@ -31,6 +31,10 @@ public class Timer {
         return executor.remove(task);
     }
     
+    public boolean contains(Runnable task) {
+        return executor.getQueue().contains(task);
+    }
+    
     private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
     
     private String name;
