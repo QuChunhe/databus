@@ -9,6 +9,10 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public abstract class RedisReceiver implements Receiver {
     
+    public RedisReceiver() {
+
+    }
+
     @Override
     public void initialize(Properties properties) {
         String host = properties.getProperty("host", "127.0.0.1");

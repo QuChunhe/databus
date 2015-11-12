@@ -15,5 +15,10 @@ public class SubscribingConfirmation extends AbstractConfirmation<Subscription>{
     @Override
     public String topic() {
         return ManagementEvent.Type.SUBSCRIPTION.toString();
-    } 
+    }
+
+    @Override
+    public String toString() {
+        return "SubscribingConfirmation [toString()=" + super.toString() + "]";
+    }    
 }
