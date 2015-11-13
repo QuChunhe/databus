@@ -50,8 +50,8 @@ public abstract class MysqlAbstractWriteRows<T> extends MysqlAbstractEvent
                       "topic="+topic()+";"+
                       "primaryKeys"+primaryKeys.toString()+";"+
                       "rows="+rows.toString()+";"+
-                      "columnNames="+columns.toString()+";"+
-                      "columntypes="+types.toString()+";"+
+                      "columns="+columns.toString()+";"+
+                      "types="+types.toString()+";"+
                       "}";
         return name;
     }
