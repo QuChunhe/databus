@@ -10,7 +10,7 @@ public interface MysqlEvent  extends Event{
     
     public long serverId();
     
-    public String databaseName();
+    public String database();
     
-    public String tableName();  
+    public String table();  
 }

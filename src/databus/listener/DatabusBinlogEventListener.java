@@ -91,13 +91,13 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         }
         
         long serverId = tableMapEvent.getHeader().getServerId();
-        newEvent.columnNames(listener.getColumns(fullName))
+        newEvent.columns(listener.getColumns(fullName))
                 .columnTypes(listener.getTypes(fullName))
                 .primaryKeys(listener.getPrimaryKeys(fullName))
                 .setRows(curBinlogEvent);
         newEvent.serverId(serverId)
-                .tableName(tableName)
-                .databaseName(dbName)
+                .table(tableName)
+                .database(dbName)
                 .time(curBinlogEvent.getHeader().getTimestamp());
                 
         listener.onEvent(newEvent);

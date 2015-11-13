@@ -43,9 +43,9 @@ public class MysqlReplication extends MysqlReceiver{
         
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("INSERT INTO ");
-        sqlBuilder.append(event.tableName().toLowerCase());
+        sqlBuilder.append(event.table().toLowerCase());
         sqlBuilder.append(" ");
-        sqlBuilder.append(toInsertValuesPhrase(event.columnNames(),
+        sqlBuilder.append(toInsertValuesPhrase(event.columns(),
                                                EMPTY_INDEX_SET));        
         sqlBuilder.append(" VALUES ");
         Set<Integer> indexSet = indexSetOfStringType(event.columnTypes());
@@ -71,10 +71,10 @@ public class MysqlReplication extends MysqlReceiver{
         }
         
         Set<Integer> indexSet = indexSetOfStringType(event.columnTypes());
-        List<String> columnNames = event.columnNames();
+        List<String> columnNames = event.columns();
         LinkedList<String> batchSql = new LinkedList<String>();
         HashSet<String> primaryKeys = new HashSet<String>(event.primaryKeys());
-        String tableName = event.tableName().toLowerCase();
+        String tableName = event.table().toLowerCase();
         for(MysqlUpdateRows.Entity entity : event.rows()) {
             String phase = toUpdateSetPhrase(entity, columnNames, indexSet);
             if (phase.length() > 0) {
@@ -100,8 +100,8 @@ public class MysqlReplication extends MysqlReceiver{
         }
         
         Set<Integer> indexSet = indexSetOfStringType(event.columnTypes());
-        String tableName = event.tableName().toLowerCase();
-        List<String> columnNames = event.columnNames();
+        String tableName = event.table().toLowerCase();
+        List<String> columnNames = event.columns();
         HashSet<String> primaryKeys = new HashSet<String>(event.primaryKeys());
         LinkedList<String> batchSql = new LinkedList<String>();
         for(List<String> row : event.rows()) {

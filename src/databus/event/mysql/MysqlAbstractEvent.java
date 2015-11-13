@@ -13,13 +13,13 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
     }
 
     @Override
-    public String databaseName() {
-        return databaseName;
+    public String database() {
+        return database;
     }
 
     @Override
-    public String tableName() {
-        return tableName;
+    public String table() {
+        return table;
     }
 
     @Override
@@ -29,7 +29,7 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
 
     @Override
     public String topic() {
-        return source()+":"+serverId()+":"+databaseName();
+        return source()+":"+serverId()+":"+database();
     }
     
     public MysqlAbstractEvent serverId(long serverId) {
@@ -37,17 +37,17 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
         return this;
     }
     
-    public MysqlAbstractEvent databaseName(String databaseName) {
-        this.databaseName = databaseName.toUpperCase();
+    public MysqlAbstractEvent database(String database) {
+        this.database = database.toUpperCase();
         return this;
     }
     
-    public MysqlAbstractEvent tableName(String tableName) {
-        this.tableName = tableName.toUpperCase();
+    public MysqlAbstractEvent table(String table) {
+        this.table = table.toUpperCase();
         return this;
     }
     
     private long serverId;
-    private String databaseName;
-    private String tableName;    
+    private String database;
+    private String table;    
 }

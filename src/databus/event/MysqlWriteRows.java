@@ -8,9 +8,9 @@ public interface MysqlWriteRows<T> extends MysqlEvent{
 
     public List<T> rows();
     
-    public List<String> columnNames();
+    public List<String> columns();
     
-    public MysqlWriteRows<T> columnNames(List<String> columnNames);
+    public MysqlWriteRows<T> columns(List<String> columns);
     
     public List<Integer> columnTypes();
     

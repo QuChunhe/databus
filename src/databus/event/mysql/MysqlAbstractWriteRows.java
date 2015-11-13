@@ -21,24 +21,24 @@ public abstract class MysqlAbstractWriteRows<T> extends MysqlAbstractEvent
     }
 
     @Override
-    public List<String> columnNames() {
-        return columnNames;
+    public List<String> columns() {
+        return columns;
     }    
     
     @Override
     public List<Integer> columnTypes() {
-        return columnTypes;
+        return types;
     }
 
     @Override
-    public MysqlWriteRows<T> columnNames(List<String> columnNames) {
-        this.columnNames = columnNames;
+    public MysqlWriteRows<T> columns(List<String> columns) {
+        this.columns = columns;
         return this;
     }
 
     @Override
     public MysqlWriteRows<T> columnTypes(List<Integer> columnTypes) {
-        this.columnTypes = columnTypes;
+        this.types = columnTypes;
         return this;
     }
 
@@ -50,8 +50,8 @@ public abstract class MysqlAbstractWriteRows<T> extends MysqlAbstractEvent
                       "topic="+topic()+";"+
                       "primaryKeys"+primaryKeys.toString()+";"+
                       "rows="+rows.toString()+";"+
-                      "columnNames="+columnNames.toString()+";"+
-                      "columntypes="+columnTypes.toString()+";"+
+                      "columnNames="+columns.toString()+";"+
+                      "columntypes="+types.toString()+";"+
                       "}";
         return name;
     }
@@ -82,7 +82,7 @@ public abstract class MysqlAbstractWriteRows<T> extends MysqlAbstractEvent
     }
 
     private List<T> rows = null;
-    private List<String> columnNames = null;
-    private List<Integer> columnTypes = null;
+    private List<String> columns = null;
+    private List<Integer> types = null;
     private List<String> primaryKeys;
 }
