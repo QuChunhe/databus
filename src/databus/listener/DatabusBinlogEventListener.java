@@ -66,6 +66,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         String dbName = tableMapEvent.getDatabaseName().toString();
         String tableName = tableMapEvent.getTableName().toString();
         String fullName = dbName.toLowerCase()+"."+tableName.toLowerCase();
+        log.info(fullName+" : "+curBinlogEvent.toString());
         if (!listener.doPermit(fullName)) {
             return;
         }

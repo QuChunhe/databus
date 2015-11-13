@@ -70,6 +70,7 @@ public class MysqlListener extends AbstractListener{
         int serverId = Integer.valueOf(properties.getProperty(SERVER_ID, "1"));
         String binlogFileName = 
                 properties.getProperty(BINLOG_FILE_NAME, "master-bin.000001");
+        int position = Integer.valueOf(properties.getProperty(POSITION, "1"));
         openRelicator = new OpenReplicator();
         openRelicator.setUser(user);
         openRelicator.setPassword(password);
@@ -77,6 +78,7 @@ public class MysqlListener extends AbstractListener{
         openRelicator.setPort(port);
         openRelicator.setServerId(serverId);
         openRelicator.setBinlogFileName(binlogFileName); 
+        openRelicator.setBinlogPosition(position);
         openRelicator.setBinlogEventListener(new DatabusBinlogEventListener(this));
        
         loadPermittedTables(properties);
@@ -121,6 +123,7 @@ public class MysqlListener extends AbstractListener{
         for(String t : tables) {
             permittedTableSet.add(t.trim().toLowerCase());
         }
+        log.info(permittedTableSet.toString());
     }
     
     private void loadSchema(MysqlDataSource ds) {
@@ -140,8 +143,7 @@ public class MysqlListener extends AbstractListener{
                 Connection conn = ds.getConnection();
                 DatabaseMetaData metaData = conn.getMetaData();  
                 
-                ResultSet resultSet1 = metaData.getColumns(null, "%", 
-                                                          tableName, "%");
+                ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");
                 LinkedList<String> columns = new LinkedList<String>();
                 LinkedList<Integer> types = new LinkedList<Integer>();
                 while (resultSet1.next()) {
@@ -170,6 +172,7 @@ public class MysqlListener extends AbstractListener{
     final private static String HOST = "listener.mysql.host";
     final private static String PORT = "listener.mysql.port";
     final private static String SERVER_ID = "listener.mysql.serverId";
+    final private static String POSITION = "listener.mysql.position";
     final private static String BINLOG_FILE_NAME = "listener.mysql.binlogFileName";
     final private static String PERMITTED_TABLES = "listener.mysql.permittedTables";
     
