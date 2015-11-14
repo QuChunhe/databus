@@ -17,8 +17,8 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
 
     public DatabusBinlogEventListener(MysqlListener listener) {
         this.listener = listener;
-        curBinlogEvent = null;
-        preBinlogEvent = null;
+        currentEvent = null;
+        previousEvent = null;
     }
 
     @Override
@@ -28,51 +28,57 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         case MySQLConstants.XID_EVENT:
             buildMySQLEvent(event);
             break;
-         case MySQLConstants.WRITE_ROWS_EVENT:
+        case MySQLConstants.QUERY_EVENT:
+            buildMySQLEvent(event);
+            break;
+        case MySQLConstants.WRITE_ROWS_EVENT:
             log.warn("MySQLRowsEventV1 " + event.toString());
             break;
         case MySQLConstants.UPDATE_ROWS_EVENT:
             log.warn("MySQLUpdateEventV1 " + event.toString());
             break;
         default:
-
+            log.info("Other Event " + event.toString());
         }
         setCurrentBinlogEvent(event);
     }
 
     private void setCurrentBinlogEvent(BinlogEventV4 currentBinlogEvent) {
-        preBinlogEvent = this.curBinlogEvent;
-        this.curBinlogEvent = currentBinlogEvent;
+        previousEvent = this.currentEvent;
+        this.currentEvent = currentBinlogEvent;
     }
 
     public boolean isConsistent(BinlogEventV4 nextBinlogEvent) {        
         return true;
     }
 
-    private void buildMySQLEvent(BinlogEventV4 nextBinlogEvent) {
-        if (!isConsistent(nextBinlogEvent)) {
+    private void buildMySQLEvent(BinlogEventV4 nextEvent) {
+        if (!isConsistent(nextEvent)) {
             log.error("tableId is not consistent");
             return;
         }
+        if ((null==previousEvent) || (null==currentEvent)) {
+            return;
+        }
         
-        int preBinlogEventType = preBinlogEvent.getHeader().getEventType();        
+        int preBinlogEventType = previousEvent.getHeader().getEventType();        
         if (preBinlogEventType != MySQLConstants.TABLE_MAP_EVENT) {
-            log.error("Previous BinLogEvnt is not TableMapEvent: "+
-                      preBinlogEvent.toString());
+            log.info("Previous BinLogEvnt is not TableMapEvent: "+
+                      previousEvent.toString());
             return;
         }
        
-        TableMapEvent tableMapEvent = (TableMapEvent) preBinlogEvent;
+        TableMapEvent tableMapEvent = (TableMapEvent) previousEvent;
         String dbName = tableMapEvent.getDatabaseName().toString();
         String tableName = tableMapEvent.getTableName().toString();
         String fullName = dbName.toLowerCase()+"."+tableName.toLowerCase();
-        log.info(fullName+" : "+curBinlogEvent.toString());
+        log.info(fullName+" : "+currentEvent.toString());
         if (!listener.doPermit(fullName)) {
             return;
         }
     
         MysqlAbstractWriteRows<?> newEvent;
-        switch (curBinlogEvent.getHeader().getEventType()) {
+        switch (currentEvent.getHeader().getEventType()) {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:         
             newEvent = new MysqlInsertRows();
             break;
@@ -87,7 +93,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             
         default:
             log.error("Current BinlogEven is not Write event: "+
-                      curBinlogEvent.toString());
+                      currentEvent.toString());
             return;
         }
         
@@ -95,11 +101,11 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         newEvent.columns(listener.getColumns(fullName))
                 .columnTypes(listener.getTypes(fullName))
                 .primaryKeys(listener.getPrimaryKeys(fullName))
-                .setRows(curBinlogEvent);
+                .setRows(currentEvent);
         newEvent.serverId(serverId)
                 .table(tableName)
                 .database(dbName)
-                .time(curBinlogEvent.getHeader().getTimestamp());
+                .time(currentEvent.getHeader().getTimestamp());
                 
         listener.onEvent(newEvent);
     }
@@ -107,6 +113,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
     private static Log log = LogFactory.getLog(DatabusBinlogEventListener.class);
 
     private MysqlListener listener;
-    private BinlogEventV4 preBinlogEvent;
-    private BinlogEventV4 curBinlogEvent;
+    private BinlogEventV4 previousEvent;
+    private BinlogEventV4 currentEvent;
 }

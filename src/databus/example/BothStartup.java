@@ -6,6 +6,7 @@ import databus.network.Client;
 import databus.network.PeriodicSubscriber;
 import databus.network.Publisher;
 import databus.network.Server;
+import databus.network.Subscriber;
 import databus.util.InternetAddress;
 
 public class BothStartup {
@@ -18,8 +19,9 @@ public class BothStartup {
         Client client = new Client(localAddress);
         
         Publisher publisher = new BackupPublisher(client);
-        PeriodicSubscriber subscriber = new PeriodicSubscriber(client);
-        subscriber.setMaxSubscribingPeroid(10);
+ //       PeriodicSubscriber subscriber = new PeriodicSubscriber(client);
+ //       subscriber.setMaxSubscribingPeroid(10);
+        Subscriber subscriber = new Subscriber(client);
         server.setPublisher(publisher).setSubscriber(subscriber);
         
         Thread serverThread = server.start();       
