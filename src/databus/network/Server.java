@@ -22,7 +22,6 @@ public class Server implements Runnable, Startable{
     
     public Server(InternetAddress localAddress, int workerPoolSize) {
         this.localAddress = localAddress;
-        childHandler = new ServerHandler();
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup();
     }
@@ -51,7 +50,7 @@ public class Server implements Runnable, Startable{
                         public void initChannel(SocketChannel ch)
                                                          throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            p.addLast(childHandler);
+                            p.addLast(new ServerHandler(publisher, subscriber));
                         }
                          
                      });
@@ -73,18 +72,19 @@ public class Server implements Runnable, Startable{
     }
 
     public Server setPublisher(Publisher publisher) {
-        childHandler.setPublisher(publisher);
+        this.publisher = publisher;
         return this;
     }
     
     public Server setSubscriber(Subscriber subscriber) {
-        childHandler.setSubscriber(subscriber);
+        this.subscriber = subscriber;
         return this;
     }
     
     private static Log log = LogFactory.getLog(Server.class);
     
-    private ServerHandler childHandler;
+    private Subscriber subscriber;
+    private Publisher publisher;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private InternetAddress localAddress;
