@@ -124,7 +124,8 @@ public class MysqlReplication extends MysqlReceiver{
             Integer index = it.nextIndex();
             int t = it.next();
             if((Types.CHAR == t) ||(Types.VARCHAR == t) ||
-               (Types.NCHAR == t) || (Types.NVARCHAR == t)) {
+               (Types.NCHAR == t) || (Types.NVARCHAR == t) ||
+               (Types.LONGVARCHAR == t) ||(Types.LONGNVARCHAR == t)) {
                 indexSet.add(index);
             }
         }

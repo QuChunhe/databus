@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.code.or.common.glossary.Column;
 import com.google.code.or.common.glossary.Row;
+import com.google.code.or.common.glossary.column.BlobColumn;
 
 import databus.event.MysqlWriteRows;
 
@@ -74,7 +75,13 @@ public abstract class MysqlAbstractWriteRows<T> extends MysqlAbstractEvent
             if (c.getValue()==null) {
                 newRow.addLast(null);
             } else {
-                newRow.addLast(c.toString());
+                String value;
+                if (c instanceof BlobColumn) {
+                    value = new String(((BlobColumn)c).getValue());
+                } else {
+                    value = c.toString();
+                }
+                newRow.addLast(value);
             }
             
         }
