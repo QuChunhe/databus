@@ -39,7 +39,7 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
     } 
 
     @Override
-    public Map<String, Value> primaryKeysValue() {
+    public Map<String, Value> primaryKeyValues() {
         HashSet<String> primaryKeysSet = new HashSet<String>(primaryKeys);
         Map<String, Value> values = new HashMap<String, Value>();
         for(String column : row.keySet()) {

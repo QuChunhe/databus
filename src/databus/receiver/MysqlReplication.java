@@ -69,7 +69,7 @@ public class MysqlReplication extends MysqlReceiver{
         sqlBuilder.append(" Set ");
         appendEqualFormat(sqlBuilder, event.row());
         sqlBuilder.append(" WHERE ");
-        appendEqualFormat(sqlBuilder, event.primaryKeysValue());
+        appendEqualFormat(sqlBuilder, event.primaryKeyValues());
         String sql = sqlBuilder.toString();
         int count = executeWrite(sql);
         if (count < 1) {

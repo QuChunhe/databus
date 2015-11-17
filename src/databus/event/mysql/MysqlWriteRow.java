@@ -12,6 +12,6 @@ public interface MysqlWriteRow extends WriteEvent, MysqlEvent{
     
     public List<String> primaryKeys();
     
-    public Map<String, Value> primaryKeysValue();
+    public Map<String, Value> primaryKeyValues();
     
 }

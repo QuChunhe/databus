@@ -18,7 +18,7 @@ public class MysqlUpdateRow extends AbstractMysqlWriteRow{
     }
     
     @Override
-    public Map<String, Value> primaryKeysValue() {
+    public Map<String, Value> primaryKeyValues() {
         return primaryKeysValue;
     }
     
