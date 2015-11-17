@@ -1,8 +1,8 @@
 
 #MysqEvent
-databus.event.mysql.MysqlInsertRows
-databus.event.mysql.MysqlDeleteRows
-databus.event.mysql.MysqlUpdateRows
+databus.event.mysql.MysqlInsertRow
+databus.event.mysql.MysqlDeleteRow
+databus.event.mysql.MysqlUpdateRow
 
 
 #ManagementEvent

@@ -1,4 +1,4 @@
-package databus.listener;
+package databus.listener.mysql;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -20,6 +20,7 @@ import com.google.code.or.OpenReplicator;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.event.MysqlEvent;
+import databus.listener.AbstractListener;
 import databus.network.Publisher;
 
 public class MysqlListener extends AbstractListener{  

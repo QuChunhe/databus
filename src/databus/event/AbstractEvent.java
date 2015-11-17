@@ -25,8 +25,8 @@ public abstract class AbstractEvent implements Event{
     public Event address(InternetAddress localAddress) {
         address = localAddress;
         return this;
-    }
-    
+    }    
+
     private InternetAddress address;
     private long time;
 }

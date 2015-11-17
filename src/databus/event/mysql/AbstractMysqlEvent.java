@@ -4,7 +4,7 @@ package databus.event.mysql;
 import databus.event.AbstractEvent;
 import databus.event.MysqlEvent;
 
-public abstract class MysqlAbstractEvent extends AbstractEvent
+public abstract class AbstractMysqlEvent extends AbstractEvent
                                          implements MysqlEvent {
 
     @Override
@@ -32,17 +32,17 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
         return source()+":"+serverId()+":"+database();
     }
     
-    public MysqlAbstractEvent serverId(long serverId) {
+    public AbstractMysqlEvent serverId(long serverId) {
         this.serverId = serverId;
         return this;
     }
     
-    public MysqlAbstractEvent database(String database) {
-        this.database = database.toUpperCase();
+    public AbstractMysqlEvent database(String database) {
+        this.database = database.toLowerCase();
         return this;
     }
     
-    public MysqlAbstractEvent table(String table) {
+    public AbstractMysqlEvent table(String table) {
         this.table = table.toLowerCase();
         return this;
     }
