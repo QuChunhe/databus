@@ -11,4 +11,10 @@ public class Subscription extends AbstractMgtEvent {
     public String type() {
         return Type.SUBSCRIPTION.toString();
     }
+
+    @Override
+    public String toString() {
+        return "Subscription to "+topic();
+    }
+    
 }

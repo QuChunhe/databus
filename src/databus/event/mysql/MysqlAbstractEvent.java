@@ -43,7 +43,7 @@ public abstract class MysqlAbstractEvent extends AbstractEvent
     }
     
     public MysqlAbstractEvent table(String table) {
-        this.table = table.toUpperCase();
+        this.table = table.toLowerCase();
         return this;
     }
     

@@ -12,4 +12,8 @@ public class Withdrawal extends AbstractMgtEvent {
         return Type.WITHDRAWAL.toString();
     }
 
+    @Override
+    public String toString() {
+        return "Withdrawal from "+topic();
+    }
 }

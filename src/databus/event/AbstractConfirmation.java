@@ -21,6 +21,11 @@ public abstract class AbstractConfirmation<E extends Event>
         return Event.Source.CONFIRMATION;
     }
 
+    @Override
+    public String toString() {
+        return "Confirm :" + confirmedEvent.toString();
+    } 
+
     private E confirmedEvent = null;
     
 }

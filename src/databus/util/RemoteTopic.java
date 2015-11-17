@@ -8,7 +8,7 @@ public class RemoteTopic implements Serializable{
     
     public RemoteTopic(InternetAddress remoteAddress, String topic) {
         this.remoteAddress = remoteAddress;
-        this.topic = topic.toUpperCase();
+        this.topic = topic.toLowerCase();
         name = remoteAddress.toString()+"/"+topic;
     }
     
