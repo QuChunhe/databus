@@ -1,26 +1,24 @@
 package databus.listener.mysql;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
-import com.google.code.or.common.glossary.Column;
 import com.google.code.or.common.glossary.Pair;
 import com.google.code.or.common.glossary.Row;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
 import databus.event.mysql.MysqlUpdateRow;
-import databus.event.mysql.Value;
+import databus.event.mysql.Column;
 
 public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
     
     public MysqlUpdateEventFactory(List<String> columns, List<Integer> types,
-                                  List<String> primaryKeys, List<Pair<Row>> rows) {
+                            Set<String> primaryKeysSet, List<Pair<Row>> rows) {
         iterator = rows.listIterator();
         this.columns = columns;
         this.types = types;
-        primaryKeysSet = new HashSet<String>(primaryKeys);
+        this.primaryKeysSet = primaryKeysSet;
     }
 
     @Override
@@ -31,8 +29,10 @@ public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
     @Override
     public AbstractMysqlWriteRow next() {
         Pair<Row> pair= iterator.next();
-        ListIterator<Column> befIt = pair.getBefore().getColumns().listIterator();
-        ListIterator<Column> aftIt = pair.getAfter().getColumns().listIterator();
+        ListIterator<com.google.code.or.common.glossary.Column> 
+                          befIt = pair.getBefore().getColumns().listIterator();
+        ListIterator<com.google.code.or.common.glossary.Column> 
+                           aftIt = pair.getAfter().getColumns().listIterator();
         ListIterator<String> columnsIt = columns.listIterator();
         ListIterator<Integer> typesIt = types.listIterator();
         MysqlUpdateRow event = new MysqlUpdateRow();
@@ -40,14 +40,14 @@ public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
             String before = toString(befIt.next());
             String after = toString(aftIt.next());
             int type = typesIt.next();           
-            String column = columnsIt.next();
+            String name = columnsIt.next();
             if (!equals(before, after)) {
-                Value value = new Value(after, type);
-                event.addValue(column, value);
+                Column column = new Column(name, after, type);
+                event.addColumn(column);
             }
-            if (primaryKeysSet.contains(column)) {
-                Value value = new Value(after, type);
-                event.addPrimaryKeyValue(column, value);
+            if (primaryKeysSet.contains(name)) {
+                Column column = new Column(name, after, type);
+                event.addPrimaryKey(column);
             }       
         }
         

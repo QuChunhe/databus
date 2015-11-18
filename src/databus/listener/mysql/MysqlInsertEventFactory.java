@@ -2,22 +2,23 @@ package databus.listener.mysql;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Set;
 
-import com.google.code.or.common.glossary.Column;
 import com.google.code.or.common.glossary.Row;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
+import databus.event.mysql.Column;
 import databus.event.mysql.MysqlInsertRow;
-import databus.event.mysql.Value;
 
 
 public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
     
     public MysqlInsertEventFactory(List<String> columns, List<Integer> types,
-                                                              List<Row> rows) {
+                                  Set<String> primaryKeysSet, List<Row> rows) {
         iterator = rows.listIterator();
         this.columns = columns;
         this.types = types;
+        this.primaryKeysSet = primaryKeysSet;
     }
     
     @Override
@@ -28,17 +29,20 @@ public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
     @Override
     public AbstractMysqlWriteRow next() {
         Row row = iterator.next();
-        ListIterator<Column> rowIt = row.getColumns().listIterator();
+        ListIterator<com.google.code.or.common.glossary.Column> 
+                                       rowIt = row.getColumns().listIterator();
         ListIterator<String> columnsIt = columns.listIterator();
         ListIterator<Integer> typesIt = types.listIterator();
         AbstractMysqlWriteRow event = newInstance();
         while(rowIt.hasNext()) {
-            Column c = rowIt.next();
-            String v = toString(c);
-            int t = typesIt.next();
-            Value value = new Value(v, t);
-            String column = columnsIt.next();
-            event.addValue(column, value);            
+            String value = toString(rowIt.next());
+            int type = typesIt.next();
+            String name = columnsIt.next();
+            Column column = new Column(name, value, type);            
+            event.addColumn(column);
+            if (primaryKeysSet.contains(name)) {
+                event.addPrimaryKey(column);
+            }
         }
         
         return event;
@@ -51,4 +55,5 @@ public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
     private ListIterator<Row> iterator;
     private List<String> columns;
     private List<Integer> types;
+    private Set<String> primaryKeysSet;
 }

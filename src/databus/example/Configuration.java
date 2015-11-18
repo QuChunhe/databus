@@ -29,10 +29,13 @@ public class Configuration {
     public static String LISTENER_CLASS = "listener.class";
     public static String SERVER_IP = "server.ip";
     public static String SERVER_PORT = "server.port";
+    public static String PUBLISHER_TOPIC = "publisher.topic";
+    public static String PUBLISHER_ADDRESS = "publisher.address";
     
     public String SERVER_CONFIGURATION_NAME = "conf/databus.properties";    
     public String RECEIVERS_PROPERTIES_DIR_NAME = "conf/receivers";
-    public String LISTENERS_PROPERTIES_DIR_NAME="conf/listeners";
+    public String LISTENERS_PROPERTIES_DIR_NAME = "conf/listeners";
+    public String PUBLISHER_PROPERTIES_DIR_NAME = "conf/publisher";
     
     public static Configuration instance() {
         return instance;
@@ -67,6 +70,24 @@ public class Configuration {
                                                            "8765"));
         InternetAddress listeningAddress = new InternetAddress(ip, port);        
         return listeningAddress;
+    }
+    
+    public void loadSubscribers(Publisher publisher) {
+        String dirName = PUBLISHER_PROPERTIES_DIR_NAME;
+        Map<String, Properties> propertiesMap = loadPropertiesFrom(dirName);
+        if (null == propertiesMap) {
+            log.error("Can't load subscribers information");
+            System.exit(1);
+        }
+        for(String fileName : propertiesMap.keySet()) {
+            Properties properties = propertiesMap.get(fileName);
+            String topic = properties.getProperty(PUBLISHER_TOPIC).trim();
+            String rawAddress = properties.getProperty(PUBLISHER_ADDRESS).trim();
+            String[] addressParts = rawAddress.split(":");
+            int port = Integer.valueOf(addressParts[1]);
+            InternetAddress address = new InternetAddress(addressParts[0], port);
+            publisher.subscribe(topic, address);
+        }
     }
     
     public void loadReceivers(Subscriber subscriber) {

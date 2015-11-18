@@ -1,6 +1,6 @@
 package databus.receiver;
 
-import java.util.Map;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -10,7 +10,7 @@ import databus.core.Event;
 import databus.event.mysql.MysqlDeleteRow;
 import databus.event.mysql.MysqlInsertRow;
 import databus.event.mysql.MysqlUpdateRow;
-import databus.event.mysql.Value;
+import databus.event.mysql.Column;
 
 public class MysqlReplication extends MysqlReceiver{    
 
@@ -38,12 +38,11 @@ public class MysqlReplication extends MysqlReceiver{
         sqlBuilder.append(" (");
         StringBuilder valuesBuilder = new StringBuilder();
         valuesBuilder.append('(');
-        Map<String, Value> row = event.row();
-        for(String column : row.keySet()) {          
-            sqlBuilder.append(column);
+        List<Column> row = event.row();
+        for(Column column : row) {          
+            sqlBuilder.append(column.name());
             sqlBuilder.append(',');
-            Value value = row.get(column);
-            append(valuesBuilder, value);
+            append(valuesBuilder, column);
             valuesBuilder.append(',');
         }
         sqlBuilder.deleteCharAt(sqlBuilder.length()-1);
@@ -69,7 +68,7 @@ public class MysqlReplication extends MysqlReceiver{
         sqlBuilder.append(" Set ");
         appendEqualFormat(sqlBuilder, event.row());
         sqlBuilder.append(" WHERE ");
-        appendEqualFormat(sqlBuilder, event.primaryKeyValues());
+        appendEqualFormat(sqlBuilder, event.primaryKeys());
         String sql = sqlBuilder.toString();
         int count = executeWrite(sql);
         if (count < 1) {
@@ -91,29 +90,27 @@ public class MysqlReplication extends MysqlReceiver{
         }
     }
     
-    private StringBuilder appendEqualFormat(StringBuilder builder, 
-                                                   Map<String, Value> values) {
-        for(String column : values.keySet()) {
-            builder.append(column);
+    private void appendEqualFormat(StringBuilder builder, List<Column> row) {
+        for(Column column : row) {
+            builder.append(column.name());
             builder.append('=');
-            append(builder,values.get(column));
+            append(builder, column);
             builder.append(',');
         }
         builder.deleteCharAt(builder.length()-1);
-        return builder;
-    }
+      }
 
-    private void append(StringBuilder builder, Value value) {
-        if (value.isString()) {
-            if (null == value.value()) {
+    private void append(StringBuilder builder, Column column) {
+        if (column.isString()) {
+            if (null == column.value()) {
                 builder.append("NULL");
             } else {
                 builder.append("'");
-                builder.append(value.value().replace("'", "\\'"));
+                builder.append(column.value().replace("'", "\\'"));
                 builder.append("'");
             }
         } else {
-            builder.append(value);
+            builder.append(column);
         }
     }
 

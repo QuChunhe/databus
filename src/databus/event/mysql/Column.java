@@ -2,10 +2,15 @@ package databus.event.mysql;
 
 import java.sql.Types;
 
-public class Value {    
-    public Value(String value, int type) {
+public class Column {    
+    public Column(String name, String value, int type) {
+        this.name = name;
         this.value = value;
         this.type = type;
+    }
+    
+    public String name() {
+        return name;
     }
 
     public String value() {
@@ -37,9 +42,11 @@ public class Value {
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof Value) {
-            Value o = (Value) other;
-            if ((type==o.type) && value.equals(o.value)) {
+        if (other instanceof Column) {
+            Column o = (Column) other;
+            if ((type==o.type) && 
+                value.equals(o.value) && 
+                name.equals(o.name)) {
                 return true;
             }
         }
@@ -48,9 +55,10 @@ public class Value {
 
     @Override
     public String toString() {
-        return value;
+        return "{name: "+name+", value:"+value+", type: "+type+"}";
     }
 
+    private String name;
     private String value;
     private int type;
 }

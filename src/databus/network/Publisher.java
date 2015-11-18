@@ -68,6 +68,7 @@ public class Publisher{
 
     public void publish(Event event) {
         String topic = event.topic();
+        log.info("topic:"+topic);
         Set<InternetAddress> addresses = subscribersMap.get(topic);
         if (null != addresses) {
             client.send(event, addresses);

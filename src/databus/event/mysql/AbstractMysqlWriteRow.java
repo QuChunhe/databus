@@ -1,35 +1,34 @@
 package databus.event.mysql;
 
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent 
                                                implements MysqlWriteRow{
     
     public AbstractMysqlWriteRow() {
         super();
-        row = new HashMap<String, Value>();
+        row = new LinkedList<Column>();
+        primaryKeys = new LinkedList<Column>();
     }
 
     @Override
-    public Map<String, Value> row() {
+    public List<Column> row() {
         return row;
     }
 
     @Override
-    public List<String> primaryKeys() {
+    public List<Column> primaryKeys() {
         return primaryKeys;
     }
     
-    public AbstractMysqlWriteRow primaryKeys(List<String> primaryKeys) {
-        this.primaryKeys = primaryKeys;
+    public AbstractMysqlWriteRow addPrimaryKey(Column primaryKey) {
+        primaryKeys.add(primaryKey);
         return this;
     }
     
-    public AbstractMysqlWriteRow addValue(String column, Value value) {
-        row.put(column, value);
+    public AbstractMysqlWriteRow addColumn(Column column) {
+        row.add(column);
         return this;
     }
 
@@ -38,18 +37,6 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
         return type()+" from "+ database()+"."+table()+" : "+row.toString();
     } 
 
-    @Override
-    public Map<String, Value> primaryKeyValues() {
-        HashSet<String> primaryKeysSet = new HashSet<String>(primaryKeys);
-        Map<String, Value> values = new HashMap<String, Value>();
-        for(String column : row.keySet()) {
-            if (primaryKeysSet.contains(column)) {
-                values.put(column, row.get(column));
-            }
-        }
-        return values;
-    }
-
-    private Map<String, Value> row;
-    private List<String>  primaryKeys;
+    private List<Column> row;
+    private List<Column> primaryKeys;
 }
