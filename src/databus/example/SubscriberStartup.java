@@ -21,7 +21,6 @@ public class SubscriberStartup {
         Thread clientThread = client.start();
 
         config.loadReceivers(subscriber);
-        subscriber.subscribe();
 
         try {
             serverThread.join();
