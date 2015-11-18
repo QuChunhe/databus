@@ -82,6 +82,7 @@ public class Configuration {
         for(String fileName : propertiesMap.keySet()) {
             Properties properties = propertiesMap.get(fileName);
             String topic = properties.getProperty(PUBLISHER_TOPIC).trim();
+            topic = topic.replace("/",":");
             String rawAddress = properties.getProperty(PUBLISHER_ADDRESS).trim();
             String[] addressParts = rawAddress.split(":");
             int port = Integer.valueOf(addressParts[1]);

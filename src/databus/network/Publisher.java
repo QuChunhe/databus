@@ -29,7 +29,7 @@ public class Publisher{
             subscribersMap.put(topic, addresses);
         }
         if (addresses.contains(remoteAddress)){
-            log.info(remoteAddress.toString()+" has subscribeed before");
+            log.info(remoteAddress.toString()+" has subscribed before");
         } else {
             addresses.add(remoteAddress);
             isAdded = true;
@@ -70,6 +70,7 @@ public class Publisher{
         String topic = event.topic();
         log.info("topic:"+topic);
         Set<InternetAddress> addresses = subscribersMap.get(topic);
+        log.info(subscribersMap.toString());
         if (null != addresses) {
             client.send(event, addresses);
         } else {

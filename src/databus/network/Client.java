@@ -125,16 +125,15 @@ public class Client  implements Runnable, Startable {
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
-            String address = future.channel().remoteAddress().toString();
             if(future.isDone()) {
                 if (future.isSuccess()) {
-                    log.info("Message have sent to "+address+" : "+message);
+                    log.info("Message has sent : "+message);
                 }else {
-                    log.error(message+" has faied to send "+address, future.cause());
+                    log.warn(message+" has faied to send : ", future.cause());
                 }
                 
             } else {
-                log.error(message+"cannot send to "+address, future.cause());
+                log.warn(message+"can't send", future.cause());
             }            
         }  
         
