@@ -67,7 +67,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         
         int preBinlogEventType = previousEvent.getHeader().getEventType();        
         if (preBinlogEventType != MySQLConstants.TABLE_MAP_EVENT) {
-            
             return;
         }
        
