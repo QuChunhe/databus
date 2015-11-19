@@ -10,6 +10,7 @@ public class PublisherStartup {
 
     public static void main(String[] args) {
         Configuration config = Configuration.instance();
+        config.SERVER_CONFIGURATION_NAME = "conf/publisher.properties";
         InternetAddress localAddress = config.loadListeningAddress();
         Server server = new Server(localAddress);
         Client client = new Client(localAddress);
