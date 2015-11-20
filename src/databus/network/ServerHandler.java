@@ -57,6 +57,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
         if (null != publisher) {
             publisher.receive(event);
         }
+        ctx.close();
     } 
 
     @Override
@@ -64,6 +65,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
                                 Throwable cause) throws Exception {
         String address = ctx.channel().remoteAddress().toString();
         log.error("Cannot read from "+address, cause);
+        ctx.close();
     }
         
     private static Log log = LogFactory.getLog(ServerHandler.class);

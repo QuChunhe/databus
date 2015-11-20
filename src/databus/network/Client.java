@@ -79,8 +79,7 @@ public class Client  implements Runnable, Startable {
                 } catch (InterruptedException e) {
                     log.warn("Has been interrupped!", e);
                     Thread.interrupted();
-                }
- 
+                } 
             }
 
         } finally {
@@ -135,7 +134,6 @@ public class Client  implements Runnable, Startable {
             } else {
                 log.warn(message+"can't send", future.cause());
             }
-            future.channel().closeFuture().sync();
         }  
         
         private String message;
