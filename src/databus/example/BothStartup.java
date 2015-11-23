@@ -28,8 +28,9 @@ public class BothStartup {
         
         Listener listener = config.loadListeners(publisher);
         config.loadReceivers(subscriber);
+        config.loadSubscribers(publisher);
         
-        Thread.sleep(500);
+
         listener.start();
         try {
             serverThread.join();
