@@ -1,7 +1,6 @@
 package databus.example;
 
 import databus.core.Listener;
-import databus.network.BackupPublisher;
 import databus.network.Client;
 import databus.network.Publisher;
 import databus.network.Server;
@@ -17,9 +16,10 @@ public class BothStartup {
         Server server = new Server(localAddress);
         Client client = new Client(localAddress);
         
-        Publisher publisher = new BackupPublisher(client);
+ //       Publisher publisher = new BackupPublisher(client);
  //       PeriodicSubscriber subscriber = new PeriodicSubscriber(client);
  //       subscriber.setMaxSubscribingPeroid(10);
+        Publisher publisher = new Publisher(client);
         Subscriber subscriber = new Subscriber(client);
         server.setPublisher(publisher).setSubscriber(subscriber);
         
@@ -28,13 +28,8 @@ public class BothStartup {
         
         Listener listener = config.loadListeners(publisher);
         config.loadReceivers(subscriber);
-
-        Thread.sleep(500);
-        
-        subscriber.subscribe();
         
         Thread.sleep(500);
-       
         listener.start();
         try {
             serverThread.join();
