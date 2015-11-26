@@ -16,7 +16,7 @@ public abstract class MysqlWriteEventFactory {
         if (null != column) {
             if (column instanceof BlobColumn) {
                 value = new String(((BlobColumn)column).getValue());
-            } else {
+            } else if (column.getValue() !=  null) {
                 value = column.toString();
             }
         }
