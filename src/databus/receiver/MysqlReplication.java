@@ -48,14 +48,13 @@ public class MysqlReplication extends MysqlReceiver{
         sqlBuilder.deleteCharAt(sqlBuilder.length()-1);
         sqlBuilder.append(')');
         valuesBuilder.deleteCharAt(valuesBuilder.length()-1);
-        sqlBuilder.append(')');
+        valuesBuilder.append(')');
         
         sqlBuilder.append(" VALUES ");
         sqlBuilder.append(valuesBuilder);
         
         String sql = sqlBuilder.toString();
-        int count = executeWrite(sql);
-        
+        int count = executeWrite(sql);        
         if (count < 1) {
             log.error(event.toString()+" has't been inserted: "+sql);
         }
@@ -81,15 +80,14 @@ public class MysqlReplication extends MysqlReceiver{
         sqlBuilder.append("DELETE FROM ");
         sqlBuilder.append(event.table());
         sqlBuilder.append(" WHERE ");
-        appendEqualFormat(sqlBuilder, event.row());
-  
-        String sql = sqlBuilder.toString();
+        appendEqualFormat(sqlBuilder, event.primaryKeys());  
+        String sql = sqlBuilder.toString();;
         int count = executeWrite(sql);
         if (count < 1) {
             log.error(event.toString()+" has't been removed: "+sql);
         }
     }
-    
+        
     private void appendEqualFormat(StringBuilder builder, List<Column> row) {
         for(Column column : row) {
             builder.append(column.name());
@@ -110,7 +108,7 @@ public class MysqlReplication extends MysqlReceiver{
                 builder.append("'");
             }
         } else {
-            builder.append(column);
+            builder.append(column.value());
         }
     }
 
