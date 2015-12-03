@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.google.code.or.binlog.BinlogEventListener;
 import com.google.code.or.binlog.BinlogEventV4;
+import com.google.code.or.binlog.impl.event.AbstractRowEvent;
 import com.google.code.or.binlog.impl.event.DeleteRowsEvent;
 import com.google.code.or.binlog.impl.event.DeleteRowsEventV2;
 import com.google.code.or.binlog.impl.event.TableMapEvent;
@@ -22,59 +23,48 @@ import com.google.code.or.common.util.MySQLConstants;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
 
-
 public class DatabusBinlogEventListener implements BinlogEventListener {
 
     public DatabusBinlogEventListener(MysqlListener listener) {
         this.listener = listener;
-        currentEvent = null;
-        previousEvent = null;
+        preTableMapEvent = null;
     }
 
     @Override
     public void onEvents(BinlogEventV4 event) {
-        int type = event.getHeader().getEventType();
-        switch (type) {
-        case MySQLConstants.XID_EVENT:
-            buildMySQLEvent(event);
+        switch (event.getHeader().getEventType()) {
+        case MySQLConstants.TABLE_MAP_EVENT:
+            setTableMapEvent((TableMapEvent) event);
             break;
-        case MySQLConstants.QUERY_EVENT:
-            buildMySQLEvent(event);
+        
+        case MySQLConstants.WRITE_ROWS_EVENT_V2:  
+        case MySQLConstants.WRITE_ROWS_EVENT:
+        case MySQLConstants.UPDATE_ROWS_EVENT_V2:
+        case MySQLConstants.UPDATE_ROWS_EVENT:
+        case MySQLConstants.DELETE_ROWS_EVENT_V2:
+        case MySQLConstants.DELETE_ROWS_EVENT:
+            buildMySQLEvent((AbstractRowEvent) event);
             break;
+            
         default:
             
         }
-        setCurrentBinlogEvent(event);
     }
 
-    private void setCurrentBinlogEvent(BinlogEventV4 currentBinlogEvent) {
-        previousEvent = this.currentEvent;
-        this.currentEvent = currentBinlogEvent;
-    }
-
-    public boolean isConsistent(BinlogEventV4 nextBinlogEvent) {        
-        return true;
-    }
-
-    private void buildMySQLEvent(BinlogEventV4 nextEvent) {
-        if (!isConsistent(nextEvent)) {
-            log.error("tableId is not consistent");
+    private void buildMySQLEvent(AbstractRowEvent currentEvent) {
+        if (null == preTableMapEvent) {
+            log.error("Previous TableMapEvent is null : "+currentEvent.toString());
             return;
         }
-        if ((null==previousEvent) || (null==currentEvent)) {
+        if (preTableMapEvent.getTableId() != currentEvent.getTableId()) {
+            log.error("Current event isn't consistend with TableMapEvent : "+
+                    preTableMapEvent.toString()+" ; "+currentEvent.toString());
             return;
         }
-        
-        int preBinlogEventType = previousEvent.getHeader().getEventType();        
-        if (preBinlogEventType != MySQLConstants.TABLE_MAP_EVENT) {
-            return;
-        }
-       
-        TableMapEvent tableMapEvent = (TableMapEvent) previousEvent;
-        String database = tableMapEvent.getDatabaseName().toString().toLowerCase();
-        String table = tableMapEvent.getTableName().toString().toLowerCase();
+ 
+        String database = preTableMapEvent.getDatabaseName().toString().toLowerCase();
+        String table = preTableMapEvent.getTableName().toString().toLowerCase();
         String fullName = database+"."+table;
-
         if (!listener.doPermit(fullName)) {
             return;
         }
@@ -116,27 +106,31 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             break;
             
         default:
-            log.error("Current BinlogEven is not a write event : "+
-                      currentEvent.toString());
+            log.error("Current BinlogEven is not a write event : "+currentEvent.toString());
             return;
         }
         
         long time = currentEvent.getHeader().getTimestamp();
-        long serverId = tableMapEvent.getHeader().getServerId();
+        long serverId = preTableMapEvent.getHeader().getServerId();
         while(factory.hasMore()) {
             AbstractMysqlWriteRow event = factory.next();
-            event.database(database)
-                 .serverId(serverId)
-                 .table(table)
-                 .time(time);
-            listener.onEvent(event);
+            if (event.row().size() > 0) {
+                  event.database(database)
+                       .serverId(serverId)
+                       .table(table)
+                       .time(time);
+                listener.onEvent(event);  
+            }
+            
         }
-    }    
+    }
+    private void setTableMapEvent(TableMapEvent tableMapEvent) {
+        preTableMapEvent = tableMapEvent;
+    }
 
     private static Log log = LogFactory.getLog(DatabusBinlogEventListener.class);
-
+    
+    private TableMapEvent preTableMapEvent;
     private MysqlListener listener;
-    private BinlogEventV4 previousEvent;
-    private BinlogEventV4 currentEvent;
     
 }
