@@ -9,7 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import databus.util.Backup;
 import databus.util.InternetAddress;
 
-public class BackupPublisher extends Publisher{   
+public class BackupPublisher extends SubscribablePublisher{   
     
     public BackupPublisher(Client client) {        
         super(client);

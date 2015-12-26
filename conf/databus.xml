@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+<server>
+    <host>127.0.0.1</host>
+    <port>8765</port>
+</server>
+
+<publisher>
+
+    <listeners>    
+        <listener>
+            <class>databus.listener.redis.RedisMessageListener</class>
+            <host>127.0.0.1</host>
+            <port>6379</port>
+            <key></key>
+            <maxLength>2</maxLength>
+        </listener>
+        <listener>
+            <class>databus.listener.mysql.MysqlListener</class>
+                <mysql>
+                    <host>127.0.0.1</host>
+                    <port>3306</port>
+                    <user>root</root>
+                    <password>quchunhe</password>
+                    <serverId>1</serverId>
+                    <permittedTables>test.user</permittedTables>
+                    <binlogFileName>master-bin.000001</binlogFileName>
+                    <position></position>
+                </mysql>
+            </listener>  
+    </listeners>
+    
+    <!-- subscribers tag for doSupportSubscription=false -->
+    <subscribers>
+        <subscriber>
+            <topic>MYSQL/1/test</topic>
+            <host>127.0.0.1</host>
+            <port>8765</port>
+        </subscriber>
+    </subscribers>
+
+</publisher>
+  
+<subscriber>
+
+    <receivers>
+        <receiver>
+            <class>databus.receiver.MysqlReplication</class>
+            <host>127.0.0.1:8765</host>
+            <port>8765</port>
+            <topic>/MYSQL/1/test</topic>
+            
+            <mysql>
+                <url>jdbc:mysql://127.0.0.1:3306/test2</url>
+                <username>root</username>
+                <password>quchunhe</passowrd>
+                <driverClassName>com.mysql.jdbc.Driver</driverClassName>
+                <initialSize>1</initialSize>
+                <maxActive>10</maxActive>
+                <maxIdle>5</maxIdle>
+                <minIdle>0</minIdle>
+                <maxWait>50000<maxWait>
+                <defaultAutoCommit>true
+                <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
+            </mysql>
+        <receiver>
+        <receiver>
+            <class>adm.databus.RedisSlave</class>
+            <host>127.0.0.1:8765</host>
+            <port>8765</port>
+            <topic>/MYSQL/1/adm</topic>
+            <redis>
+                <host>127.0.0.1</host>
+                <port>6379</port>
+                <timeout>10</timeout>
+                <!-- 
+                <password>123456</password>
+                <database>1</database>
+                -->
+                <maxTotal>10</maxTotal>
+                <maxIdle>3</maxIdle>
+                <minIdle>0</minIdle>
+            </redis>
+        <receiver>
+    <receivers>    
+
+</subscriber>
+
+</configuration>

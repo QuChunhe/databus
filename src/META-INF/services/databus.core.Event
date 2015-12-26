@@ -9,3 +9,7 @@ databus.event.mysql.MysqlUpdateRow
 databus.event.management.Withdrawal
 databus.event.management.Subscription
 databus.event.management.SubscribingConfirmation
+
+
+#RedisEvent
+databus.event.redis.RedisListMessage
