@@ -29,8 +29,7 @@ public abstract class RedisReceiver implements Receiver {
         config.setMaxIdle(maxIdle);
         config.setMinIdle(minIdle);
         
-        jedisPool = new JedisPool(config, host, port, timeout, 
-                                  password, database);        
+        jedisPool = new JedisPool(config, host, port, timeout, password, database);        
     }
 
     protected Jedis getJedis() {

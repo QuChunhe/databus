@@ -2,7 +2,7 @@ package databus.event;
 
 import databus.core.Event;
 
-public interface MysqlEvent  extends Event{   
+public interface MysqlEvent extends Event{   
     
     static public enum Type {
         INSERT, UPDATE, DELETE        

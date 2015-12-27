@@ -94,7 +94,7 @@ public class MysqlListener extends AbstractListener{
     } 
     
     public void onEvent(MysqlEvent event) {
-        publisher.publish(event);        
+        publisher.publish(event);
     }
     
     public boolean doPermit(String fullTableName) {
@@ -168,14 +168,14 @@ public class MysqlListener extends AbstractListener{
         }
     }    
     
-    final private static String USER = "listener.mysql.user";
-    final private static String PASSWORD = "listener.mysql.password";
-    final private static String HOST = "listener.mysql.host";
-    final private static String PORT = "listener.mysql.port";
-    final private static String SERVER_ID = "listener.mysql.serverId";
-    final private static String POSITION = "listener.mysql.position";
-    final private static String BINLOG_FILE_NAME = "listener.mysql.binlogFileName";
-    final private static String PERMITTED_TABLES = "listener.mysql.permittedTables";
+    final private static String USER = "mysql.user";
+    final private static String PASSWORD = "mysql.password";
+    final private static String HOST = "mysql.host";
+    final private static String PORT = "mysql.port";
+    final private static String SERVER_ID = "mysql.serverId";
+    final private static String POSITION = "mysql.position";
+    final private static String BINLOG_FILE_NAME = "mysql.binlogFileName";
+    final private static String PERMITTED_TABLES = "mysql.permittedTables";
     
     private static Log log = LogFactory.getLog(MysqlListener.class);
     

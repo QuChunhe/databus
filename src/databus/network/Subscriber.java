@@ -10,10 +10,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.event.Confirmation;
-import databus.event.management.Subscription;
 import databus.event.management.Withdrawal;
-import databus.util.InternetAddress;
 import databus.util.RemoteTopic;
 
 public class Subscriber {
@@ -23,40 +20,18 @@ public class Subscriber {
         this.client = client;
     }
 
-    public void receive(Event event) {
-        if (event.source() == Event.Source.MANAGEMENT) {
-            return;
-        }
-        if (event.source() == Event.Source.CONFIRMATION) {
-            process((Confirmation<?>)event);
-            return;
-        }
-        
+    public boolean receive(Event event) {        
         RemoteTopic remoteTopic = new RemoteTopic(event.address(), event.topic());
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
-            log.error(remoteTopic.toString() + " has't been subscribed!");
-            Withdrawal withdrawal = new Withdrawal();
-            withdrawal.topic(event.topic());
-            client.send(withdrawal, event.address());
+            log.warn(remoteTopic.toString() + " has't been subscribed!");
+            return false;
         } else {
             for (Receiver receiver : receiversSet) {
                 receiver.receive(event);
             }
         }
-    }
-    
-    public void subscribe() {
-        for(RemoteTopic remoteTopic : receiversMap.keySet()) {
-            subscribe(remoteTopic);
-        }
-    }
-    
-    public void subscribe(RemoteTopic remoteTopic) {
-        InternetAddress remoteAddress = remoteTopic.remoteAddress();
-        Subscription event = new Subscription();
-        event.topic(remoteTopic.topic());
-        client.send(event, remoteAddress);
+        return true;
     }
     
     public void register(RemoteTopic remoteTopic, Receiver receiver) {
@@ -66,25 +41,6 @@ public class Subscriber {
             receiversMap.put(remoteTopic, receiversSet);
         }
         receiversSet.add(receiver);
-    }
-    
-    public void register(String rawString, Receiver receiver) {
-        String[] rawParts = rawString.split("/",2);
-        if(rawParts.length != 2) {
-            log.error(rawString+" can't be splitted by '/'");
-            return;
-        }
-        
-        String[] addressInfo = rawParts[0].split(":");
-        if (addressInfo.length != 2) {
-            log.error(rawParts[0]+" can't be splitted by ':'");
-            return;
-        }
-        int port = Integer.parseInt(addressInfo[1]);
-        InternetAddress netAddress = new InternetAddress(addressInfo[0],port);
-        String topic = rawParts[1].replace("/", ":");
-        RemoteTopic remoteTopic = new RemoteTopic(netAddress, topic);
-        register(remoteTopic, receiver);
     }
     
     public void withdraw(RemoteTopic remoteTopic, Receiver receiver) {
@@ -99,10 +55,6 @@ public class Subscriber {
             }
         }
     }
-  
-    protected void process(Confirmation<?> event) {
-        log.info("Receive the confirmation event : "+event.toString());
-    }
     
     protected void remove(RemoteTopic remoteTopic) {
         Set<Receiver> receivers = receiversMap.get(remoteTopic);
@@ -116,8 +68,7 @@ public class Subscriber {
     }
     
     protected Map<RemoteTopic, Set<Receiver>> receiversMap;
+    protected Client client;
 
     private static Log log = LogFactory.getLog(Subscriber.class);
-    
-    private Client client;
 }

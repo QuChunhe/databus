@@ -1,6 +1,6 @@
 package databus.example;
 
-import databus.core.Listener;
+import databus.listener.BatchListener;
 import databus.network.Client;
 import databus.network.Publisher;
 import databus.network.Server;
@@ -11,14 +11,11 @@ public class BothStartup {
 
     public static void main(String[] args) throws InterruptedException {
         
-        Configuration config = Configuration.instance();
-        InternetAddress localAddress = config.loadListeningAddress();
+        Configurations config = new Configurations();
+        InternetAddress localAddress =config.loadServerAddress();
         Server server = new Server(localAddress);
-        Client client = new Client(localAddress);
-        
- //       Publisher publisher = new BackupPublisher(client);
- //       PeriodicSubscriber subscriber = new PeriodicSubscriber(client);
- //       subscriber.setMaxSubscribingPeroid(10);
+        Client client = new Client(localAddress);        
+
         Publisher publisher = new Publisher(client);
         Subscriber subscriber = new Subscriber(client);
         server.setPublisher(publisher).setSubscriber(subscriber);
@@ -26,10 +23,10 @@ public class BothStartup {
         Thread serverThread = server.start();       
         Thread clientThread = client.start();
         
-        Listener listener = config.loadListeners(publisher);
+        BatchListener listener = config.loadListeners();
+        listener.setPublisher(publisher);
         config.loadReceivers(subscriber);
-        config.loadSubscribers(publisher);
-        
+        config.loadSubscribers(publisher);        
 
         listener.start();
         try {

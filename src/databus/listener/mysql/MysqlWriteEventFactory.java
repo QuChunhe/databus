@@ -13,10 +13,10 @@ public abstract class MysqlWriteEventFactory {
     
     public String toString(Column column) {      
         String value = null;
-        if (null != column) {
+        if ((null!=column) && (column.getValue()!=null)) {
             if (column instanceof BlobColumn) {
                 value = new String(((BlobColumn)column).getValue());
-            } else if (column.getValue() !=  null) {
+            } else {
                 value = column.toString();
             }
         }

@@ -12,6 +12,10 @@ public class RemoteTopic implements Serializable{
         name = remoteAddress.toString()+"/"+topic;
     }
     
+    public RemoteTopic(String host, int port, String topic) {
+        this(new InternetAddress(host, port), topic);
+    }
+    
     public InternetAddress remoteAddress() {
         return remoteAddress;
     }

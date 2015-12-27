@@ -41,21 +41,19 @@ public class MysqlReplication extends MysqlReceiver{
         List<Column> row = event.row();
         for(Column column : row) {          
             sqlBuilder.append(column.name());
-            sqlBuilder.append(',');
+            sqlBuilder.append(", ");
             append(valuesBuilder, column);
-            valuesBuilder.append(',');
+            valuesBuilder.append(", ");
         }
-        sqlBuilder.deleteCharAt(sqlBuilder.length()-1);
+        sqlBuilder.setLength(sqlBuilder.length()-2);
         sqlBuilder.append(')');
-        valuesBuilder.deleteCharAt(valuesBuilder.length()-1);
-        sqlBuilder.append(')');
-        
+        valuesBuilder.setLength(valuesBuilder.length()-2);
+        valuesBuilder.append(')');        
         sqlBuilder.append(" VALUES ");
-        sqlBuilder.append(valuesBuilder);
-        
+        sqlBuilder.append(valuesBuilder);        
         String sql = sqlBuilder.toString();
-        int count = executeWrite(sql);
-        
+        log.info(sql);
+        int count = executeWrite(sql);        
         if (count < 1) {
             log.error(event.toString()+" has't been inserted: "+sql);
         }
@@ -65,11 +63,12 @@ public class MysqlReplication extends MysqlReceiver{
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("UPDATE ");
         sqlBuilder.append(event.table());
-        sqlBuilder.append(" Set ");
-        appendEqualFormat(sqlBuilder, event.row());
+        sqlBuilder.append(" SET ");
+        appendSetEqual(sqlBuilder, event.row());
         sqlBuilder.append(" WHERE ");
-        appendEqualFormat(sqlBuilder, event.primaryKeys());
+        appendWhereEqual(sqlBuilder, event.primaryKeys());
         String sql = sqlBuilder.toString();
+        log.info(sql);
         int count = executeWrite(sql);
         if (count < 1) {
             log.error(event.toString()+" has't been updated: "+sql);
@@ -81,25 +80,34 @@ public class MysqlReplication extends MysqlReceiver{
         sqlBuilder.append("DELETE FROM ");
         sqlBuilder.append(event.table());
         sqlBuilder.append(" WHERE ");
-        appendEqualFormat(sqlBuilder, event.row());
-  
+        appendWhereEqual(sqlBuilder, event.primaryKeys());  
         String sql = sqlBuilder.toString();
+        log.info(sql);
         int count = executeWrite(sql);
         if (count < 1) {
             log.error(event.toString()+" has't been removed: "+sql);
         }
     }
+        
+    private void appendSetEqual(StringBuilder builder, List<Column> row) {
+        appendEqual(builder, row,", ");
+    }
     
-    private void appendEqualFormat(StringBuilder builder, List<Column> row) {
+    private void appendEqual(StringBuilder builder, List<Column> row, String seperator) {
         for(Column column : row) {
             builder.append(column.name());
             builder.append('=');
             append(builder, column);
-            builder.append(',');
+            builder.append(seperator);
         }
-        builder.deleteCharAt(builder.length()-1);
-      }
+        builder.setLength(builder.length()-seperator.length());
+    }
 
+    
+    private void appendWhereEqual(StringBuilder builder, List<Column> row) {
+        appendEqual(builder, row, " AND ");
+    }
+    
     private void append(StringBuilder builder, Column column) {
         if (column.isString()) {
             if (null == column.value()) {
@@ -110,7 +118,7 @@ public class MysqlReplication extends MysqlReceiver{
                 builder.append("'");
             }
         } else {
-            builder.append(column);
+            builder.append(column.value());
         }
     }
 
