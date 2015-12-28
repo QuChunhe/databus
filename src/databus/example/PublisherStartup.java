@@ -1,6 +1,6 @@
 package databus.example;
 
-import databus.core.Listener;
+import databus.listener.BatchListener;
 import databus.network.Client;
 import databus.network.Publisher;
 import databus.network.Server;
@@ -9,9 +9,8 @@ import databus.util.InternetAddress;
 public class PublisherStartup {
 
     public static void main(String[] args) {
-        Configuration config = Configuration.instance();
-        config.SERVER_CONFIGURATION_NAME = "conf/publisher.properties";
-        InternetAddress localAddress = config.loadListeningAddress();
+        Configurations config = new Configurations("conf/publisher.xml");
+        InternetAddress localAddress = config.loadServerAddress();
         Server server = new Server(localAddress);
         Client client = new Client(localAddress);
         
@@ -23,7 +22,8 @@ public class PublisherStartup {
         Thread serverThread = server.start();       
         Thread clientThread = client.start();
         
-        Listener listener = config.loadListeners(publisher);
+        BatchListener listener = config.loadListeners();
+        listener.setPublisher(publisher);
         listener.start();
         try {
             serverThread.join();

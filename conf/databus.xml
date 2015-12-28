@@ -13,7 +13,6 @@
             <host>127.0.0.1</host>
             <port>6379</port>
             <key>test</key>
-            <maxLength>2</maxLength>
         </redis>
     </listener>
     <listener>
@@ -25,14 +24,19 @@
             <password>quchunhe</password>
             <serverId>1</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000006</binlogFileName>
-            <position>120</position>
+            <binlogFileName>master-bin.000001</binlogFileName>
+            <position>435</position>
         </mysql>
     </listener>  
     
     <!-- subscriber tag for no ActivePublisher -->
     <subscriber>
-        <topic>MYSQL/1/test</topic>
+        <topic>/MYSQL/1/test</topic>
+        <host>127.0.0.1</host>
+        <port>8765</port>
+    </subscriber>
+    <subscriber>
+        <topic>/REDIS/LIST_MESSAGES/test</topic>
         <host>127.0.0.1</host>
         <port>8765</port>
     </subscriber>
@@ -76,7 +80,13 @@
             <minIdle>0</minIdle>
         </redis>
     </receiver>
-
+    <receiver>
+        <class>databus.receiver.DefaultReceiver</class>
+        <host>127.0.0.1</host>
+        <port>8765</port>
+        <topic>/REDIS/LIST_MESSAGES/test</topic>
+        
+    </receiver>
 </subscriber>
 
 </configuration>

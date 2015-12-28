@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
+import databus.core.Receiver;
 import databus.event.Confirmation;
 import databus.event.management.SubscribingConfirmation;
 import databus.event.management.Subscription;
@@ -21,7 +22,8 @@ import databus.util.Timer;
 public class ActiveSubscriber extends Subscriber {
 
     public ActiveSubscriber(Client client) {
-        super(client);
+        super();
+        this.client = client;
         timer = new Timer("SubscribingTimer");
         task = new Task();
         confirmedTimeMap = new ConcurrentHashMap<RemoteTopic,Long>();
@@ -78,6 +80,14 @@ public class ActiveSubscriber extends Subscriber {
         }
     }
     
+    @Override
+    protected void remove(RemoteTopic remoteTopic) {
+        super.remove(remoteTopic);
+        Withdrawal withdrawal = new Withdrawal();
+        withdrawal.topic(remoteTopic.topic());
+        client.send(withdrawal, remoteTopic.remoteAddress());
+    }
+    
     private void schedulSubscription() {
         Set<RemoteTopic> subscribedTopics = receiversMap.keySet();
         for(RemoteTopic topic : confirmedTimeMap.keySet()) {
@@ -110,12 +120,12 @@ public class ActiveSubscriber extends Subscriber {
 
     private static Log log = LogFactory.getLog(ActiveSubscriber.class);
     
+    protected Client client;
     private Timer timer = null;
     private long minPeroidSec = 1L;
     private long maxPeroidSec = 60L * 60L;
     private Task task = null;
-    private Map<RemoteTopic, Long> confirmedTimeMap = null;
-    
+    private Map<RemoteTopic, Long> confirmedTimeMap = null;    
     
     private class Task implements Runnable {
         public Task() {

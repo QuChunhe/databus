@@ -9,13 +9,12 @@ import databus.util.InternetAddress;
 public class SubscriberStartup {
 
     public static void main(String[] args) {        
-        Configuration config = Configuration.instance();
-        config.SERVER_CONFIGURATION_NAME = "conf/subscriber.properties";
-        InternetAddress localAddress = config.loadListeningAddress();
+        Configurations config = new Configurations("conf/subscriber.xml");
+        InternetAddress localAddress = config.loadServerAddress();
         Server server = new Server(localAddress);
         Client client = new Client(localAddress);
 
-        Subscriber subscriber = new Subscriber(client);
+        Subscriber subscriber = new Subscriber();
         server.setSubscriber(subscriber);
         
         Thread serverThread = server.start();       

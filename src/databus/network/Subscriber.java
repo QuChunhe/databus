@@ -10,14 +10,12 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.event.management.Withdrawal;
 import databus.util.RemoteTopic;
 
 public class Subscriber {
 
-    public Subscriber(Client client) {
+    public Subscriber() {
         receiversMap = new ConcurrentHashMap<RemoteTopic,Set<Receiver>>();
-        this.client = client;
     }
 
     public boolean receive(Event event) {        
@@ -61,14 +59,10 @@ public class Subscriber {
         if (null != receivers) {
             receivers.clear();
         }
-        receiversMap.remove(remoteTopic);
-        Withdrawal withdrawal = new Withdrawal();
-        withdrawal.topic(remoteTopic.topic());
-        client.send(withdrawal, remoteTopic.remoteAddress());
+        receiversMap.remove(remoteTopic);        
     }
     
-    protected Map<RemoteTopic, Set<Receiver>> receiversMap;
-    protected Client client;
+    protected Map<RemoteTopic, Set<Receiver>> receiversMap;    
 
     private static Log log = LogFactory.getLog(Subscriber.class);
 }

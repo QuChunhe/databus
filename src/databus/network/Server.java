@@ -47,8 +47,7 @@ public class Server implements Runnable, Startable{
                      .childHandler(new ChannelInitializer<SocketChannel>(){
 
                         @Override
-                        public void initChannel(SocketChannel ch)
-                                                         throws Exception {
+                        public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
                             p.addLast(new ServerHandler(publisher, subscriber));
                         }

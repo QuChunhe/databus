@@ -1,6 +1,5 @@
 package databus.listener.redis;
 
-import java.util.Collection;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -50,10 +49,10 @@ public abstract class RedisListener extends AbstractListener
     public void run() {
         while (doRun) {
             try {
-                Collection<RedisEvent> events = listen();
-                for (RedisEvent e : events) {
-                    publisher.publish(e);
-                }
+                RedisEvent event = listen();
+                if (null != event) {
+                   publisher.publish(event); 
+                }                
             } catch (Exception e) {
                 log.error("Some exceptions happen", e);
             }
@@ -61,7 +60,7 @@ public abstract class RedisListener extends AbstractListener
 
     }
 
-    protected abstract Collection<RedisEvent> listen();
+    protected abstract RedisEvent listen();
 
     protected Jedis jedis;
 

@@ -18,6 +18,7 @@ public abstract class MysqlReceiver implements Receiver{
     
     @Override
     public void initialize(Properties properties) {
+        properties = convertProperties(properties);
         try {
             dataSource = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {
@@ -97,6 +98,20 @@ public abstract class MysqlReceiver implements Receiver{
                 log.error("Can't close Connectioin", e);
             }
         }
+    }
+    
+    private Properties convertProperties(Properties originalProperties) {
+        Properties properties = new Properties();
+        String prefix = "mysql.";
+        int prefixLength = prefix.length();
+        for(String key : originalProperties.stringPropertyNames()) {
+            if (key.startsWith(prefix)) {
+                String value = originalProperties.getProperty(key);
+                properties.setProperty(key.substring(prefixLength), value);
+            }
+        }
+        
+        return properties;
     }
     
     private static Log log = LogFactory.getLog(MysqlReceiver.class);

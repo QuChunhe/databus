@@ -44,11 +44,11 @@ public class Configurations {
     
     public void loadReceivers(Subscriber subscriber) {
         List<HierarchicalConfiguration> 
-            subscribersConfig = config.configurationsAt("publisher.receiver");
+            subscribersConfig = config.configurationsAt("subscriber.receiver");
         for(HierarchicalConfiguration c : subscribersConfig) {
             Object object = loadInitialiableObject(c);
             if ((null!=object) && (object instanceof Receiver)) {
-                String topic = c.getString("topic");
+                String topic = normalizeTopic(c.getString("topic"));
                 String host = c.getString("host");
                 int port = c.getInt("port");
                 RemoteTopic remoteTopic = new RemoteTopic(host, port, topic);
@@ -59,9 +59,9 @@ public class Configurations {
     
     public void loadSubscribers(Publisher publisher) {
         List<HierarchicalConfiguration> 
-             subscribersConfig = config.configurationsAt("publisher.subscrier");
+             subscribersConfig = config.configurationsAt("publisher.subscriber");
         for(HierarchicalConfiguration c : subscribersConfig) {
-            String topic = c.getString("topic");
+            String topic = normalizeTopic(c.getString("topic"));
             String host = c.getString("host");
             int port = c.getInt("port");
             InternetAddress remoteAddress = new InternetAddress(host, port);
@@ -107,6 +107,12 @@ public class Configurations {
         }
         
         return instance;
+    }    
+    
+    private String normalizeTopic(String topic) {
+        topic = topic.startsWith("/") ? topic.substring(1) : topic;
+        topic = topic.replace('/', ':');
+        return topic;
     }
     
     private static Log log = LogFactory.getLog(Configurations.class);

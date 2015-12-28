@@ -12,4 +12,4 @@ databus.event.management.SubscribingConfirmation
 
 
 #RedisEvent
-databus.event.redis.RedisListMessage
+databus.event.redis.RedisMessage

@@ -10,12 +10,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
 
-/**
- * 
- * SeverHandler is thread-safe.
- *
- */
-public class ServerHandler  extends ChannelInboundHandlerAdapter{
+
+public class ServerHandler extends ChannelInboundHandlerAdapter {
     public ServerHandler(Publisher publisher, Subscriber subscriber) {
         super();
         this.publisher = publisher;
@@ -25,8 +21,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, 
-                                                Object data) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object data) throws Exception {
         ByteBuf in;
         if (data instanceof ByteBuf) {
              in = (ByteBuf) data;
@@ -39,8 +34,7 @@ public class ServerHandler  extends ChannelInboundHandlerAdapter{
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx)
-            throws Exception {
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         String remoteAddress = ctx.channel().remoteAddress().toString();
         ctx.flush();
         String message = buffer.toString(CharsetUtil.UTF_8);

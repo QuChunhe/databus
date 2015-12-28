@@ -17,7 +17,7 @@ public class BothStartup {
         Client client = new Client(localAddress);        
 
         Publisher publisher = new Publisher(client);
-        Subscriber subscriber = new Subscriber(client);
+        Subscriber subscriber = new Subscriber();
         server.setPublisher(publisher).setSubscriber(subscriber);
         
         Thread serverThread = server.start();       

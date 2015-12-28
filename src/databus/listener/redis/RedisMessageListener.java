@@ -1,7 +1,5 @@
 package databus.listener.redis;
 
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -9,7 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.event.RedisEvent;
-import databus.event.redis.RedisMessages;
+import databus.event.redis.RedisMessage;
 
 public class RedisMessageListener extends RedisListener {    
 
@@ -25,28 +23,28 @@ public class RedisMessageListener extends RedisListener {
             log.error("key element is null for RedisMessageListener");
             System.exit(1);
         }
-        maxLength = Integer.parseInt(properties.getProperty("redis.maxLength", "1"));
     }
 
     @Override
-    protected Collection<RedisEvent> listen() {
-        List<String> messages = jedis.blpop(0, key);
-        int len = messages.size();        
-        int fromIndex = 0;
-        int toIndex = maxLength; 
-        LinkedList<RedisEvent> eventList = new LinkedList<RedisEvent>();
-        while(toIndex < len) {
-            fromIndex = toIndex;
-            toIndex = toIndex + maxLength;
-            toIndex = (toIndex<=len) ? toIndex : len;
-            RedisMessages e = new RedisMessages(key, messages.subList(fromIndex, toIndex));
-            eventList.add(e);
+    protected RedisEvent listen() {
+        List<String> result = jedis.blpop(0, key);
+        if ((null==result) || (result.size()==0))  {
+            log.error("Has received null result");
+            return null;
         }
-        return eventList;
-    }    
-    
+        if (result.size() != 2) {
+            log.error("Received Result has "+result.size()+" elements:"+result.toString());
+            return null;
+        }        
+        if (!key.equals(result.get(0))) {
+            log.error("Expect key "+key+" : "+result.toString());
+        }
+        
+        RedisMessage event = new RedisMessage(key, result.get(1));        
+        return event;
+    } 
+
     private static Log log = LogFactory.getLog(RedisMessageListener.class);
     
     private String key;
-    private int maxLength;
 }
