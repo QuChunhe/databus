@@ -45,14 +45,22 @@ public class Configurations {
     public void loadReceivers(Subscriber subscriber) {
         List<HierarchicalConfiguration> 
             subscribersConfig = config.configurationsAt("subscriber.receiver");
-        for(HierarchicalConfiguration c : subscribersConfig) {
-            Object object = loadInitialiableObject(c);
+        for(HierarchicalConfiguration sc : subscribersConfig) {
+            Object object = loadInitialiableObject(sc);
             if ((null!=object) && (object instanceof Receiver)) {
-                String topic = normalizeTopic(c.getString("topic"));
-                String host = c.getString("host");
-                int port = c.getInt("port");
-                RemoteTopic remoteTopic = new RemoteTopic(host, port, topic);
-                subscriber.register(remoteTopic, (Receiver)object);
+                Receiver receiver = (Receiver)object;
+                List<HierarchicalConfiguration> 
+                             topicsConfig = sc.configurationsAt("remoteTopic");                
+                for(HierarchicalConfiguration rc : topicsConfig) {
+                    String topic = normalizeTopic(rc.getString("topic"));
+                    String host = rc.getString("host");
+                    int port = rc.getInt("port");
+                    RemoteTopic remoteTopic = new RemoteTopic(host, port, topic);
+                    subscriber.register(remoteTopic, receiver); 
+                }
+                
+            } else {
+                log.error("Can't instantiate "+sc.toString());
             }
         }
     }

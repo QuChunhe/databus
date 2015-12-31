@@ -1,4 +1,4 @@
-package databus.receiver;
+package databus.receiver.mysql;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -18,7 +18,7 @@ public abstract class MysqlReceiver implements Receiver{
     
     @Override
     public void initialize(Properties properties) {
-        properties = convertProperties(properties);
+        properties = removePrefix(properties, "mysql.");
         try {
             dataSource = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {
@@ -38,16 +38,13 @@ public abstract class MysqlReceiver implements Receiver{
         return connection;
     }
     
-    protected int[] executeWrite(Collection<String> batchSql) {
-        Connection conn = getConnection();
-        if (null == conn) {
-            log.error("Connection is null: "+batchSql.toString());
-            return null;
-        }
-        Statement stmt = null;
+    protected int[] executeWrite(Collection<String> batchSql) {    
         int[] count = null;
-        try {
-            stmt = conn.createStatement();
+        try(
+            Connection conn = getConnection();
+            Statement stmt = conn.createStatement();
+        )
+        {
             stmt.clearBatch();
             stmt.setEscapeProcessing(true);            
             for(String sql : batchSql) {
@@ -56,53 +53,33 @@ public abstract class MysqlReceiver implements Receiver{
             count = stmt.executeBatch();
         } catch (SQLException e) {
             log.error("Can't execute batch SQL : "+batchSql.toString(), e);
-        } finally {
-            close(conn, stmt);
+        } catch (Exception e) {
+            log.error("throws error when execute "+batchSql.toString(), e);
         }
         
         return count;
     }
     
     protected int executeWrite(String sql) {
-        Connection conn = getConnection();
-        if (null == conn) {
-            log.error("Connection is null: "+sql);
-            return -1;
-        }
-        Statement stmt = null;
         int count = -1;
-        try {
-            stmt = conn.createStatement();
+        try
+        (
+            Connection conn = getConnection();
+            Statement stmt = conn.createStatement();
+        )
+        {           
             stmt.setEscapeProcessing(true);
             count = stmt.executeUpdate(sql);
         } catch (SQLException e) {
             log.error("Can't execute "+sql, e);
-        } finally {
-            close(conn, stmt);
+        } catch (Exception e) {
+            log.error("throws error when execute "+sql, e);
         }
         return count;
     }
     
-    private void close(Connection conn, Statement stmt) {
-        if (null != stmt) {
-            try {
-                stmt.close();
-            } catch (SQLException e) {
-                log.error("Can't close Statement", e);
-            }
-        }
-        if (null != conn) {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                log.error("Can't close Connectioin", e);
-            }
-        }
-    }
-    
-    private Properties convertProperties(Properties originalProperties) {
+    protected Properties removePrefix(Properties originalProperties, String prefix) {
         Properties properties = new Properties();
-        String prefix = "mysql.";
         int prefixLength = prefix.length();
         for(String key : originalProperties.stringPropertyNames()) {
             if (key.startsWith(prefix)) {

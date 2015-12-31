@@ -9,7 +9,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.core.Receiver;
 import databus.event.Confirmation;
 import databus.event.management.SubscribingConfirmation;
 import databus.event.management.Subscription;

@@ -42,8 +42,8 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         try {
             Event event = parser.parse(message);
             if (null == event) {
-                log.error("Message from " + remoteAddress
-                        + " cannot be parsed as Event : " + message);
+                log.error("Message from "+remoteAddress +
+                          " cannot be parsed as Event : " + message);
                 return;
             }
             if (null != subscriber) {

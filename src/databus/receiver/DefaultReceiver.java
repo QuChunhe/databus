@@ -17,9 +17,8 @@ public class DefaultReceiver implements Receiver{
     
     @Override
     public void initialize(Properties properties) {
-        
+        log.info(properties.toString());
     }
 
     private Log log = LogFactory.getLog(DefaultReceiver.class);
-
 }

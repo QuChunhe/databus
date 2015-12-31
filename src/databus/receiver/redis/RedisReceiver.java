@@ -1,4 +1,4 @@
-package databus.receiver;
+package databus.receiver.redis;
 
 import java.util.Properties;
 

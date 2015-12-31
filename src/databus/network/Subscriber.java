@@ -15,23 +15,29 @@ import databus.util.RemoteTopic;
 public class Subscriber {
 
     public Subscriber() {
-        receiversMap = new ConcurrentHashMap<RemoteTopic,Set<Receiver>>();
+        receiversMap = new ConcurrentHashMap<RemoteTopic, Set<Receiver>>();
     }
 
-    public boolean receive(Event event) {        
-        RemoteTopic remoteTopic = new RemoteTopic(event.address(), event.topic());
+    public boolean receive(Event event) {
+        RemoteTopic remoteTopic = new RemoteTopic(event.address(),
+                event.topic());
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             log.warn(remoteTopic.toString() + " has't been subscribed!");
             return false;
         } else {
             for (Receiver receiver : receiversSet) {
-                receiver.receive(event);
+                try {
+                    receiver.receive(event);
+                } catch (Exception e) {
+                    log.error(receiver.getClass().getName()+" can't receiv "+
+                              event.toString(), e);
+                }
             }
         }
         return true;
     }
-    
+
     public void register(RemoteTopic remoteTopic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
@@ -40,29 +46,30 @@ public class Subscriber {
         }
         receiversSet.add(receiver);
     }
-    
+
     public void withdraw(RemoteTopic remoteTopic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
-           log.error("Don't contain the RemoteTopic "+remoteTopic.toString());
+            log.error(
+                    "Don't contain the RemoteTopic " + remoteTopic.toString());
         } else {
             if (!receiversSet.remove(receiver)) {
-                log.error("Don't contain the receiver "+receiver.toString());
-            } else if (receiversSet.size()==0) {
+                log.error("Don't contain the receiver " + receiver.toString());
+            } else if (receiversSet.size() == 0) {
                 remove(remoteTopic);
             }
         }
     }
-    
+
     protected void remove(RemoteTopic remoteTopic) {
         Set<Receiver> receivers = receiversMap.get(remoteTopic);
         if (null != receivers) {
             receivers.clear();
         }
-        receiversMap.remove(remoteTopic);        
+        receiversMap.remove(remoteTopic);
     }
-    
-    protected Map<RemoteTopic, Set<Receiver>> receiversMap;    
+
+    protected Map<RemoteTopic, Set<Receiver>> receiversMap;
 
     private static Log log = LogFactory.getLog(Subscriber.class);
 }

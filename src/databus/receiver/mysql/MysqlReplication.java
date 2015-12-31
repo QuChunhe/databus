@@ -1,4 +1,4 @@
-package databus.receiver;
+package databus.receiver.mysql;
 
 import java.util.List;
 
