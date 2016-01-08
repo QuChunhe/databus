@@ -17,6 +17,7 @@ import com.google.code.or.binlog.impl.event.UpdateRowsEvent;
 import com.google.code.or.binlog.impl.event.UpdateRowsEventV2;
 import com.google.code.or.binlog.impl.event.WriteRowsEvent;
 import com.google.code.or.binlog.impl.event.WriteRowsEventV2;
+import com.google.code.or.binlog.impl.event.RotateEvent;
 import com.google.code.or.common.glossary.Pair;
 import com.google.code.or.common.glossary.Row;
 import com.google.code.or.common.util.MySQLConstants;
@@ -32,6 +33,8 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
 
     @Override
     public void onEvents(BinlogEventV4 event) {
+        listener.setNextPosition(event.getHeader().getNextPosition());
+        
         switch (event.getHeader().getEventType()) {
         case MySQLConstants.TABLE_MAP_EVENT:
             setTableMapEvent((TableMapEvent) event);
@@ -45,10 +48,19 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         case MySQLConstants.DELETE_ROWS_EVENT:
             buildMySQLEvent((AbstractRowEvent) event);
             break;
+        
+        case MySQLConstants.ROTATE_EVENT:            
+            updateMysqlListener((RotateEvent) event);
+            break;
             
         default:
-            
+
         }
+    }
+    
+    private void updateMysqlListener(RotateEvent event) {
+        listener.setBinlogFileName(event.getBinlogFileName().toString());
+        listener.setNextPosition(event.getBinlogPosition());
     }
 
     private void buildMySQLEvent(AbstractRowEvent currentEvent) {
@@ -124,6 +136,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             
         }
     }
+    
     private void setTableMapEvent(TableMapEvent tableMapEvent) {
         preTableMapEvent = tableMapEvent;
     }

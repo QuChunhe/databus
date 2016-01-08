@@ -24,8 +24,8 @@
             <password>quchunhe</password>
             <serverId>1</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000001</binlogFileName>
-            <position>435</position>
+            <binlogFileName>master-bin.000035</binlogFileName>
+            <position>3062</position>
         </mysql>
     </listener>  
     
@@ -108,7 +108,7 @@
             <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
         </mysql>
         <beans>
-            <test>test.UserBean</test>
+            <test>adm.stats.AccessInfoBean</test>
         </beans>
     </receiver>
     <receiver>

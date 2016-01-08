@@ -7,11 +7,11 @@ import java.util.Properties;
 import databus.core.Listener;
 import databus.network.Publisher;
 
-public class BatchListener extends AbstractListener{    
+public class BatchListener implements Listener{    
 
     public BatchListener() {
-        super();
         listeners = new LinkedList<Listener>();
+        publisher = null;
     }
 
     @Override
@@ -50,13 +50,11 @@ public class BatchListener extends AbstractListener{
 
     @Override
     public void initialize(Properties properties) {
-        
+        // do nothing
     }
-    
-    
-    @Override
+   
     public void setPublisher(Publisher publisher) {
-        super.setPublisher(publisher);
+        this.publisher = publisher;
         for(Listener l : listeners) {
             if (l instanceof AbstractListener) {
                 ((AbstractListener)l).setPublisher(publisher);
@@ -64,7 +62,6 @@ public class BatchListener extends AbstractListener{
         }
     }
 
-
-
+    private Publisher publisher;
     private List<Listener> listeners;
 }

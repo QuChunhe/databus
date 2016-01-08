@@ -1,5 +1,6 @@
 package databus.receiver.mysql;
 
+import java.sql.Connection;
 import java.text.DateFormat;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +16,6 @@ import databus.core.Event;
 import databus.event.redis.RedisMessaging;
 
 public class MessagePersistence extends MysqlReceiver{
-
     
     public MessagePersistence() {
         gson = new GsonBuilder().enableComplexMapKeySerialization() 
@@ -35,13 +35,10 @@ public class MessagePersistence extends MysqlReceiver{
                 Class<?> beanClass =  Class.forName(className);                
                 classesMap.put(key, beanClass);
             } catch (ClassNotFoundException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
     }
-
-
 
     @Override
     public void receive(Event event) {
@@ -53,7 +50,7 @@ public class MessagePersistence extends MysqlReceiver{
         String key = e.key();        
         Class<?> beanClass = classesMap.get(key);
         if (null == beanClass) {
-            log.error(key + " has't corresponding Class");
+            log.error(key + " has't corresponding MysqlBean Class");
             return;
         }        
         String message = e.message();
@@ -67,7 +64,12 @@ public class MessagePersistence extends MysqlReceiver{
     }
     
     private void save(MysqlBean bean) {
-        bean.execute(getConnection());        
+        try (Connection con = getConnection()) {
+            bean.execute(con); 
+        } catch(Exception e) {
+            log.error(bean.toString()+" can't execute ", e);
+        }
+               
     }
     
     private static Log log = LogFactory.getLog(MessagePersistence.class);

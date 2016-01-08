@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.google.code.or.OpenReplicator;
+import com.google.code.or.binlog.impl.AbstractBinlogParser;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.event.MysqlEvent;
@@ -26,8 +27,8 @@ import databus.network.Publisher;
 public class MysqlListener extends AbstractListener{  
     
     public MysqlListener(Publisher publisher, Properties properties) {
-        this.publisher = publisher;
-        initialize(properties);
+        super(publisher);
+        initialize(properties);        
     }
 
     public MysqlListener() {
@@ -36,7 +37,7 @@ public class MysqlListener extends AbstractListener{
     
     @Override
     public boolean isRunning() {
-        return openRelicator.isRunning();
+        return (super.isRunning() && openRelicator.isRunning());
     }
 
     @Override
@@ -46,7 +47,8 @@ public class MysqlListener extends AbstractListener{
         } catch (Exception e) {
             log.error("cannot stop sucessfully", e);
             openRelicator.stopQuietly(1, TimeUnit.SECONDS);
-        }        
+        }
+        super.stop();
     }
 
     @Override
@@ -56,6 +58,7 @@ public class MysqlListener extends AbstractListener{
         }
         try {
             openRelicator.start();
+            super.start();
         } catch (Exception e) {
             log.error("OpenRelicator throws a Exception",e);
         }
@@ -72,7 +75,7 @@ public class MysqlListener extends AbstractListener{
         String binlogFileName = 
                 properties.getProperty(BINLOG_FILE_NAME, "master-bin.000001");
         int position = Integer.valueOf(properties.getProperty(POSITION, "1"));
-        openRelicator = new OpenReplicator();
+        openRelicator = new ExtendedOpenReplicator();
         openRelicator.setUser(user);
         openRelicator.setPassword(password);
         openRelicator.setHost(host);
@@ -84,21 +87,52 @@ public class MysqlListener extends AbstractListener{
        
         loadPermittedTables(properties);
         
+        this.binlogFileName = binlogFileName;
+        this.nextPosition = position;
+
         MysqlDataSource ds = new MysqlDataSource();
         ds.setUser(user);
         ds.setPassword(password);
         ds.setServerName(host);
         ds.setPort(port);
-        
+
         loadSchema(ds);
-    } 
+       
+    }    
     
+    @Override
+    protected void runOnce() throws Exception {
+        try {
+            Thread.sleep(1000);
+        } catch(InterruptedException e) {
+            log.warn("Have been interrupted", e);
+        }
+        AbstractBinlogParser 
+              parser = (AbstractBinlogParser)openRelicator.getBinlogParser();
+        if ((null == parser) || (!parser.isRunning())) {
+            openRelicator.setRunning(false);
+            openRelicator.setTransport(null);
+            openRelicator.setBinlogParser(null);
+            openRelicator.setBinlogPosition(nextPosition);
+            openRelicator.setBinlogFileName(binlogFileName);
+            openRelicator.start();
+        }
+    }
+
     public void onEvent(MysqlEvent event) {
         publisher.publish(event);
     }
     
     public boolean doPermit(String fullTableName) {
         return permittedTableSet.contains(fullTableName);
+    }
+
+    public void setNextPosition(long nextPosition) {
+        this.nextPosition = nextPosition;
+    }
+    
+    public void setBinlogFileName(String binlogFileName) {
+        this.binlogFileName = binlogFileName;
     }
     
     protected List<String> getColumns(String fullName) {
@@ -180,10 +214,23 @@ public class MysqlListener extends AbstractListener{
     private static Log log = LogFactory.getLog(MysqlListener.class);
     
 
-    private OpenReplicator openRelicator;
+    private ExtendedOpenReplicator openRelicator;
+    private volatile long nextPosition;
+    private volatile String binlogFileName;
     private Map<String, List<String>> columnsMap;
     private Map<String, List<Integer>> typesMap;
     private Map<String, List<String>> primaryKeysMap;
     private Set<String> permittedTableSet;
+    
+    private static class ExtendedOpenReplicator extends OpenReplicator {
+        public ExtendedOpenReplicator() {
+            super();
+            // TODO Auto-generated constructor stub
+        }
+        
+        public void setRunning(boolean flag) {
+            running.lazySet(flag);
+        }
+    }
  
 }
