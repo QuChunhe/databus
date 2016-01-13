@@ -64,6 +64,13 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
     }
 
     private void buildMySQLEvent(AbstractRowEvent currentEvent) {
+        String database = preTableMapEvent.getDatabaseName().toString().toLowerCase();
+        String table = preTableMapEvent.getTableName().toString().toLowerCase();
+        String fullName = database+"."+table;
+        if (!listener.doPermit(fullName)) {
+            return;
+        }
+        
         if (null == preTableMapEvent) {
             log.error("Previous TableMapEvent is null : "+currentEvent.toString());
             return;
@@ -72,14 +79,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             log.error("Current event isn't consistend with TableMapEvent : "+
                     preTableMapEvent.toString()+" ; "+currentEvent.toString());
             return;
-        }
- 
-        String database = preTableMapEvent.getDatabaseName().toString().toLowerCase();
-        String table = preTableMapEvent.getTableName().toString().toLowerCase();
-        String fullName = database+"."+table;
-        if (!listener.doPermit(fullName)) {
-            return;
-        }
+        }       
     
         List<String> primaryKeys = listener.getPrimaryKeys(fullName);
         Set<String> primaryKeysSet = new HashSet<String>(primaryKeys);
