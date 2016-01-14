@@ -28,14 +28,28 @@ public class MessagePersistence extends MysqlReceiver{
     @Override
     public void initialize(Properties properties) {
         super.initialize(properties);
-        Properties beansProperties = removePrefix(properties, "beans.");
-        for(String key : beansProperties.stringPropertyNames()) {
-            try {
-                String className = beansProperties.getProperty(key);
+        
+        String[] topics  = split(properties.getProperty("remoteTopic.topic"));
+        String[] beans = split(properties.getProperty("remoteTopic.bean"));
+        if ((null==topics) || (null==beans)) {
+            log.error("Topic or bean is null");
+            System.exit(1);
+        }
+        if (topics.length != beans.length) {
+            log.error("The number of topics is't equal to beans!");
+            System.exit(1);
+        }
+        
+        int len = topics.length;
+        for(int i=0; i<len; i++) {
+            String[] parts = topics[i].split("/");
+            String key = parts[parts.length - 1];
+            String className = beans[i];
+            try {                
                 Class<?> beanClass =  Class.forName(className);                
-                classesMap.put(key, beanClass);
+                classesMap.put(key.trim(), beanClass);
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
+                log.error("Can't instantiate "+className+" for "+topics[i], e);
             }
         }
     }
@@ -61,6 +75,10 @@ public class MessagePersistence extends MysqlReceiver{
             log.error(message + " can't convert to "+beanClass.getName());
         }
         
+    }
+    
+    private String[] split(String value) {
+        return value==null ? null : value.split(",");
     }
     
     private void save(MysqlBean bean) {

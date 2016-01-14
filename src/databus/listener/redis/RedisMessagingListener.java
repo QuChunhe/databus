@@ -24,6 +24,9 @@ public class RedisMessagingListener extends RedisListener {
             System.exit(1);
         }
         keys = rawKeys.split(",");
+        for(int i=0; i<keys.length; i++) {
+            keys[i] = keys[i].trim();
+        }
     }
 
     @Override

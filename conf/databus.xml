@@ -12,7 +12,7 @@
         <redis>
             <host>127.0.0.1</host>
             <port>6379</port>
-            <keys>test</keys>
+            <keys>access,postback</keys>
         </redis>
     </listener>
     <listener>
@@ -36,11 +36,15 @@
         <port>8765</port>
     </subscriber>
     <subscriber>
-        <topic>/REDIS/LIST_MESSAGING/test</topic>
+        <topic>/REDIS/LIST_MESSAGING/access</topic>
         <host>127.0.0.1</host>
         <port>8765</port>
     </subscriber>
-
+    <subscriber>
+        <topic>/REDIS/LIST_MESSAGING/postback</topic>
+        <host>127.0.0.1</host>
+        <port>8765</port>
+    </subscriber>
 </publisher>
   
 <subscriber>
@@ -92,7 +96,14 @@
         <remoteTopic>
             <host>127.0.0.1</host>
             <port>8765</port>
-            <topic>/REDIS/LIST_MESSAGING/test</topic>
+            <topic>/REDIS/LIST_MESSAGING/access</topic>
+            <bean>adm.stats.AccessInfoBean</bean>
+        </remoteTopic>
+        <remoteTopic>
+            <host>127.0.0.1</host>
+            <port>8765</port>
+            <topic>/REDIS/LIST_MESSAGING/postback</topic>
+            <bean>adm.stats.PostbackInfoBean</bean>
         </remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/test2</url>
@@ -107,16 +118,18 @@
             <defaultAutoCommit>true</defaultAutoCommit>
             <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
         </mysql>
-        <beans>
-            <test>adm.stats.AccessInfoBean</test>
-        </beans>
     </receiver>
     <receiver>
         <class>databus.receiver.DefaultReceiver</class>
         <remoteTopic>
             <host>127.0.0.1</host>
             <port>8765</port>
-            <topic>/REDIS/LIST_MESSAGING/test</topic>
+            <topic>/REDIS/LIST_MESSAGING/access</topic>
+        </remoteTopic>
+        <remoteTopic>
+            <host>127.0.0.1</host>
+            <port>8765</port>
+            <topic>/REDIS/LIST_MESSAGING/postback</topic>
         </remoteTopic>
         <remoteTopic>
             <host>127.0.0.1</host>
