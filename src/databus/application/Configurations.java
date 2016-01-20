@@ -1,4 +1,4 @@
-package databus.example;
+package databus.application;
 
 import java.util.List;
 import java.util.Properties;

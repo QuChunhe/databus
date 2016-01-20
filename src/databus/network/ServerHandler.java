@@ -1,9 +1,12 @@
 package databus.network;
 
+import java.net.InetSocketAddress;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
+import databus.util.InternetAddress;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -35,17 +38,21 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        String remoteAddress = ctx.channel().remoteAddress().toString();
+        InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
         ctx.flush();
         String message = buffer.toString(CharsetUtil.UTF_8);
         log.info("Have received message : " + message);
         try {
             Event event = parser.parse(message);
             if (null == event) {
-                log.error("Message from "+remoteAddress +
+                log.error("Message from "+address +
                           " cannot be parsed as Event : " + message);
                 return;
             }
+            String ipAddress = address.getAddress().getHostAddress();
+            int port = address.getPort();
+            InternetAddress remoteAddress = new InternetAddress(ipAddress, port);
+            event.address(remoteAddress);
             if (null != subscriber) {
                 subscriber.receive(event);
             }

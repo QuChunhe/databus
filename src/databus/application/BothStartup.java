@@ -1,4 +1,4 @@
-package databus.example;
+package databus.application;
 
 import databus.listener.BatchListener;
 import databus.network.Client;
@@ -14,7 +14,7 @@ public class BothStartup {
         Configurations config = new Configurations();
         InternetAddress localAddress =config.loadServerAddress();
         Server server = new Server(localAddress);
-        Client client = new Client(localAddress);        
+        Client client = new Client();        
 
         Publisher publisher = new Publisher(client);
         Subscriber subscriber = new Subscriber();

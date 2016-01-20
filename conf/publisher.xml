@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+<publisher>    
+    <listener>
+        <class>databus.listener.redis.RedisMessagingListener</class>
+        <redis>
+            <host>127.0.0.1</host>
+            <port>6379</port>
+            <keys>access,postback</keys>
+        </redis>
+    </listener>
+    <listener>
+        <class>databus.listener.mysql.MysqlListener</class>
+        <mysql>
+            <host>127.0.0.1</host>
+            <port>3306</port>
+            <user>root</user>
+            <password>quchunhe</password>
+            <serverId>1</serverId>
+            <permittedTables>test.user</permittedTables>
+            <binlogFileName>master-bin.000001</binlogFileName>
+            <position>5227</position>
+        </mysql>
+    </listener>  
+    
+    <!-- subscriber tag for no ActivePublisher -->
+    <subscriber>
+        <topic>/MYSQL/1/test</topic>
+        <host>127.0.0.1</host>
+        <port>8765</port>
+    </subscriber>
+    <subscriber>
+        <topic>/REDIS/LIST_MESSAGING/access</topic>
+        <host>127.0.0.1</host>
+        <port>8765</port>
+    </subscriber>
+    <subscriber>
+        <topic>/REDIS/LIST_MESSAGING/postback</topic>
+        <host>127.0.0.1</host>
+        <port>8765</port>
+    </subscriber>
+</publisher>
+  
+</configuration>

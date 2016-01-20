@@ -1,10 +1,6 @@
 package databus.util;
 
-import java.io.Serializable;
-
-public class InternetAddress implements Serializable {
-
-    private static final long serialVersionUID = 8532528699989931341L;
+public class InternetAddress {
     
     public InternetAddress(String ipAddress, int port) {
         this.ipAddress = ipAddress.trim();
@@ -23,9 +19,7 @@ public class InternetAddress implements Serializable {
     public boolean equals(Object other) {
        if(other instanceof InternetAddress) {
            InternetAddress o = (InternetAddress) other;
-           if (ipAddress.equals(o.ipAddress) && (port == o.port)) {
-               return true;
-           }
+           return ipAddress.equals(o.ipAddress);
        }
        return false;
     }
@@ -37,7 +31,7 @@ public class InternetAddress implements Serializable {
 
     @Override
     public int hashCode() {
-        return toString().hashCode();
+        return ipAddress.hashCode();
     }
 
     private String ipAddress;

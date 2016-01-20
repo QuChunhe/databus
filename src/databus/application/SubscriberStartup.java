@@ -1,6 +1,5 @@
-package databus.example;
+package databus.application;
 
-import databus.network.Client;
 
 import databus.network.Server;
 import databus.network.Subscriber;
@@ -12,23 +11,16 @@ public class SubscriberStartup {
         Configurations config = new Configurations("conf/subscriber.xml");
         InternetAddress localAddress = config.loadServerAddress();
         Server server = new Server(localAddress);
-        Client client = new Client(localAddress);
-
         Subscriber subscriber = new Subscriber();
-        server.setSubscriber(subscriber);
-        
-        Thread serverThread = server.start();       
-        Thread clientThread = client.start();
-
+        server.setSubscriber(subscriber);        
+        Thread serverThread = server.start(); 
         config.loadReceivers(subscriber);
 
         try {
             serverThread.join();
-            clientThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
-            client.stop();
             server.stop();
         }
         System.exit(0);
