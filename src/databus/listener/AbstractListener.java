@@ -45,7 +45,7 @@ public abstract class AbstractListener implements Listener, Runnable{
         int exceptionCount = 0;
         while (doRun) {
             try {
-                runOnce();
+                runOnce(exceptionCount > 0);
                 exceptionCount = 0;
             } catch (Exception e) {
                 exceptionCount++;
@@ -75,7 +75,7 @@ public abstract class AbstractListener implements Listener, Runnable{
         }        
     }
     
-    abstract protected void runOnce() throws Exception;    
+    abstract protected void runOnce(boolean hasException) throws Exception;    
 
     protected Publisher publisher;
     

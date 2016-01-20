@@ -101,14 +101,13 @@ public class MysqlListener extends AbstractListener{
     }    
     
     @Override
-    protected void runOnce() throws Exception {
+    protected void runOnce(boolean hasException) throws Exception {
         try {
             Thread.sleep(1000);
         } catch(InterruptedException e) {
             log.warn("Have been interrupted", e);
         }
-        AbstractBinlogParser 
-              parser = (AbstractBinlogParser)openRelicator.getBinlogParser();
+        AbstractBinlogParser parser = (AbstractBinlogParser)openRelicator.getBinlogParser();
         if ((null == parser) || (!parser.isRunning())) {
             openRelicator.setRunning(false);
             openRelicator.setTransport(null);

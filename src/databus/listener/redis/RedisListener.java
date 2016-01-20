@@ -14,15 +14,18 @@ public abstract class RedisListener extends AbstractListener {
 
     @Override
     public void initialize(Properties properties) {
-        String host = properties.getProperty("redis.host", "127.0.0.1");
-        int port = Integer.parseInt(properties.getProperty("redis.port", "6379"));
-        int timeout = Integer.parseInt(properties.getProperty("redis.timeout", "60"));
+        host = properties.getProperty("redis.host", "127.0.0.1");
+        port = Integer.parseInt(properties.getProperty("redis.port", "6379"));
+        timeout = Integer.parseInt(properties.getProperty("redis.timeout", "60"));
 
         jedis = new Jedis(host, port, timeout);
     }
 
     @Override
-    protected void runOnce() throws Exception {
+    protected void runOnce(boolean hasException) throws Exception {
+        if (hasException) {
+            jedis = new Jedis(host, port, timeout);
+        }
         RedisEvent event = listen();
         if (null != event) {
            publisher.publish(event); 
@@ -32,4 +35,8 @@ public abstract class RedisListener extends AbstractListener {
     protected abstract RedisEvent listen();
 
     protected Jedis jedis;
+    
+    private String host;
+    private int port;
+    private int timeout;
 }
