@@ -15,14 +15,14 @@ public abstract class RedisReceiver implements Receiver {
 
     @Override
     public void initialize(Properties properties) {
-        String host = properties.getProperty("host", "127.0.0.1");
-        int port = Integer.parseInt(properties.getProperty("port", "6379"));
-        int timeout = Integer.parseInt(properties.getProperty("timeout","60"));
-        String password = properties.getProperty("password");
-        int database = Integer.parseInt(properties.getProperty("database","0"));
-        int maxTotal = Integer.parseInt(properties.getProperty("maxTotal","5"));
-        int maxIdle = Integer.parseInt(properties.getProperty("maxIdle","3"));
-        int minIdle = Integer.parseInt(properties.getProperty("minIdle","0"));
+        String host = properties.getProperty("redis.host", "127.0.0.1");
+        int port = Integer.parseInt(properties.getProperty("redis.port", "6379"));
+        int timeout = Integer.parseInt(properties.getProperty("redis.timeout","60"));
+        String password = properties.getProperty("redis.password");
+        int database = Integer.parseInt(properties.getProperty("redis.database","0"));
+        int maxTotal = Integer.parseInt(properties.getProperty("redis.maxTotal","5"));
+        int maxIdle = Integer.parseInt(properties.getProperty("redis.maxIdle","3"));
+        int minIdle = Integer.parseInt(properties.getProperty("redis.minIdle","0"));
         
         JedisPoolConfig config = new JedisPoolConfig();
         config.setMaxTotal(maxTotal);
