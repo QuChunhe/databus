@@ -157,7 +157,6 @@ public class MysqlListener extends AbstractListener{
         for(String t : tables) {
             permittedTableSet.add(t.trim().toLowerCase());
         }
-        log.info(permittedTableSet.toString());
     }
     
     private void loadSchema(MysqlDataSource ds) {
@@ -173,17 +172,16 @@ public class MysqlListener extends AbstractListener{
             String databaseName = r[0].trim();
             String tableName = r[1].trim();
             ds.setDatabaseName(databaseName);
-            try {
-                Connection conn = ds.getConnection();
+            try (Connection conn = ds.getConnection();){                
                 DatabaseMetaData metaData = conn.getMetaData();  
-                
-                ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");
                 LinkedList<String> columns = new LinkedList<String>();
                 LinkedList<Integer> types = new LinkedList<Integer>();
-                while (resultSet1.next()) {
-                    columns.addLast(resultSet1.getString("COLUMN_NAME"));
-                    types.addLast(resultSet1.getInt("DATA_TYPE"));
-                }
+                try (ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");) {                                    
+                    while (resultSet1.next()) {
+                        columns.addLast(resultSet1.getString("COLUMN_NAME"));
+                        types.addLast(resultSet1.getInt("DATA_TYPE"));
+                    }
+                }                
                 columnsMap.put(fullName, columns);
                 typesMap.put(fullName, types);
                 
