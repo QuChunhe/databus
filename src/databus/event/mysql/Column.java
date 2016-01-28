@@ -44,18 +44,31 @@ public class Column {
     public boolean equals(Object other) {
         if (other instanceof Column) {
             Column o = (Column) other;
-            if ((type==o.type) && 
-                value.equals(o.value) && 
-                name.equals(o.name)) {
-                return true;
-            }
+            return (type==o.type) && value.equals(o.value) && name.equals(o.name);
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return "{name: "+name+", value:"+value+", type: "+type+"}";
+        StringBuilder builder = new StringBuilder(64);
+        builder.append("{")
+               .append("\"name\": \"")
+               .append(name)
+               .append("\", ")
+               .append("\"value\": ");
+        if (isString()) {
+            builder.append("\"")
+                   .append(value)
+                   .append("\"");
+        } else {
+            builder.append(value);
+        }
+        builder.append(", ")
+               .append("\"type\": ")
+               .append(type)
+               .append("}");
+        return builder.toString();
     }
 
     private String name;

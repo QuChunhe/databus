@@ -23,7 +23,7 @@ public class Server implements Runnable, Startable{
     public Server(InternetAddress localAddress, int workerPoolSize) {
         this.localAddress = localAddress;
         bossGroup = new NioEventLoopGroup(1);
-        workerGroup = new NioEventLoopGroup();
+        workerGroup = new NioEventLoopGroup(workerPoolSize);
     }
     
     @Override
@@ -42,8 +42,7 @@ public class Server implements Runnable, Startable{
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)
                      .group(bossGroup, workerGroup)
                      .channel(NioServerSocketChannel.class)
-                     .localAddress(localAddress.ipAddress(), 
-                                   localAddress.port())
+                     .localAddress(localAddress.ipAddress(), localAddress.port())
                      .childHandler(new ChannelInitializer<SocketChannel>(){
 
                         @Override

@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -52,7 +51,7 @@ public class MysqlListener extends AbstractListener{
     }
 
     @Override
-    public void start() {
+    public void start() {        
         if(openRelicator.isRunning()) {
             return;
         }
@@ -66,15 +65,13 @@ public class MysqlListener extends AbstractListener{
     
     @Override
     public void initialize(Properties properties){        
-        String user = properties.getProperty(USER, "root");
-        String password = properties.getProperty(PASSWORD, "");
-        String host = properties.getProperty(HOST, "127.0.0.1");
-        int port = Integer.valueOf(properties.getProperty(PORT, "3306"));
-
-        int serverId = Integer.valueOf(properties.getProperty(SERVER_ID, "1"));
-        String binlogFileName = 
-                properties.getProperty(BINLOG_FILE_NAME, "master-bin.000001");
-        int position = Integer.valueOf(properties.getProperty(POSITION, "1"));
+        String user = properties.getProperty("mysql.user", "root");
+        String password = properties.getProperty("mysql.password", "");
+        String host = properties.getProperty("mysql.host", "127.0.0.1");
+        int port = Integer.valueOf(properties.getProperty("mysql.port", "3306"));
+        int serverId = Integer.valueOf(properties.getProperty("mysql.serverId", "1"));
+        binlogFileName = properties.getProperty("mysql.binlogFileName", "master-bin.000001");
+        nextPosition = Integer.valueOf(properties.getProperty("mysql.position", "1"));
         openRelicator = new ExtendedOpenReplicator();
         openRelicator.setUser(user);
         openRelicator.setPassword(password);
@@ -82,28 +79,23 @@ public class MysqlListener extends AbstractListener{
         openRelicator.setPort(port);
         openRelicator.setServerId(serverId);
         openRelicator.setBinlogFileName(binlogFileName); 
-        openRelicator.setBinlogPosition(position);
+        openRelicator.setBinlogPosition(nextPosition);
         openRelicator.setBinlogEventListener(new DatabusBinlogEventListener(this));
        
         loadPermittedTables(properties);
-        
-        this.binlogFileName = binlogFileName;
-        this.nextPosition = position;
 
         MysqlDataSource ds = new MysqlDataSource();
         ds.setUser(user);
         ds.setPassword(password);
         ds.setServerName(host);
         ds.setPort(port);
-
-        loadSchema(ds);
-       
+        loadSchema(ds);       
     }    
     
     @Override
     protected void runOnce(boolean hasException) throws Exception {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(ONE_SECOND);
         } catch(InterruptedException e) {
             log.warn("Have been interrupted", e);
         }
@@ -134,22 +126,22 @@ public class MysqlListener extends AbstractListener{
         this.binlogFileName = binlogFileName;
     }
     
-    protected List<String> getColumns(String fullName) {
+    protected String[] getColumns(String fullName) {
         return columnsMap.get(fullName);
     }
     
-    protected List<Integer> getTypes(String fullName) {
+    protected Integer[] getTypes(String fullName) {
         return typesMap.get(fullName);
     }
     
-    protected List<String> getPrimaryKeys(String fullName) {
+    protected Set<String> getPrimaryKeys(String fullName) {
         return primaryKeysMap.get(fullName);
     }
     
     private void loadPermittedTables(Properties config){        
-        String rawTables = config.getProperty(PERMITTED_TABLES);
+        String rawTables = config.getProperty("mysql.permittedTables");
         if (null == rawTables) {
-            log.error(PERMITTED_TABLES+" is null!");
+            log.error("mysql.permittedTables is null!");
             System.exit(1);
         }
         String[] tables = rawTables.split(",") ;
@@ -160,9 +152,9 @@ public class MysqlListener extends AbstractListener{
     }
     
     private void loadSchema(MysqlDataSource ds) {
-        columnsMap = new HashMap<String, List<String>>();
-        typesMap = new HashMap<String, List<Integer>>();
-        primaryKeysMap = new HashMap<String, List<String>>();
+        columnsMap = new HashMap<String, String[]>();
+        typesMap = new HashMap<String, Integer[]>();
+        primaryKeysMap = new HashMap<String, Set<String>>();
         for(String fullName : permittedTableSet) {
             String[] r = fullName.split("\\.");
             if (r.length != 2) {
@@ -182,52 +174,40 @@ public class MysqlListener extends AbstractListener{
                         types.addLast(resultSet1.getInt("DATA_TYPE"));
                     }
                 }                
-                columnsMap.put(fullName, columns);
-                typesMap.put(fullName, types);
+                columnsMap.put(fullName, columns.toArray(new String[1]));
+                typesMap.put(fullName, types.toArray(new Integer[1]));
                 
-                LinkedList<String> keys = new LinkedList<String>();
+                HashSet<String> keys = new HashSet<String>();
                 ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName);
                 while(resultSet2.next()) {
-                    keys.addLast(resultSet2.getString("COLUMN_NAME"));
+                    keys.add(resultSet2.getString("COLUMN_NAME"));
                 }
                 primaryKeysMap.put(fullName, keys);                
             } catch (SQLException e) {
                 log.error("Cannot load the schema of "+fullName, e);
-            } finally {
-                
             }
         }
     }    
-    
-    final private static String USER = "mysql.user";
-    final private static String PASSWORD = "mysql.password";
-    final private static String HOST = "mysql.host";
-    final private static String PORT = "mysql.port";
-    final private static String SERVER_ID = "mysql.serverId";
-    final private static String POSITION = "mysql.position";
-    final private static String BINLOG_FILE_NAME = "mysql.binlogFileName";
-    final private static String PERMITTED_TABLES = "mysql.permittedTables";
+
+    final private static long ONE_SECOND = 1000;
     
     private static Log log = LogFactory.getLog(MysqlListener.class);
-    
 
     private ExtendedOpenReplicator openRelicator;
     private volatile long nextPosition;
     private volatile String binlogFileName;
-    private Map<String, List<String>> columnsMap;
-    private Map<String, List<Integer>> typesMap;
-    private Map<String, List<String>> primaryKeysMap;
+    private Map<String, String[]> columnsMap;
+    private Map<String, Integer[]> typesMap;
+    private Map<String, Set<String>> primaryKeysMap;
     private Set<String> permittedTableSet;
     
     private static class ExtendedOpenReplicator extends OpenReplicator {
         public ExtendedOpenReplicator() {
             super();
-            // TODO Auto-generated constructor stub
         }
         
         public void setRunning(boolean flag) {
             running.lazySet(flag);
         }
     }
- 
 }

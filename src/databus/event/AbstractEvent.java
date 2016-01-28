@@ -1,7 +1,6 @@
 package databus.event;
 
 import databus.core.Event;
-import databus.util.InternetAddress;
 
 public abstract class AbstractEvent implements Event{
 
@@ -17,16 +16,16 @@ public abstract class AbstractEvent implements Event{
     }
     
     @Override
-    public InternetAddress address() {
-        return address;
+    public String ipAddress() {
+        return this.ipAddress;
     }
 
     @Override
-    public Event address(InternetAddress localAddress) {
-        address = localAddress;
+    public Event ipAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
         return this;
-    }    
-
-    private InternetAddress address;
+    }
+    
+    private String ipAddress;
     private long time;
 }

@@ -6,7 +6,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.util.InternetAddress;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,9 +49,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
                 return;
             }
             String ipAddress = address.getAddress().getHostAddress();
-            int port = address.getPort();
-            InternetAddress remoteAddress = new InternetAddress(ipAddress, port);
-            event.address(remoteAddress);
+            event.ipAddress(ipAddress);
             if (null != subscriber) {
                 subscriber.receive(event);
             }

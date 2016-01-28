@@ -11,7 +11,7 @@ public abstract class AbstractListener implements Listener, Runnable{
     public AbstractListener(Publisher publisher) {
         this.publisher = publisher;
         runner = new Thread(this);
-        doRun = false;
+        doesRun = false;
     }
     
     public AbstractListener() {
@@ -24,26 +24,29 @@ public abstract class AbstractListener implements Listener, Runnable{
     
     @Override
     public void start() {
-        doRun = true;
-        runner.start();
+        if (!doesRun) {
+            doesRun = true;
+            runner.start();
+        }
     }
 
     @Override
     public boolean isRunning() {
-        return doRun;
+        return doesRun;
     }
 
     @Override
     public void stop() {
-        doRun = false;
-        runner.interrupt();
-
+        if (doesRun) {
+           doesRun = false;
+           runner.interrupt(); 
+        }        
     }
     
     @Override
     public void run() {
         int exceptionCount = 0;
-        while (doRun) {
+        while (doesRun) {
             try {
                 runOnce(exceptionCount > 0);
                 exceptionCount = 0;
@@ -64,7 +67,6 @@ public abstract class AbstractListener implements Listener, Runnable{
                 }
             }
         }
-        log.info("will finish!!!!!!");
     }    
     
     private void sleep(long duration) {
@@ -82,5 +84,6 @@ public abstract class AbstractListener implements Listener, Runnable{
     private static Log log = LogFactory.getLog(AbstractListener.class);
     
     private Thread runner;
-    private volatile boolean doRun;
+    //only one thread modify doesRun
+    private volatile boolean doesRun;
 }

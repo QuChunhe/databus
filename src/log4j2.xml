@@ -8,7 +8,7 @@
            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %l – %msg%n"/>    
             <Policies>
                 <TimeBasedTriggeringPolicy modulate="true" interval="24"/>
-                <SizeBasedTriggeringPolicy size="51200 KB"/>
+                <SizeBasedTriggeringPolicy size="10000 KB"/>
             </Policies>
             <DefaultRolloverStrategy max="20"/>    
         </RollingFile>  

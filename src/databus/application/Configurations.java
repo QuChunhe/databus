@@ -54,8 +54,7 @@ public class Configurations {
                 for(HierarchicalConfiguration rc : topicsConfig) {
                     String topic = normalizeTopic(rc.getString("topic"));
                     String host = rc.getString("host");
-                    int port = rc.getInt("port");
-                    RemoteTopic remoteTopic = new RemoteTopic(host, port, topic);
+                    RemoteTopic remoteTopic = new RemoteTopic(host, topic);
                     subscriber.register(remoteTopic, receiver); 
                 }
                 

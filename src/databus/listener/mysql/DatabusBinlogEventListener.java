@@ -1,6 +1,5 @@
 package databus.listener.mysql;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -69,8 +68,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         String fullName = database+"."+table;
         if (!listener.doPermit(fullName)) {
             return;
-        }
-        
+        }        
         if (null == preTableMapEvent) {
             log.error("Previous TableMapEvent is null : "+currentEvent.toString());
             return;
@@ -79,42 +77,41 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             log.error("Current event isn't consistend with TableMapEvent : "+
                     preTableMapEvent.toString()+" ; "+currentEvent.toString());
             return;
-        }       
-    
-        List<String> primaryKeys = listener.getPrimaryKeys(fullName);
-        Set<String> primaryKeysSet = new HashSet<String>(primaryKeys);
-        List<Integer> types = listener.getTypes(fullName);
-        List<String> columns = listener.getColumns(fullName);
+        }
+
+        Set<String> primaryKeys = listener.getPrimaryKeys(fullName);
+        Integer[] types = listener.getTypes(fullName);
+        String[] columns = listener.getColumns(fullName);
         MysqlWriteEventFactory factory;
         switch (currentEvent.getHeader().getEventType()) {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:
             List<Row> wRows2 = ((WriteRowsEventV2)currentEvent).getRows();
-            factory = new MysqlInsertEventFactory(columns, types, primaryKeysSet, wRows2);
+            factory = new MysqlInsertEventFactory(columns, types, primaryKeys, wRows2);
             break;
             
         case MySQLConstants.WRITE_ROWS_EVENT:
             List<Row> wRows1 = ((WriteRowsEvent)currentEvent).getRows();
-            factory = new MysqlInsertEventFactory(columns, types, primaryKeysSet, wRows1);
+            factory = new MysqlInsertEventFactory(columns, types, primaryKeys, wRows1);
             break;
             
         case MySQLConstants.UPDATE_ROWS_EVENT_V2:
             List<Pair<Row>> uRows2 = ((UpdateRowsEventV2)currentEvent).getRows(); 
-            factory = new MysqlUpdateEventFactory(columns, types, primaryKeysSet, uRows2);
+            factory = new MysqlUpdateEventFactory(columns, types, primaryKeys, uRows2);
             break;
             
         case MySQLConstants.UPDATE_ROWS_EVENT:
             List<Pair<Row>> uRows1 = ((UpdateRowsEvent)currentEvent).getRows(); 
-            factory = new MysqlUpdateEventFactory(columns, types, primaryKeysSet, uRows1);
+            factory = new MysqlUpdateEventFactory(columns, types, primaryKeys, uRows1);
             break;
             
         case MySQLConstants.DELETE_ROWS_EVENT_V2:
             List<Row> dRows2 = ((DeleteRowsEventV2)currentEvent).getRows();
-            factory = new MysqlDeleteEventFactory(columns, types, primaryKeysSet, dRows2);            
+            factory = new MysqlDeleteEventFactory(columns, types, primaryKeys, dRows2);            
             break;
             
         case MySQLConstants.DELETE_ROWS_EVENT:
             List<Row> dRows1 = ((DeleteRowsEvent)currentEvent).getRows();
-            factory = new MysqlDeleteEventFactory(columns, types, primaryKeysSet, dRows1);            
+            factory = new MysqlDeleteEventFactory(columns, types, primaryKeys, dRows1);            
             break;
             
         default:
@@ -133,7 +130,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
                        .time(time);
                 listener.onEvent(event);  
             }
-            
         }
     }
     

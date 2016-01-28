@@ -1,6 +1,5 @@
 package databus.event.redis;
 
-
 import databus.event.RedisEvent;
 
 public class RedisMessaging  extends AbstractRedisEvent{
@@ -26,9 +25,25 @@ public class RedisMessaging  extends AbstractRedisEvent{
     
     @Override
     public String toString() {
-        return  type()+" from "+ key()+" : "+message;
+        StringBuilder builder = new StringBuilder(128);
+        builder.append("{")
+               .append("\"time\": ")
+               .append(time())
+               .append(", ")
+               .append("\"ipAddress\": \"")
+               .append(ipAddress())
+               .append("\", ")
+               .append("\"source\": \"")
+               .append(source())
+               .append("\", ")
+               .append("\"key\": \"")
+               .append(key())
+               .append("\", ")
+               .append("\"message\": \"")
+               .append(message)
+               .append("\"}");
+        return builder.toString();
     }
     
     private String message;
-
 }

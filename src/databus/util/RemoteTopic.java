@@ -2,18 +2,14 @@ package databus.util;
 
 public class RemoteTopic {
     
-    public RemoteTopic(InternetAddress remoteAddress, String topic) {
-        this.remoteAddress = remoteAddress;
+    public RemoteTopic(String ipAddress, String topic) {
+        this.ipAddress = ipAddress;
         this.topic = topic;
-        hasCode = (remoteAddress.ipAddress()+topic).hashCode();
+        hashCode = (ipAddress+"/"+topic).hashCode();
     }
-    
-    public RemoteTopic(String host, int port, String topic) {
-        this(new InternetAddress(host, port), topic);
-    }
-    
-    public InternetAddress remoteAddress() {
-        return remoteAddress;
+
+    public String ipAddress() {
+        return ipAddress;
     }
     
     public String topic() {
@@ -24,22 +20,24 @@ public class RemoteTopic {
     public boolean equals(Object other) {
         if (other instanceof RemoteTopic) {
             RemoteTopic o = (RemoteTopic) other;
-            return remoteAddress.equals(o.remoteAddress) && topic.equals(o.topic);            
+            return ipAddress.equals(o.ipAddress) && topic.equals(o.topic);            
         }
         return false;
     }    
     
     @Override
     public String toString() {
-        return remoteAddress.toString()+"/"+topic;
+        return ipAddress+"/"+topic;
     }
 
     @Override
     public int hashCode() {
-        return hasCode;
-    }
-
-    private InternetAddress remoteAddress;
+        return hashCode;
+    }   
+    
+    protected int hashCode;
+    
+    private String ipAddress;
     private String topic;
-    private int hasCode;
+    
 }

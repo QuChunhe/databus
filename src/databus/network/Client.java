@@ -8,6 +8,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -31,6 +33,17 @@ public class Client  implements Runnable, Startable {
         gson = new GsonBuilder().enableComplexMapKeySerialization()
                                 .serializeNulls()
                                 .setDateFormat(DateFormat.LONG)
+                                .addSerializationExclusionStrategy(new ExclusionStrategy() {
+                                    @Override
+                                    public boolean shouldSkipClass(Class<?> clazz) {
+                                        return false;
+                                    }
+
+                                    @Override
+                                    public boolean shouldSkipField(FieldAttributes f) {
+                                        return "ipAddress".equals(f.getName());
+                                    }                                    
+                                })
                                 .create();
         taskQueue = new LinkedBlockingQueue<Task>();
         thread = new Thread(this, "DataBus Client");

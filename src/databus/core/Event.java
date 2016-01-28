@@ -1,7 +1,5 @@
 package databus.core;
 
-import databus.util.InternetAddress;
-
 public interface Event {
     
     public static enum Source {REDIS, MYSQL, MANAGEMENT, CONFIRMATION}
@@ -16,8 +14,8 @@ public interface Event {
     
     public String type();
     
-    public InternetAddress address();
+    public String ipAddress();
     
-    public Event address(InternetAddress localAddress);
+    public Event ipAddress(String ipAddress);
     
 }

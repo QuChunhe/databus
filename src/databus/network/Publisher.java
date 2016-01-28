@@ -19,7 +19,7 @@ public class Publisher{
     }
     
     public boolean subscribe(String topic, InternetAddress remoteAddress) {
-        boolean isAdded = false;
+        boolean hasAdded = false;
         Set<InternetAddress> addresses = subscribersMap.get(topic);
         if (null == addresses) {
             addresses = new CopyOnWriteArraySet<InternetAddress>();            
@@ -29,13 +29,14 @@ public class Publisher{
             log.info(remoteAddress.toString()+" has been contained");
         } else {
             addresses.add(remoteAddress);
-            isAdded = true;
+            hasAdded = true;
         }
-        return isAdded;
+        return hasAdded;
     }
     
     public void receive(Event event) {
         // do nothing
+        log.info("Has received "+event.toString());
     }
 
     public void publish(Event event) {
@@ -44,7 +45,7 @@ public class Publisher{
         if (null != addresses) {
             client.send(event, addresses);
         } else {
-            log.info(event.toString()+" has't subscriber!");
+            log.info(event.toString()+" has't any subscriber!");
         }
     }
 

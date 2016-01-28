@@ -10,7 +10,7 @@ import databus.event.mysql.MysqlDeleteRow;
 
 public class MysqlDeleteEventFactory extends MysqlInsertEventFactory{
 
-    public MysqlDeleteEventFactory(List<String> columns, List<Integer> types,
+    public MysqlDeleteEventFactory(String[] columns, Integer[] types,
                                   Set<String> primaryKeysSet, List<Row> rows) {
         super(columns, types, primaryKeysSet, rows);
     }

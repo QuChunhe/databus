@@ -6,7 +6,8 @@
     <port>8765</port>
 </server>
 
-<publisher>    
+<publisher> 
+    <threadPoolSize>1</threadPoolSize>
     <listener>
         <class>databus.listener.redis.RedisMessagingListener</class>
         <redis>
@@ -24,8 +25,8 @@
             <password>quchunhe</password>
             <serverId>1</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000001</binlogFileName>
-            <position>5227</position>
+            <binlogFileName>master-bin.000047</binlogFileName>
+            <position>120</position>
         </mysql>
     </listener>  
     
@@ -48,13 +49,12 @@
 </publisher>
   
 <subscriber>
-   
+    <workerPoolSize>1</workerPoolSize>
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
         <remoteTopic>
             <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/MYSQL/1/test</topic>
+             <topic>/MYSQL/1/test</topic>
         </remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/test2</url>
@@ -76,7 +76,6 @@
         <class>databus.receiver.redis.RedisSlave</class>
         <remoteTopic>
             <host>127.0.0.1</host>
-            <port>8765</port>
             <topic>/MYSQL/1/adm</topic>
         </remoteTopic>
         <redis>
@@ -90,19 +89,17 @@
             <minIdle>0</minIdle>
         </redis>
     </receiver>
-    -->
+   
     <receiver>
         <class>databus.receiver.mysql.MessagePersistence</class>
         <remoteTopic>
             <host>127.0.0.1</host>
-            <port>8765</port>
             <topic>/REDIS/LIST_MESSAGING/access</topic>
             <bean>adm.stats.AccessInfoBean</bean>
         </remoteTopic>
         <remoteTopic>
             <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/REDIS/LIST_MESSAGING/postback</topic>
+              <topic>/REDIS/LIST_MESSAGING/postback</topic>
             <bean>adm.stats.PostbackInfoBean</bean>
         </remoteTopic>
         <mysql>
@@ -119,22 +116,20 @@
             <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
         </mysql>
     </receiver>
+ -->
     <receiver>
         <class>databus.receiver.DefaultReceiver</class>
         <remoteTopic>
             <host>127.0.0.1</host>
-            <port>8765</port>
             <topic>/REDIS/LIST_MESSAGING/access</topic>
         </remoteTopic>
         <remoteTopic>
             <host>127.0.0.1</host>
-            <port>8765</port>
             <topic>/REDIS/LIST_MESSAGING/postback</topic>
         </remoteTopic>
         <remoteTopic>
             <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/MYSQL/1/test</topic>
+             <topic>/MYSQL/1/test</topic>
         </remoteTopic>
     </receiver>
 </subscriber>

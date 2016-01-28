@@ -13,7 +13,7 @@ import databus.event.mysql.Column;
 
 public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
     
-    public MysqlUpdateEventFactory(List<String> columns, List<Integer> types,
+    public MysqlUpdateEventFactory(String[] columns, Integer[] types,
                             Set<String> primaryKeysSet, List<Pair<Row>> rows) {
         iterator = rows.listIterator();
         this.columns = columns;
@@ -33,14 +33,13 @@ public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
                           befIt = pair.getBefore().getColumns().listIterator();
         ListIterator<com.google.code.or.common.glossary.Column> 
                            aftIt = pair.getAfter().getColumns().listIterator();
-        ListIterator<String> columnsIt = columns.listIterator();
-        ListIterator<Integer> typesIt = types.listIterator();
         MysqlUpdateRow event = new MysqlUpdateRow();
         while(aftIt.hasNext()) {
+            int index = aftIt.nextIndex();
             String before = toString(befIt.next());
             String after = toString(aftIt.next());
-            int type = typesIt.next();           
-            String name = columnsIt.next();
+            int type = types[index];           
+            String name = columns[index];
             if (!equals(before, after)) {
                 Column column = new Column(name, after, type);
                 event.addColumn(column);
@@ -67,7 +66,7 @@ public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
     }
     
     private ListIterator<Pair<Row>> iterator;
-    private List<String> columns;
-    private List<Integer> types;
+    private String[] columns;
+    private Integer[] types;
     private Set<String> primaryKeysSet;
 }

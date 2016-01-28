@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent 
-                                               implements MysqlWriteRow{
+                                             implements MysqlWriteRow{
     
     public AbstractMysqlWriteRow() {
         super();
@@ -34,7 +34,42 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
 
     @Override
     public String toString() {
-        return type()+" from "+ database()+"."+table()+" : "+row.toString();
+        StringBuilder builder = new StringBuilder(256);
+        builder.append("{")
+               .append("\"time\": ")
+               .append(time())
+               .append(", ")
+               .append("\"ipAddress\": \"")
+               .append(ipAddress())
+               .append("\", ")
+               .append("\"source\": \"")
+               .append(source())
+               .append("\", ")
+               .append("\"serverId\": ")
+               .append(serverId())
+               .append(", ")
+               .append("\"database\": \"")
+               .append(database())
+               .append("\", ")
+               .append("\"table\": \"")
+               .append(table())
+               .append("\", ")
+               .append("\"primaryKeys\": [");
+        for(Column c: primaryKeys) {
+            builder.append(c.toString())
+                   .append(", ");
+        }
+        builder.delete(builder.length()-2, builder.length())
+               .append("], ")
+               .append("row: [");
+        for(Column c: row) {
+            builder.append(c.toString())
+                   .append(", ");
+        }
+        builder.delete(builder.length()-2, builder.length())
+               .append("]")
+               .append("}");
+        return builder.toString();
     } 
 
     private List<Column> row;

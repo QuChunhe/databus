@@ -2,7 +2,8 @@
 
 <configuration>
 
-<publisher>    
+<publisher>
+    <threadPoolSize>1</threadPoolSize>    
     <listener>
         <class>databus.listener.redis.RedisMessagingListener</class>
         <redis>

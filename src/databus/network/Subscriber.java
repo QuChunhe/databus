@@ -19,7 +19,7 @@ public class Subscriber {
     }
 
     public boolean receive(Event event) {
-        RemoteTopic remoteTopic = new RemoteTopic(event.address(), event.topic());
+        RemoteTopic remoteTopic = new RemoteTopic(event.ipAddress(), event.topic());
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             log.warn(remoteTopic.toString() + " has't been subscribed!");
