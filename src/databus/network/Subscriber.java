@@ -29,8 +29,8 @@ public class Subscriber {
                 try {
                     receiver.receive(event);
                 } catch (Exception e) {
-                    log.error(receiver.getClass().getName()+" can't receiv "+
-                              event.toString(), e);
+                    String className = receiver.getClass().getName();
+                    log.error(className+" can't receive "+ event.toString(), e);
                 }
             }
         }
