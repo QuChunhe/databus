@@ -24,8 +24,7 @@ public abstract class MysqlReceiver implements Receiver{
         } catch (Exception e) {
             log.error("Can't creat DataSoruce for "+properties.toString(), e);
             System.exit(1);
-        }
-                
+        }                
     }
 
     protected Connection getConnection() {   
