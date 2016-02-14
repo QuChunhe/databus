@@ -1,5 +1,8 @@
 package databus.receiver.mysql;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -19,19 +22,30 @@ public class MysqlReplication extends MysqlReceiver{
     }
 
     @Override
-    public void receive(Event event) {
+    protected void receive0(Connection conn, Event event) {
+        String sql = null;;
         if (event instanceof MysqlInsertRow) {
-            insert((MysqlInsertRow) event);
+            sql = getInsertSql((MysqlInsertRow) event);
         } else if (event instanceof MysqlUpdateRow) {
-            update((MysqlUpdateRow)event);
+            sql = getUpdateSql((MysqlUpdateRow)event);
         } else if (event instanceof MysqlDeleteRow) {
-            delete((MysqlDeleteRow)event);
+            sql = getDeleteSql((MysqlDeleteRow)event);
         } else {
             log.error("Can't process "+event.toString());
+            return;
         }
+        if (null == sql) {
+            return;
+        }
+        log.info(sql);
+        int count = executeWrite(conn, sql);        
+        if (count < 1) {
+            log.error(event.toString()+" has't been write into MySQL: "+sql);
+        }
+        
     }
 
-    private void insert(MysqlInsertRow event) {
+    private String getInsertSql(MysqlInsertRow event) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("INSERT INTO ");
         sqlBuilder.append(event.table());
@@ -50,16 +64,11 @@ public class MysqlReplication extends MysqlReceiver{
         valuesBuilder.setLength(valuesBuilder.length()-2);
         valuesBuilder.append(')');        
         sqlBuilder.append(" VALUES ");
-        sqlBuilder.append(valuesBuilder);        
-        String sql = sqlBuilder.toString();
-        log.info(sql);
-        int count = executeWrite(sql);        
-        if (count < 1) {
-            log.error(event.toString()+" has't been inserted: "+sql);
-        }
+        sqlBuilder.append(valuesBuilder);
+        return sqlBuilder.toString();
     }
     
-    private void update(MysqlUpdateRow event) {
+    private String getUpdateSql(MysqlUpdateRow event) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("UPDATE ");
         sqlBuilder.append(event.table());
@@ -67,26 +76,16 @@ public class MysqlReplication extends MysqlReceiver{
         appendSetEqual(sqlBuilder, event.row());
         sqlBuilder.append(" WHERE ");
         appendWhereEqual(sqlBuilder, event.primaryKeys());
-        String sql = sqlBuilder.toString();
-        log.info(sql);
-        int count = executeWrite(sql);
-        if (count < 1) {
-            log.error(event.toString()+" has't been updated: "+sql);
-        }
+        return sqlBuilder.toString();
     }
     
-    private void delete(MysqlDeleteRow event) {
+    private String getDeleteSql(MysqlDeleteRow event) {
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("DELETE FROM ");
         sqlBuilder.append(event.table());
         sqlBuilder.append(" WHERE ");
         appendWhereEqual(sqlBuilder, event.primaryKeys());  
-        String sql = sqlBuilder.toString();
-        log.info(sql);
-        int count = executeWrite(sql);
-        if (count < 1) {
-            log.error(event.toString()+" has't been removed: "+sql);
-        }
+        return sqlBuilder.toString();
     }
         
     private void appendSetEqual(StringBuilder builder, List<Column> row) {
@@ -120,6 +119,19 @@ public class MysqlReplication extends MysqlReceiver{
         } else {
             builder.append(column.value());
         }
+    }
+    
+    private int executeWrite(Connection conn, String sql) {
+        int count = -1;
+        try (Statement stmt = conn.createStatement();) {           
+            stmt.setEscapeProcessing(true);
+            count = stmt.executeUpdate(sql);
+        } catch (SQLException e) {
+            log.error("Can't execute: "+sql, e);
+        } catch (Exception e) {
+            log.error("throws error when execute "+sql, e);
+        }
+        return count;
     }
 
     private static Log log = LogFactory.getLog(MysqlReplication.class);

@@ -55,7 +55,7 @@ public class MessagePersistence extends MysqlReceiver{
     }
 
     @Override
-    public void receive(Event event) {
+    protected void receive0(Connection conn, Event event) {
         if (!(event instanceof RedisMessaging)) {
             log.error(event.getClass().getName()+" is't RedisMessaging");
             return;
@@ -70,24 +70,14 @@ public class MessagePersistence extends MysqlReceiver{
         String message = e.message();
         Object bean = gson.fromJson(message, beanClass);
         if ((null!=bean) && (bean instanceof MysqlBean)) {
-            save((MysqlBean) bean);
+            ((MysqlBean) bean).execute(conn);;
         } else {
             log.error(message + " can't convert to "+beanClass.getName());
-        }
-        
+        }        
     }
     
     private String[] split(String value) {
         return value==null ? null : value.split(",");
-    }
-    
-    private void save(MysqlBean bean) {
-        try (Connection con = getConnection()) {
-            bean.execute(con); 
-        } catch(Exception e) {
-            log.error(bean.toString()+" can't execute ", e);
-        }
-               
     }
     
     private static Log log = LogFactory.getLog(MessagePersistence.class);

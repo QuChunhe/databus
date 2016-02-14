@@ -25,8 +25,8 @@
             <password>quchunhe</password>
             <serverId>1</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000047</binlogFileName>
-            <position>120</position>
+            <binlogFileName>master-bin.000048</binlogFileName>
+            <position>846</position>
         </mysql>
     </listener>  
     

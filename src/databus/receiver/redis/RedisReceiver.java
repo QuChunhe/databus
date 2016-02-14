@@ -44,7 +44,7 @@ public abstract class RedisReceiver implements Receiver {
         }
     }
     
-    abstract public void receive0(Jedis jedis, Event event);
+    abstract protected void receive0(Jedis jedis, Event event);
     
     private static Log log = LogFactory.getLog(RedisReceiver.class);
     
