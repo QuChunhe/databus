@@ -4,10 +4,14 @@
 <server>
     <host>127.0.0.1</host>
     <port>8765</port>
+    <threadPoolSize>4</threadPoolSize>
 </server>
 
+<client>
+    <threadPoolSize>2</threadPoolSize>
+</client>
+
 <publisher> 
-    <threadPoolSize>1</threadPoolSize>
     <listener>
         <class>databus.listener.redis.RedisMessagingListener</class>
         <redis>
@@ -24,9 +28,9 @@
             <user>root</user>
             <password>quchunhe</password>
             <serverId>1</serverId>
-            <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000048</binlogFileName>
-            <position>846</position>
+            <permittedTables>test.user, test.stats</permittedTables>
+            <binlogFileName>master-bin.000011</binlogFileName>
+            <position>6501804</position>
         </mysql>
     </listener>  
     
@@ -49,7 +53,6 @@
 </publisher>
   
 <subscriber>
-    <workerPoolSize>1</workerPoolSize>
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
         <remoteTopic>

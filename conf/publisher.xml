@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <configuration>
+<client>
+    <threadPoolSize>2</threadPoolSize>
+</client>
 
 <publisher>
     <threadPoolSize>1</threadPoolSize>    
@@ -20,7 +23,7 @@
             <user>root</user>
             <password>quchunhe</password>
             <serverId>1</serverId>
-            <permittedTables>test.user</permittedTables>
+            <permittedTables>test.user, test.stats</permittedTables>
             <binlogFileName>master-bin.000001</binlogFileName>
             <position>5227</position>
         </mysql>

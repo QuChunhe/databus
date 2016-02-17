@@ -21,7 +21,8 @@ public class Column {
         return type;
     }
     
-    public boolean isString() {
+    public boolean doesUseQuotation() {
+        boolean flag = false;
         switch(type) {
         case Types.CHAR:
         case Types.VARCHAR:
@@ -29,10 +30,21 @@ public class Column {
         case Types.NVARCHAR:
         case Types.LONGVARCHAR:
         case Types.LONGNVARCHAR:
-            return true;
+            flag = true;
+            break;
+
+            
+        case Types.TIME:
+        case Types.TIMESTAMP:
+        case Types.TIME_WITH_TIMEZONE:
+        case Types.TIMESTAMP_WITH_TIMEZONE:
+            flag = true;
+            break;
+            
         default:
-            return false;
+            break;
         }
+        return flag;
     }
     
     @Override
@@ -57,7 +69,7 @@ public class Column {
                .append(name)
                .append("\", ")
                .append("\"value\": ");
-        if (isString()) {
+        if (doesUseQuotation()) {
             builder.append("\"")
                    .append(value)
                    .append("\"");

@@ -37,10 +37,10 @@ public class MysqlReplication extends MysqlReceiver{
         if (null == sql) {
             return;
         }
-        log.info(sql);
+
         int count = executeWrite(conn, sql);        
         if (count < 1) {
-            log.error(event.toString()+" has't been write into MySQL: "+sql);
+            log.error(sql + " cann't be executed ");
         }
         
     }
@@ -108,7 +108,7 @@ public class MysqlReplication extends MysqlReceiver{
     }
     
     private void append(StringBuilder builder, Column column) {
-        if (column.isString()) {
+        if (column.doesUseQuotation()) {
             if (null == column.value()) {
                 builder.append("NULL");
             } else {

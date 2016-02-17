@@ -21,9 +21,9 @@ public class BothStartup {
             configFileName = args[0];
         }        
         Configurations config = new Configurations(configFileName);
-        InternetAddress localAddress =config.loadServerAddress();
-        Server server = new Server(localAddress);
-        Client client = new Client();        
+        InternetAddress localAddress =config.serverAddress();
+        Server server = new Server(localAddress, config.serverThreadPoolSize());
+        Client client = new Client(config.clientThreadPoolSize());        
 
         Publisher publisher = new Publisher(client);
         Subscriber subscriber = new Subscriber();

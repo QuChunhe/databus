@@ -18,7 +18,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         super();
         this.publisher = publisher;
         this.subscriber = subscriber;
-        buffer = Unpooled.buffer(1024);
+        buffer = Unpooled.buffer(1 << 10);
         buffer.clear();
     }
 
@@ -32,44 +32,101 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         buffer.writeBytes(in);
-       
     }
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
-        ctx.flush();
-        String message = buffer.toString(CharsetUtil.UTF_8);
-        log.info("Have received message : " + message);
-        try {
-            Event event = parser.parse(message);
-            if (null == event) {
-                log.error("Message from "+address +
-                          " cannot be parsed as Event : " + message);
-                return;
-            }
-            String ipAddress = address.getAddress().getHostAddress();
-            event.ipAddress(ipAddress);
-            if (null != subscriber) {
-                subscriber.receive(event);
-            }
-            if (null != publisher) {
-                publisher.receive(event);
-            }
-        } catch (Exception e) {
-            log.error("Can't receive "+ message, e);            
-        } finally {
-            ctx.close();
-        }
+        log.info(buffer.toString());
+        log.info("**********************************************************************8");             
+        log.info(ctx.channel().localAddress().toString());
         
+        int index = buffer.readerIndex();
+        int pos = index;
+        int end = index + buffer.readableBytes();
+        int start = -1;
+        do { 
+            start = pos;
+            pos = indexOfSplitter(buffer, start, end);
+            if (pos >= 0) {
+                String message = buffer.toString(start, pos-start, CharsetUtil.UTF_8);
+                pos = pos + 12;
+                receive0(message, address);
+                log.info(message);
+            }
+        } while (pos >= 0);
+        
+        buffer.readerIndex(start);
+        
+       
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, 
                                 Throwable cause) throws Exception {
-        String address = ctx.channel().remoteAddress().toString();
-        log.error("Cannot read from "+address, cause);
+        String remoteAddress = ctx.channel().remoteAddress().toString();
+        String localAddress = ctx.channel().localAddress().toString();
+        log.error("Connection ("+localAddress+", "+remoteAddress+") has error", cause);
         ctx.close();
+    }
+    
+    private int indexOfSplitter(ByteBuf buf, int start, int end) {        
+        int pos = start;
+        while (pos >= 0) {
+            pos = buf.indexOf(pos, end, (byte)'\r');
+            if (pos>0) {
+                if (((pos+12)<=end) &&
+                         (buf.getByte(pos+1)=='\n') && 
+                         (buf.getByte(pos+2)=='\r') &&
+                         (buf.getByte(pos+3)=='\n') && 
+                         (buf.getByte(pos+4)=='<') && 
+                         (buf.getByte(pos+5)=='-') && 
+                         (buf.getByte(pos+6)=='-') && 
+                         (buf.getByte(pos+7)=='>') && 
+                         (buf.getByte(pos+8)=='\r') &&
+                         (buf.getByte(pos+9)=='\n') &&
+                         (buf.getByte(pos+10)=='\r') &&
+                         (buf.getByte(pos+11)=='\n') ) {
+                     return pos;
+                 } else {
+                     pos++;
+                 }
+            }              
+        }
+        
+        return -1;
+    }
+    
+    private void receive0(String message, InetSocketAddress address) {
+        if ((null==message) || (message.length()==0)) {
+            return;
+        }
+        Event event = parser.parse(message);
+        if (null == event) {
+            log.error("Message from " + address +
+                      " cannot be parsed as Event : " + message);
+            return;
+        }
+        
+        String ipAddress = address.getAddress().getHostAddress();
+        event.ipAddress(ipAddress);
+
+        try {
+            if (null != subscriber) {
+                subscriber.receive(event);
+            }
+        } catch (Exception e) {
+            log.error(subscriber.getClass().getName()+" can't receive event :" 
+                      + event.toString(), e);           
+        }
+        try {
+            if (null != publisher) {
+                publisher.receive(event);
+            }
+        } catch (Exception e) {
+            log.error(publisher.getClass().getName()+" can't receive event :" 
+                      + event.toString(), e);            
+        } 
     }
         
     private static Log log = LogFactory.getLog(ServerHandler.class);

@@ -19,7 +19,7 @@ public class SubscriberStartup {
             configFileName = args[0];
         }         
         Configurations config = new Configurations(configFileName);
-        InternetAddress localAddress = config.loadServerAddress();
+        InternetAddress localAddress = config.serverAddress();
         Server server = new Server(localAddress);
         Subscriber subscriber = new Subscriber();
         server.setSubscriber(subscriber);        

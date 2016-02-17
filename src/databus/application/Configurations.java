@@ -36,10 +36,18 @@ public class Configurations {
         }
     }
     
-    public InternetAddress loadServerAddress() {
+    public InternetAddress serverAddress() {
         String host = config.getString("server.host", "127.0.0.1");
         int port = config.getInt("server.port", 8765);
         return new InternetAddress(host, port);
+    }
+    
+    public int serverThreadPoolSize() {
+        return loadThreadPoolSize("server.threadPoolSize");
+    }
+    
+    public int clientThreadPoolSize() {
+        return loadThreadPoolSize("client.threadPoolSize");
     }
     
     public void loadReceivers(Subscriber subscriber) {
@@ -89,6 +97,15 @@ public class Configurations {
             }
         }
         return batchListener;
+    }
+    
+    private int loadThreadPoolSize(String key) {
+        String value = config.getString(key);
+        int size = 1;
+        if (null != value) {
+            size = Integer.parseInt(value);
+        }
+        return size;
     }
     
     private Object loadInitialiableObject(Configuration c) {
