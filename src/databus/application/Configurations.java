@@ -1,5 +1,9 @@
 package databus.application;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Properties;
 
@@ -17,8 +21,7 @@ import databus.core.Receiver;
 import databus.listener.BatchListener;
 import databus.network.Publisher;
 import databus.network.Subscriber;
-import databus.util.InternetAddress;
-import databus.util.RemoteTopic;
+import databus.util.IpTopic;
 
 
 public class Configurations {
@@ -36,10 +39,10 @@ public class Configurations {
         }
     }
     
-    public InternetAddress serverAddress() {
+    public SocketAddress serverAddress() {
         String host = config.getString("server.host", "127.0.0.1");
         int port = config.getInt("server.port", 8765);
-        return new InternetAddress(host, port);
+        return new InetSocketAddress(host, port);
     }
     
     public int serverThreadPoolSize() {
@@ -62,8 +65,14 @@ public class Configurations {
                 for(HierarchicalConfiguration rc : topicsConfig) {
                     String topic = normalizeTopic(rc.getString("topic"));
                     String host = rc.getString("host");
-                    RemoteTopic remoteTopic = new RemoteTopic(host, topic);
-                    subscriber.register(remoteTopic, receiver); 
+                    try {
+                        InetAddress address = InetAddress.getByName(host);
+                        IpTopic remoteTopic = new IpTopic(address, topic);
+                        subscriber.register(remoteTopic, receiver); 
+                    } catch (UnknownHostException e) {
+                        log.error("Cann't resolved "+host, e);
+                    }
+                    
                 }
                 
             } else {
@@ -79,7 +88,7 @@ public class Configurations {
             String topic = normalizeTopic(c.getString("topic"));
             String host = c.getString("host");
             int port = c.getInt("port");
-            InternetAddress remoteAddress = new InternetAddress(host, port);
+            InetSocketAddress remoteAddress = new InetSocketAddress(host, port);
             publisher.subscribe(topic, remoteAddress);
         }
     }

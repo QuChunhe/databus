@@ -1,5 +1,6 @@
 package databus.network;
 
+import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Set;
 
@@ -7,7 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.util.Backup;
-import databus.util.InternetAddress;
+
 
 public class BackupPublisher extends InteractivePublisher{   
     
@@ -17,7 +18,7 @@ public class BackupPublisher extends InteractivePublisher{
     }
     
     @Override
-    public boolean subscribe(String topic, InternetAddress remoteAddress) {
+    public boolean subscribe(String topic, SocketAddress remoteAddress) {
         boolean isAdded = super.subscribe(topic, remoteAddress);
         if(isAdded) {
             store();
@@ -26,7 +27,7 @@ public class BackupPublisher extends InteractivePublisher{
     }
     
     @Override
-    public boolean withdraw(String topic, InternetAddress remoteAddress) {
+    public boolean withdraw(String topic, SocketAddress remoteAddress) {
         boolean isRemoved = super.withdraw(topic, remoteAddress);
         if (isRemoved) {
             store();
@@ -35,7 +36,7 @@ public class BackupPublisher extends InteractivePublisher{
     }
 
     private void recover() {
-        Map<String, Set<InternetAddress>> copy = 
+        Map<String, Set<SocketAddress>> copy = 
                         Backup.instance().restore(BACKUP_NAME, subscribersMap);
         if (null != copy) {
             subscribersMap = copy;

@@ -44,7 +44,7 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
                .append(time())
                .append(", ")
                .append("\"ipAddress\": \"")
-               .append(ipAddress())
+               .append(ipAddress().getHostAddress())
                .append("\", ")
                .append("\"source\": \"")
                .append(source())

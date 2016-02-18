@@ -1,6 +1,5 @@
 package databus.network;
 
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.text.DateFormat;
 import java.util.Collection;
@@ -16,7 +15,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import databus.core.Event;
-import databus.util.InternetAddress;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -81,17 +79,18 @@ public class Client  implements Startable {
         }
     }
     
-    public void send(Event event, Collection<InternetAddress> destinations){
+    public void send(Event event, Collection<SocketAddress> destinations){
         ByteBuf buffer = netUtil.compress(stringOf(event));
-        for(InternetAddress address: destinations) {
+        for(SocketAddress address: destinations) {
             ByteBuf duplicatedBuffer = buffer.duplicate();
             duplicatedBuffer.readerIndex(buffer.readerIndex());
             duplicatedBuffer.writerIndex(buffer.writerIndex());
+            buffer.retain();
             send(duplicatedBuffer, address);
         }
     }
     
-    public void send(Event event, InternetAddress destination) {
+    public void send(Event event, SocketAddress destination) {
         ByteBuf buffer = netUtil.compress(stringOf(event));
         send(buffer, destination);
     }
@@ -101,7 +100,7 @@ public class Client  implements Startable {
             try {
                 Task task = taskQueue.take();                
                 ByteBuf buffer = task.buffer();
-                SocketAddress address = new InetSocketAddress(task.ipAddress(), task.port());
+                SocketAddress address = task.address();
                 ChannelPool pool = channelPoolMap.get(address);
                 pool.acquire()
                     .addListener(new ConnectingListener(buffer, pool));                    
@@ -117,7 +116,7 @@ public class Client  implements Startable {
         channelPoolMap.close(); 
     }
     
-    private void send(ByteBuf buffer, InternetAddress destination) {
+    private void send(ByteBuf buffer, SocketAddress destination) {
         add(new Task(destination, buffer));
     }
     
@@ -143,7 +142,7 @@ public class Client  implements Startable {
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
             if(future.isDone() && future.isSuccess()) {               
-//                log.info("Message has sent : "+netUtil.decompress(buffer));                    
+                log.info("Message has sent : "+netUtil.decompress(buffer));                    
             } else {
                 log.warn(netUtil.decompress(buffer)+" can't send", future.cause());
             }

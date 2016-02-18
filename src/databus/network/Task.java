@@ -1,27 +1,25 @@
 package databus.network;
 
-import databus.util.InternetAddress;
+import java.net.SocketAddress;
+
 import io.netty.buffer.ByteBuf;
 
 public class Task {    
     
-    public Task(InternetAddress address, ByteBuf buffer) {
+    public Task(SocketAddress address, ByteBuf buffer) {
         this.address = address;
         this.buffer = buffer;
     }
     
-    public String ipAddress() {
-        return address.ipAddress();
+    public SocketAddress address() {
+        return address;
     }
-    
-    public int port() {
-        return address.port();
-    }
+
     
     public ByteBuf buffer() {
         return buffer;
     }   
 
-    private InternetAddress address;
+    private SocketAddress address;
     private ByteBuf buffer;
 }

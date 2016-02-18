@@ -1,9 +1,10 @@
 package databus.network;
 
+import java.net.SocketAddress;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.util.InternetAddress;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -16,11 +17,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class Server implements Startable{    
     
-    public Server(InternetAddress localAddress) {
+    public Server(SocketAddress localAddress) {
         this(localAddress,1);
     }
     
-    public Server(InternetAddress localAddress, int workerPoolSize) {
+    public Server(SocketAddress localAddress, int workerPoolSize) {
         this.localAddress = localAddress;
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup(workerPoolSize);
@@ -62,7 +63,7 @@ public class Server implements Startable{
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)
                      .group(bossGroup, workerGroup)
                      .channel(NioServerSocketChannel.class)
-                     .localAddress(localAddress.ipAddress(), localAddress.port())
+                     .localAddress(localAddress)
                      .childHandler(new ChannelInitializer<SocketChannel>(){
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
@@ -87,7 +88,7 @@ public class Server implements Startable{
     private Publisher publisher;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
-    private InternetAddress localAddress;
+    private SocketAddress localAddress;
     private Thread thread = null;   
 
 }

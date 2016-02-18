@@ -1,5 +1,7 @@
 package databus.network;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,9 +16,8 @@ import databus.event.Confirmation;
 import databus.event.management.SubscribingConfirmation;
 import databus.event.management.Subscription;
 import databus.event.management.Withdrawal;
-import databus.util.CompleteTopic;
-import databus.util.InternetAddress;
-import databus.util.RemoteTopic;
+import databus.util.SocketTopic;
+import databus.util.IpTopic;
 import databus.util.Timer;
 
 
@@ -27,12 +28,12 @@ public class InteractiveSubscriber extends Subscriber {
         this.client = client;
         timer = new Timer("SubscribingTimer");
         task = new Task();
-        confirmedTimeMap = new ConcurrentHashMap<RemoteTopic,Long>();
+        confirmedTimeMap = new ConcurrentHashMap<IpTopic,Long>();
     }
     
     @Override
-    public void register(RemoteTopic remoteTopic, Receiver receiver) {
-        if (remoteTopic instanceof CompleteTopic) {
+    public void register(IpTopic remoteTopic, Receiver receiver) {
+        if (remoteTopic instanceof SocketTopic) {
             super.register(remoteTopic, receiver);
         } else {
             log.error("remoteTopic must be am instance of CompleteTopic");
@@ -63,13 +64,9 @@ public class InteractiveSubscriber extends Subscriber {
         }
     }
     
-    public void subscribe(CompleteTopic remoteTopic) {
-        InternetAddress remoteAddress = remoteTopic.internetAddress();
+    public void subscribe(SocketTopic remoteTopic) {
+        SocketAddress remoteAddress = remoteTopic.socketAddress();
         String topic = remoteTopic.topic();
-        if (!remoteAddress.isValid()) {
-            log.error(remoteAddress.toString() + "isn't valid Internet address");
-            return;
-        }
         if ((null==topic) || (topic.length()==0)) {
             log.error("topic is null");
             return;
@@ -90,15 +87,15 @@ public class InteractiveSubscriber extends Subscriber {
     protected void process(Confirmation<?> event) {
         if (event instanceof SubscribingConfirmation) {
             Subscription subs = ((SubscribingConfirmation)event).getConfirmedEvent();
-            RemoteTopic remoteTopic = new RemoteTopic(subs.ipAddress(), subs.topic());
+            IpTopic remoteTopic = new IpTopic(subs.ipAddress(), subs.topic());
             confirmedTimeMap.put(remoteTopic, System.currentTimeMillis());
         } else {
             log.info("Have received ConfirmationEvent : "+event.toString());
         }
     }    
 
-    public void remove(InternetAddress remoteAddress, String topic) {
-        RemoteTopic remoteTopic = new RemoteTopic(remoteAddress.ipAddress(), topic);
+    public void remove(InetSocketAddress remoteAddress, String topic) {
+        IpTopic remoteTopic = new IpTopic(remoteAddress.getAddress(), topic);
         remove(remoteTopic);
         Withdrawal withdrawal = new Withdrawal();
         withdrawal.topic(topic);
@@ -106,8 +103,8 @@ public class InteractiveSubscriber extends Subscriber {
     }
     
     private void schedulSubscription() {
-        Set<RemoteTopic> subscribedTopics = receiversMap.keySet();
-        for(RemoteTopic topic : confirmedTimeMap.keySet()) {
+        Set<IpTopic> subscribedTopics = receiversMap.keySet();
+        for(IpTopic topic : confirmedTimeMap.keySet()) {
             if (!subscribedTopics.contains(topic)) {
                 confirmedTimeMap.remove(topic);
             }
@@ -115,7 +112,7 @@ public class InteractiveSubscriber extends Subscriber {
         
         long minInterval = maxPeroidSec;
         log.info(confirmedTimeMap.toString());
-        for(RemoteTopic remoteTopic : subscribedTopics) {
+        for(IpTopic remoteTopic : subscribedTopics) {
             Long confirmedTimeObject = confirmedTimeMap.get(remoteTopic);
             if (null == confirmedTimeObject) {
                 confirmedTimeObject = 0L;
@@ -124,7 +121,7 @@ public class InteractiveSubscriber extends Subscriber {
             long interval = minPeroidSec;
             long currentTime = System.currentTimeMillis()/1000L;
             if ((currentTime - confirmedTime) >= maxPeroidSec) {
-                subscribe((CompleteTopic)remoteTopic);
+                subscribe((SocketTopic)remoteTopic);
             } else {
                 interval = maxPeroidSec - (currentTime - confirmedTime);
             }
@@ -142,7 +139,7 @@ public class InteractiveSubscriber extends Subscriber {
     private long minPeroidSec = 1L;
     private long maxPeroidSec = 60L * 60L;
     private Task task = null;
-    private Map<RemoteTopic, Long> confirmedTimeMap = null;    
+    private Map<IpTopic, Long> confirmedTimeMap = null;    
     
     private class Task implements Runnable {
         public Task() {

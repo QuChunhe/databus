@@ -1,5 +1,6 @@
 package databus.network;
 
+import java.net.SocketAddress;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,26 +10,25 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.util.InternetAddress;
 
 public class Publisher{   
 
     public Publisher(Client client) {
         this.client = client;
-        subscribersMap = new ConcurrentHashMap<String, Set<InternetAddress>>();
+        subscribersMap = new ConcurrentHashMap<String, Set<SocketAddress>>();
     }
     
-    public boolean subscribe(String topic, InternetAddress remoteAddress) {
+    public boolean subscribe(String topic, SocketAddress subscriber) {
         boolean hasAdded = false;
-        Set<InternetAddress> addresses = subscribersMap.get(topic);
+        Set<SocketAddress> addresses = subscribersMap.get(topic);
         if (null == addresses) {
-            addresses = new CopyOnWriteArraySet<InternetAddress>();            
+            addresses = new CopyOnWriteArraySet<SocketAddress>();            
             subscribersMap.put(topic, addresses);
         }
-        if (addresses.contains(remoteAddress)){
-            log.info(remoteAddress.toString()+" has been contained");
+        if (addresses.contains(subscriber)){
+            log.info(subscriber.toString()+" has been contained");
         } else {
-            addresses.add(remoteAddress);
+            addresses.add(subscriber);
             hasAdded = true;
         }
         return hasAdded;
@@ -41,7 +41,7 @@ public class Publisher{
 
     public void publish(Event event) {
         String topic = event.topic();
-        Set<InternetAddress> addresses = subscribersMap.get(topic);
+        Set<SocketAddress> addresses = subscribersMap.get(topic);
         if (null != addresses) {
             client.send(event, addresses);
         } else {
@@ -49,7 +49,7 @@ public class Publisher{
         }
     }
 
-    protected Map<String, Set<InternetAddress>> subscribersMap;
+    protected Map<String, Set<SocketAddress>> subscribersMap;
     protected Client client;
 
     private static Log log = LogFactory.getLog(Publisher.class);    

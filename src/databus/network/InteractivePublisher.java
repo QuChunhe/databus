@@ -1,5 +1,7 @@
 package databus.network;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -9,7 +11,6 @@ import databus.core.Event;
 import databus.event.management.SubscribingConfirmation;
 import databus.event.management.Subscription;
 import databus.event.management.Withdrawal;
-import databus.util.InternetAddress;
 
 public class InteractivePublisher extends Publisher{   
 
@@ -20,34 +21,26 @@ public class InteractivePublisher extends Publisher{
     public void receive(Event event) {
         if (event instanceof Subscription) {
             Subscription e = (Subscription) event;
-            InternetAddress address = new InternetAddress(e.ipAddress(), e.port());
-            if (address.isValid()){
-                subscribe(e.topic(), address);
-                confirm(e, address);
-            } else {
-                log.warn(e.ipAddress()+":"+e.port()+" is a invalid address"); 
-            }
-                       
+            SocketAddress address = new InetSocketAddress(e.ipAddress(), e.port());
+            subscribe(e.topic(), address);
+            confirm(e, address);
         } else if (event instanceof Withdrawal){
             Withdrawal e = (Withdrawal) event;
-            InternetAddress address = new InternetAddress(e.ipAddress(), e.port());
-            if (address.isValid()){
-                withdraw(e.topic(), address);
-            }else {
-                log.warn(e.ipAddress()+":"+e.port()+" is a invalid address"); 
-            }
+            SocketAddress address = new InetSocketAddress(e.ipAddress(), e.port());
+            withdraw(e.topic(), address);
+            
         }        
     }
     
-    public void confirm(Subscription e, InternetAddress remoteAddress) {
+    public void confirm(Subscription e, SocketAddress remoteAddress) {
         SubscribingConfirmation event = new SubscribingConfirmation();
         event.setConfirmedEvent(e);
         client.send(event, remoteAddress);
     }
     
-    public boolean withdraw(String topic, InternetAddress remoteAddress) {
+    public boolean withdraw(String topic, SocketAddress remoteAddress) {
         boolean isRemoved = true;
-        Set<InternetAddress> addresses = subscribersMap.get(topic);
+        Set<SocketAddress> addresses = subscribersMap.get(topic);
         if ((null != addresses) && (addresses.remove(remoteAddress))) {
             if (addresses.isEmpty()) {
                 subscribersMap.remove(topic);

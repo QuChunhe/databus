@@ -1,5 +1,7 @@
 package databus.application;
 
+import java.net.SocketAddress;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -8,7 +10,6 @@ import databus.network.Client;
 import databus.network.Publisher;
 import databus.network.Server;
 import databus.network.Subscriber;
-import databus.util.InternetAddress;
 
 public class BothStartup {
 
@@ -21,7 +22,7 @@ public class BothStartup {
             configFileName = args[0];
         }        
         Configurations config = new Configurations(configFileName);
-        InternetAddress localAddress =config.serverAddress();
+        SocketAddress localAddress =config.serverAddress();
         Server server = new Server(localAddress, config.serverThreadPoolSize());
         Client client = new Client(config.clientThreadPoolSize());        
 

@@ -10,16 +10,16 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.util.RemoteTopic;
+import databus.util.IpTopic;
 
 public class Subscriber {
 
     public Subscriber() {
-        receiversMap = new ConcurrentHashMap<RemoteTopic, Set<Receiver>>();
+        receiversMap = new ConcurrentHashMap<IpTopic, Set<Receiver>>();
     }
 
     public boolean receive(Event event) {
-        RemoteTopic remoteTopic = new RemoteTopic(event.ipAddress(), event.topic());
+        IpTopic remoteTopic = new IpTopic(event.ipAddress(), event.topic());
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             log.warn(remoteTopic.toString() + " has't been subscribed!");
@@ -37,7 +37,7 @@ public class Subscriber {
         return true;
     }
 
-    public void register(RemoteTopic remoteTopic, Receiver receiver) {
+    public void register(IpTopic remoteTopic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             receiversSet = new CopyOnWriteArraySet<Receiver>();
@@ -46,7 +46,7 @@ public class Subscriber {
         receiversSet.add(receiver);
     }
 
-    public void withdraw(RemoteTopic remoteTopic, Receiver receiver) {
+    public void withdraw(IpTopic remoteTopic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             log.error(
@@ -60,7 +60,7 @@ public class Subscriber {
         }
     }
 
-    protected void remove(RemoteTopic remoteTopic) {
+    protected void remove(IpTopic remoteTopic) {
         Set<Receiver> receivers = receiversMap.get(remoteTopic);
         if (null != receivers) {
             receivers.clear();
@@ -68,7 +68,7 @@ public class Subscriber {
         receiversMap.remove(remoteTopic);
     }
 
-    protected Map<RemoteTopic, Set<Receiver>> receiversMap;
+    protected Map<IpTopic, Set<Receiver>> receiversMap;
 
     private static Log log = LogFactory.getLog(Subscriber.class);
 }

@@ -1,14 +1,21 @@
 package databus.util;
 
-public class RemoteTopic {
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+public class IpTopic {
     
-    public RemoteTopic(String ipAddress, String topic) {
+    public IpTopic(InetAddress ipAddress, String topic) {
         this.ipAddress = ipAddress;
         this.topic = topic;
-        hashCode = (ipAddress+"/"+topic).hashCode();
+        hashCode = (ipAddress.getHostAddress()+"/"+topic).hashCode();
+    }
+    
+    public IpTopic(String hostName, String topic) throws UnknownHostException {
+        this(InetAddress.getByName(hostName), topic);
     }
 
-    public String ipAddress() {
+    public InetAddress iAddress() {
         return ipAddress;
     }
     
@@ -18,8 +25,8 @@ public class RemoteTopic {
     
     @Override
     public boolean equals(Object other) {
-        if (other instanceof RemoteTopic) {
-            RemoteTopic o = (RemoteTopic) other;
+        if (other instanceof IpTopic) {
+            IpTopic o = (IpTopic) other;
             return ipAddress.equals(o.ipAddress) && topic.equals(o.topic);            
         }
         return false;
@@ -37,7 +44,7 @@ public class RemoteTopic {
     
     protected int hashCode;
     
-    private String ipAddress;
+    private InetAddress ipAddress;
     private String topic;
     
 }

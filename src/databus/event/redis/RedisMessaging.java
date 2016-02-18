@@ -35,7 +35,7 @@ public class RedisMessaging  extends AbstractRedisEvent{
                .append(time())
                .append(", ")
                .append("\"ipAddress\": \"")
-               .append(ipAddress())
+               .append(ipAddress().getHostAddress())
                .append("\", ")
                .append("\"source\": \"")
                .append(source())

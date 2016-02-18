@@ -63,8 +63,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             return;
         }
         
-        String ipAddress = address.getAddress().getHostAddress();
-        event.ipAddress(ipAddress);
+        event.ipAddress(address.getAddress());
 
         try {
             if (null != subscriber) {
