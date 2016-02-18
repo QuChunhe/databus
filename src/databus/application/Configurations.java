@@ -21,7 +21,7 @@ import databus.core.Receiver;
 import databus.listener.BatchListener;
 import databus.network.Publisher;
 import databus.network.Subscriber;
-import databus.util.IpTopic;
+import databus.util.InetTopic;
 
 
 public class Configurations {
@@ -67,7 +67,7 @@ public class Configurations {
                     String host = rc.getString("host");
                     try {
                         InetAddress address = InetAddress.getByName(host);
-                        IpTopic remoteTopic = new IpTopic(address, topic);
+                        InetTopic remoteTopic = new InetTopic(address, topic);
                         subscriber.register(remoteTopic, receiver); 
                     } catch (UnknownHostException e) {
                         log.error("Cann't resolved "+host, e);

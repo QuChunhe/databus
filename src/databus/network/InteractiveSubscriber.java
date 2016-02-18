@@ -17,7 +17,7 @@ import databus.event.management.SubscribingConfirmation;
 import databus.event.management.Subscription;
 import databus.event.management.Withdrawal;
 import databus.util.SocketTopic;
-import databus.util.IpTopic;
+import databus.util.InetTopic;
 import databus.util.Timer;
 
 
@@ -28,11 +28,11 @@ public class InteractiveSubscriber extends Subscriber {
         this.client = client;
         timer = new Timer("SubscribingTimer");
         task = new Task();
-        confirmedTimeMap = new ConcurrentHashMap<IpTopic,Long>();
+        confirmedTimeMap = new ConcurrentHashMap<InetTopic,Long>();
     }
     
     @Override
-    public void register(IpTopic remoteTopic, Receiver receiver) {
+    public void register(InetTopic remoteTopic, Receiver receiver) {
         if (remoteTopic instanceof SocketTopic) {
             super.register(remoteTopic, receiver);
         } else {
@@ -87,7 +87,7 @@ public class InteractiveSubscriber extends Subscriber {
     protected void process(Confirmation<?> event) {
         if (event instanceof SubscribingConfirmation) {
             Subscription subs = ((SubscribingConfirmation)event).getConfirmedEvent();
-            IpTopic remoteTopic = new IpTopic(subs.ipAddress(), subs.topic());
+            InetTopic remoteTopic = new InetTopic(subs.ipAddress(), subs.topic());
             confirmedTimeMap.put(remoteTopic, System.currentTimeMillis());
         } else {
             log.info("Have received ConfirmationEvent : "+event.toString());
@@ -95,7 +95,7 @@ public class InteractiveSubscriber extends Subscriber {
     }    
 
     public void remove(InetSocketAddress remoteAddress, String topic) {
-        IpTopic remoteTopic = new IpTopic(remoteAddress.getAddress(), topic);
+        InetTopic remoteTopic = new InetTopic(remoteAddress.getAddress(), topic);
         remove(remoteTopic);
         Withdrawal withdrawal = new Withdrawal();
         withdrawal.topic(topic);
@@ -103,8 +103,8 @@ public class InteractiveSubscriber extends Subscriber {
     }
     
     private void schedulSubscription() {
-        Set<IpTopic> subscribedTopics = receiversMap.keySet();
-        for(IpTopic topic : confirmedTimeMap.keySet()) {
+        Set<InetTopic> subscribedTopics = receiversMap.keySet();
+        for(InetTopic topic : confirmedTimeMap.keySet()) {
             if (!subscribedTopics.contains(topic)) {
                 confirmedTimeMap.remove(topic);
             }
@@ -112,7 +112,7 @@ public class InteractiveSubscriber extends Subscriber {
         
         long minInterval = maxPeroidSec;
         log.info(confirmedTimeMap.toString());
-        for(IpTopic remoteTopic : subscribedTopics) {
+        for(InetTopic remoteTopic : subscribedTopics) {
             Long confirmedTimeObject = confirmedTimeMap.get(remoteTopic);
             if (null == confirmedTimeObject) {
                 confirmedTimeObject = 0L;
@@ -139,7 +139,7 @@ public class InteractiveSubscriber extends Subscriber {
     private long minPeroidSec = 1L;
     private long maxPeroidSec = 60L * 60L;
     private Task task = null;
-    private Map<IpTopic, Long> confirmedTimeMap = null;    
+    private Map<InetTopic, Long> confirmedTimeMap = null;    
     
     private class Task implements Runnable {
         public Task() {

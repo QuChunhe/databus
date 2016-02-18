@@ -2,7 +2,7 @@ package databus.util;
 
 import java.net.InetSocketAddress;
 
-public class SocketTopic extends IpTopic {
+public class SocketTopic extends InetTopic {
     
     public SocketTopic(InetSocketAddress socketAddress, String topic) {
         super(socketAddress.getAddress(), topic);

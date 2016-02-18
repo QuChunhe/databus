@@ -10,16 +10,16 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.util.IpTopic;
+import databus.util.InetTopic;
 
 public class Subscriber {
 
     public Subscriber() {
-        receiversMap = new ConcurrentHashMap<IpTopic, Set<Receiver>>();
+        receiversMap = new ConcurrentHashMap<InetTopic, Set<Receiver>>();
     }
 
     public boolean receive(Event event) {
-        IpTopic remoteTopic = new IpTopic(event.ipAddress(), event.topic());
+        InetTopic remoteTopic = new InetTopic(event.ipAddress(), event.topic());
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             log.warn(remoteTopic.toString() + " has't been subscribed!");
@@ -37,7 +37,7 @@ public class Subscriber {
         return true;
     }
 
-    public void register(IpTopic remoteTopic, Receiver receiver) {
+    public void register(InetTopic remoteTopic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             receiversSet = new CopyOnWriteArraySet<Receiver>();
@@ -46,7 +46,7 @@ public class Subscriber {
         receiversSet.add(receiver);
     }
 
-    public void withdraw(IpTopic remoteTopic, Receiver receiver) {
+    public void withdraw(InetTopic remoteTopic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
         if (null == receiversSet) {
             log.error(
@@ -60,7 +60,7 @@ public class Subscriber {
         }
     }
 
-    protected void remove(IpTopic remoteTopic) {
+    protected void remove(InetTopic remoteTopic) {
         Set<Receiver> receivers = receiversMap.get(remoteTopic);
         if (null != receivers) {
             receivers.clear();
@@ -68,7 +68,7 @@ public class Subscriber {
         receiversMap.remove(remoteTopic);
     }
 
-    protected Map<IpTopic, Set<Receiver>> receiversMap;
+    protected Map<InetTopic, Set<Receiver>> receiversMap;
 
     private static Log log = LogFactory.getLog(Subscriber.class);
 }
