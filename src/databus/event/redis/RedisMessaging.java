@@ -26,7 +26,11 @@ public class RedisMessaging  extends AbstractRedisEvent{
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder(128);
-        builder.append("{")
+        builder.append(source())
+               .append(":")
+               .append(type())
+               .append(" = ")
+               .append("{")
                .append("\"time\": ")
                .append(time())
                .append(", ")

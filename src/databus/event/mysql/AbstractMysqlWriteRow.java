@@ -35,7 +35,11 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder(256);
-        builder.append("{")
+        builder.append(source())
+               .append(":")
+               .append(type())
+               .append(" = ")
+               .append("{")
                .append("\"time\": ")
                .append(time())
                .append(", ")
