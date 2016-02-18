@@ -10,7 +10,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.CharsetUtil;
 
 
 public class ServerHandler extends ChannelInboundHandlerAdapter {
@@ -35,30 +34,13 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
-        log.info(buffer.toString());
-        log.info("**********************************************************************8");             
-        log.info(ctx.channel().localAddress().toString());
-        
-        int index = buffer.readerIndex();
-        int pos = index;
-        int end = index + buffer.readableBytes();
-        int start = -1;
-        do { 
-            start = pos;
-            pos = indexOfSplitter(buffer, start, end);
-            if (pos >= 0) {
-                String message = buffer.toString(start, pos-start, CharsetUtil.UTF_8);
-                pos = pos + 12;
-                receive0(message, address);
-                log.info(message);
-            }
-        } while (pos >= 0);
-        
-        buffer.readerIndex(start);
-        
-       
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception { 
+        InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress(); 
+        String message = null;
+        do {
+            message = netUtil.decompress(buffer);        
+            receive0(message, address); 
+        } while (null != message);        
     }
 
     @Override
@@ -70,40 +52,13 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         ctx.close();
     }
     
-    private int indexOfSplitter(ByteBuf buf, int start, int end) {        
-        int pos = start;
-        while (pos >= 0) {
-            pos = buf.indexOf(pos, end, (byte)'\r');
-            if (pos>0) {
-                if (((pos+12)<=end) &&
-                         (buf.getByte(pos+1)=='\n') && 
-                         (buf.getByte(pos+2)=='\r') &&
-                         (buf.getByte(pos+3)=='\n') && 
-                         (buf.getByte(pos+4)=='<') && 
-                         (buf.getByte(pos+5)=='-') && 
-                         (buf.getByte(pos+6)=='-') && 
-                         (buf.getByte(pos+7)=='>') && 
-                         (buf.getByte(pos+8)=='\r') &&
-                         (buf.getByte(pos+9)=='\n') &&
-                         (buf.getByte(pos+10)=='\r') &&
-                         (buf.getByte(pos+11)=='\n') ) {
-                     return pos;
-                 } else {
-                     pos++;
-                 }
-            }              
-        }
-        
-        return -1;
-    }
-    
     private void receive0(String message, InetSocketAddress address) {
         if ((null==message) || (message.length()==0)) {
             return;
         }
         Event event = parser.parse(message);
         if (null == event) {
-            log.error("Message from " + address +
+            log.error("Message from " + address.toString() +
                       " cannot be parsed as Event : " + message);
             return;
         }
@@ -131,6 +86,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         
     private static Log log = LogFactory.getLog(ServerHandler.class);
     private static MessageParser parser = new MessageParser();
+    private static NetUtil netUtil = new NetUtil();
     
     private Publisher publisher;
     private Subscriber subscriber;

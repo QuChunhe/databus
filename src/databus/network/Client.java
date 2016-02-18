@@ -17,13 +17,12 @@ import com.google.gson.GsonBuilder;
 
 import databus.core.Event;
 import databus.util.InternetAddress;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
-import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 
@@ -83,43 +82,43 @@ public class Client  implements Startable {
     }
     
     public void send(Event event, Collection<InternetAddress> destinations){
-        String message = stringOf(event);
+        ByteBuf buffer = netUtil.compress(stringOf(event));
         for(InternetAddress address: destinations) {
-            send(message, address);
+            ByteBuf duplicatedBuffer = buffer.duplicate();
+            duplicatedBuffer.readerIndex(buffer.readerIndex());
+            duplicatedBuffer.writerIndex(buffer.writerIndex());
+            send(duplicatedBuffer, address);
         }
     }
     
     public void send(Event event, InternetAddress destination) {
-        String message = stringOf(event);
-        send(message, destination);
+        ByteBuf buffer = netUtil.compress(stringOf(event));
+        send(buffer, destination);
     }
 
     private void run0() {
-        try {
-            while (doRun) {
-                try {
-                    Task task = taskQueue.take();
-                    String message = task.message();
-                    SocketAddress address = new InetSocketAddress(task.ipAddress(), task.port());
-                    ChannelPool pool = channelPoolMap.get(address);
-                    pool.acquire()
-                        .addListener(new ConnectingListener(message, pool));                    
-                } catch (InterruptedException e) {
-                    log.warn("Has been interrupped!", e);
-                    Thread.interrupted();
-                } catch (Exception e) {
-                    log.warn("Has some errors!", e);
-                }
+        while (doRun) {
+            try {
+                Task task = taskQueue.take();                
+                ByteBuf buffer = task.buffer();
+                SocketAddress address = new InetSocketAddress(task.ipAddress(), task.port());
+                ChannelPool pool = channelPoolMap.get(address);
+                pool.acquire()
+                    .addListener(new ConnectingListener(buffer, pool));                    
+            } catch (InterruptedException e) {
+                log.warn("Has been interrupped!", e);
+                Thread.interrupted();
+            } catch (Exception e) {
+                log.warn("Has some errors!", e);
             }
-
-        } finally {
-            group.shutdownGracefully();
-            channelPoolMap.close();
         }
+   
+        group.shutdownGracefully();
+        channelPoolMap.close(); 
     }
     
-    private void send(String message, InternetAddress destination) {
-        add(new Task(destination, message));
+    private void send(ByteBuf buffer, InternetAddress destination) {
+        add(new Task(destination, buffer));
     }
     
     private void add(Task task) {
@@ -136,31 +135,29 @@ public class Client  implements Startable {
     
     private static class SendingListener implements GenericFutureListener<ChannelFuture> {
 
-        public SendingListener(String message, ChannelPool channelPool) {
-            this.message = message;
+        public SendingListener(ByteBuf buffer, ChannelPool channelPool) {
+            this.buffer = buffer;
             this.channelPool = channelPool;
         }
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
-            log.info("local address : "+future.channel().localAddress().toString()+
-                     " ; remote address : "+future.channel().remoteAddress().toString());
             if(future.isDone() && future.isSuccess()) {               
-                log.info("Message has sent : "+message);                    
+//                log.info("Message has sent : "+netUtil.decompress(buffer));                    
             } else {
-                log.warn(message+" can't send", future.cause());
+                log.warn(netUtil.decompress(buffer)+" can't send", future.cause());
             }
             channelPool.release(future.channel());
         }  
         
-        private String message;
+        private ByteBuf buffer;
         private ChannelPool channelPool;
     }
     
     private static class ConnectingListener implements GenericFutureListener<Future<Channel>> {
         
-        public ConnectingListener(String message, ChannelPool channelPool) {
-            this.message = message;
+        public ConnectingListener(ByteBuf buffer, ChannelPool channelPool) {
+            this.buffer = buffer;
             this.channelPool = channelPool;
         }
 
@@ -168,21 +165,21 @@ public class Client  implements Startable {
         public void operationComplete(Future<Channel> future) throws Exception {
             Channel channel = future.get();
             if(future.isDone() && future.isSuccess()) {
-                String msg = message+"\r\n\r\n<-->\r\n\r\n";
-                channel.writeAndFlush(Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8))
-                       .addListener(new SendingListener(message, channelPool));
+                channel.writeAndFlush(buffer)
+                       .addListener(new SendingListener(buffer, channelPool));
             } else {
                 channelPool.release(channel);
-                log.warn(message+" can't send because connection to " + 
+                log.warn(netUtil.decompress(buffer)+" can't send because connection to " + 
                          channel.remoteAddress().toString() + " is failed", future.cause());
             }
         }
         
-        private String message;
+        private ByteBuf buffer;
         private ChannelPool channelPool;
-    }
-
+    }    
+    
     private static Log log = LogFactory.getLog(Client.class);
+    private static NetUtil netUtil = new NetUtil();
     
     private BlockingQueue<Task> taskQueue;
     private volatile boolean doRun = false;
@@ -190,4 +187,5 @@ public class Client  implements Startable {
     private Thread thread;
     private EventLoopGroup group;
     private DatabusChannelPoolMap channelPoolMap;
+    
 }

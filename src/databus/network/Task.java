@@ -1,12 +1,13 @@
 package databus.network;
 
 import databus.util.InternetAddress;
+import io.netty.buffer.ByteBuf;
 
 public class Task {    
     
-    public Task(InternetAddress address, String message) {
+    public Task(InternetAddress address, ByteBuf buffer) {
         this.address = address;
-        this.message = message;
+        this.buffer = buffer;
     }
     
     public String ipAddress() {
@@ -17,18 +18,10 @@ public class Task {
         return address.port();
     }
     
-    public String message() {
-        return message;
+    public ByteBuf buffer() {
+        return buffer;
     }   
-    
-    @Override
-    public String toString() {
-        return address.toString()+" : "+message;
-    }
-
-
 
     private InternetAddress address;
-    private String message;
-
+    private ByteBuf buffer;
 }
