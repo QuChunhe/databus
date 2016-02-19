@@ -95,7 +95,7 @@ public class MysqlListener extends AbstractListener{
     @Override
     protected void runOnce(boolean hasException) throws Exception {
         try {
-            Thread.sleep(ONE_SECOND);
+            Thread.sleep(TEN_SECONDS);
         } catch(InterruptedException e) {
             log.warn("Have been interrupted", e);
         }
@@ -130,8 +130,8 @@ public class MysqlListener extends AbstractListener{
         return columnsMap.get(fullName);
     }
     
-    protected Integer[] getTypes(String fullName) {
-        return typesMap.get(fullName);
+    protected ColumnAttribute[] getTypes(String fullName) {
+        return attributesMap.get(fullName);
     }
     
     protected Set<String> getPrimaryKeys(String fullName) {
@@ -153,7 +153,7 @@ public class MysqlListener extends AbstractListener{
     
     private void loadSchema(MysqlDataSource ds) {
         columnsMap = new HashMap<String, String[]>();
-        typesMap = new HashMap<String, Integer[]>();
+        attributesMap = new HashMap<String, ColumnAttribute[]>();
         primaryKeysMap = new HashMap<String, Set<String>>();
         for(String fullName : permittedTableSet) {
             String[] r = fullName.split("\\.");
@@ -167,15 +167,17 @@ public class MysqlListener extends AbstractListener{
             try (Connection conn = ds.getConnection();){                
                 DatabaseMetaData metaData = conn.getMetaData();  
                 LinkedList<String> columns = new LinkedList<String>();
-                LinkedList<Integer> types = new LinkedList<Integer>();
+                LinkedList<ColumnAttribute> attribute = new LinkedList<ColumnAttribute>();
                 try (ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");) {                                    
                     while (resultSet1.next()) {
                         columns.addLast(resultSet1.getString("COLUMN_NAME"));
-                        types.addLast(resultSet1.getInt("DATA_TYPE"));
+                        int type = resultSet1.getInt("DATA_TYPE");
+                        String typeName = resultSet1.getString("TYPE_NAME");
+                        attribute.addLast(new ColumnAttribute(type, typeName));
                     }
                 }                
                 columnsMap.put(fullName, columns.toArray(new String[1]));
-                typesMap.put(fullName, types.toArray(new Integer[1]));
+                attributesMap.put(fullName, attribute.toArray(new ColumnAttribute[1]));
                 
                 HashSet<String> keys = new HashSet<String>();
                 ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName);
@@ -189,7 +191,7 @@ public class MysqlListener extends AbstractListener{
         }
     }    
 
-    final private static long ONE_SECOND = 1000;
+    final private static long TEN_SECONDS = 10000L;
     
     private static Log log = LogFactory.getLog(MysqlListener.class);
 
@@ -197,7 +199,7 @@ public class MysqlListener extends AbstractListener{
     private volatile long nextPosition;
     private volatile String binlogFileName;
     private Map<String, String[]> columnsMap;
-    private Map<String, Integer[]> typesMap;
+    private Map<String, ColumnAttribute[]> attributesMap;
     private Map<String, Set<String>> primaryKeysMap;
     private Set<String> permittedTableSet;
     

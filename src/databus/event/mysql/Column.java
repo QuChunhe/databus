@@ -32,7 +32,6 @@ public class Column {
         case Types.LONGNVARCHAR:
             flag = true;
             break;
-
             
         case Types.TIME:
         case Types.TIMESTAMP:
@@ -86,4 +85,5 @@ public class Column {
     private String name;
     private String value;
     private int type;
+    
 }

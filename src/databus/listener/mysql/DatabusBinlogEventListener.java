@@ -80,38 +80,38 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         }
 
         Set<String> primaryKeys = listener.getPrimaryKeys(fullName);
-        Integer[] types = listener.getTypes(fullName);
+        ColumnAttribute[] attributes = listener.getTypes(fullName);
         String[] columns = listener.getColumns(fullName);
         MysqlWriteEventFactory factory;
         switch (currentEvent.getHeader().getEventType()) {
         case MySQLConstants.WRITE_ROWS_EVENT_V2:
             List<Row> wRows2 = ((WriteRowsEventV2)currentEvent).getRows();
-            factory = new MysqlInsertEventFactory(columns, types, primaryKeys, wRows2);
+            factory = new MysqlInsertEventFactory(columns, attributes, primaryKeys, wRows2);
             break;
             
         case MySQLConstants.WRITE_ROWS_EVENT:
             List<Row> wRows1 = ((WriteRowsEvent)currentEvent).getRows();
-            factory = new MysqlInsertEventFactory(columns, types, primaryKeys, wRows1);
+            factory = new MysqlInsertEventFactory(columns, attributes, primaryKeys, wRows1);
             break;
             
         case MySQLConstants.UPDATE_ROWS_EVENT_V2:
             List<Pair<Row>> uRows2 = ((UpdateRowsEventV2)currentEvent).getRows(); 
-            factory = new MysqlUpdateEventFactory(columns, types, primaryKeys, uRows2);
+            factory = new MysqlUpdateEventFactory(columns, attributes, primaryKeys, uRows2);
             break;
             
         case MySQLConstants.UPDATE_ROWS_EVENT:
             List<Pair<Row>> uRows1 = ((UpdateRowsEvent)currentEvent).getRows(); 
-            factory = new MysqlUpdateEventFactory(columns, types, primaryKeys, uRows1);
+            factory = new MysqlUpdateEventFactory(columns, attributes, primaryKeys, uRows1);
             break;
             
         case MySQLConstants.DELETE_ROWS_EVENT_V2:
             List<Row> dRows2 = ((DeleteRowsEventV2)currentEvent).getRows();
-            factory = new MysqlDeleteEventFactory(columns, types, primaryKeys, dRows2);            
+            factory = new MysqlDeleteEventFactory(columns, attributes, primaryKeys, dRows2);            
             break;
             
         case MySQLConstants.DELETE_ROWS_EVENT:
             List<Row> dRows1 = ((DeleteRowsEvent)currentEvent).getRows();
-            factory = new MysqlDeleteEventFactory(columns, types, primaryKeys, dRows1);            
+            factory = new MysqlDeleteEventFactory(columns, attributes, primaryKeys, dRows1);            
             break;
             
         default:

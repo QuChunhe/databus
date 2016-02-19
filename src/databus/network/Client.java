@@ -4,7 +4,7 @@ import java.net.SocketAddress;
 import java.text.DateFormat;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,7 +47,7 @@ public class Client  implements Startable {
                                     }                                    
                                 })
                                 .create();
-        taskQueue = new LinkedBlockingDeque<Task>();
+        taskQueue = new LinkedBlockingQueue<Task>(TASK_CAPACITY);
         thread = new Thread(new Runnable() {
                                     @Override
                                     public void run() {
@@ -175,7 +175,9 @@ public class Client  implements Startable {
         
         private ByteBuf buffer;
         private ChannelPool channelPool;
-    }    
+    }
+    
+    private static int TASK_CAPACITY = 128;
     
     private static Log log = LogFactory.getLog(Client.class);
     private static NetUtil netUtil = new NetUtil();

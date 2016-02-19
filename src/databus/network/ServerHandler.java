@@ -7,7 +7,6 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -17,7 +16,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         super();
         this.publisher = publisher;
         this.subscriber = subscriber;
-        buffer = Unpooled.buffer(1 << 10);
+        buffer = netUtil.allocate(1 << 10);
         buffer.clear();
     }
 

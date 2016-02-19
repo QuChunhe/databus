@@ -13,11 +13,11 @@ import databus.event.mysql.MysqlInsertRow;
 
 public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
     
-    public MysqlInsertEventFactory(String[] columns, Integer[] types,
+    public MysqlInsertEventFactory(String[] columns, ColumnAttribute[] attributes,
                                   Set<String> primaryKeysSet, List<Row> rows) {
         iterator = rows.listIterator();
         this.columns = columns;
-        this.types = types;
+        this.attributes = attributes;
         this.primaryKeysSet = primaryKeysSet;
     }
     
@@ -34,10 +34,11 @@ public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
         AbstractMysqlWriteRow event = newInstance();
         while(rowIt.hasNext()) {
             int index = rowIt.nextIndex();
-            String value = toString(rowIt.next());
-            int type = types[index];
+            ColumnAttribute attribute = attributes[index];
+            String value = toString(rowIt.next(), attribute);
+            int type = attribute.type();
             String name = columns[index];
-            Column column = new Column(name, value, type);            
+            Column column = new Column(name, value, type);  
             event.addColumn(column);
             if (primaryKeysSet.contains(name)) {
                 event.addPrimaryKey(column);
@@ -53,6 +54,6 @@ public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
 
     private ListIterator<Row> iterator;
     private String[] columns;
-    private Integer[] types;
+    private ColumnAttribute[] attributes;
     private Set<String> primaryKeysSet;
 }

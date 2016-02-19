@@ -37,7 +37,7 @@ public class MysqlReplication extends MysqlReceiver{
         if (null == sql) {
             return;
         }
-
+        log.info(sql);
         int count = executeWrite(conn, sql);        
         if (count < 1) {
             log.error(sql + " cann't be executed ");
@@ -56,7 +56,7 @@ public class MysqlReplication extends MysqlReceiver{
         for(Column column : row) {          
             sqlBuilder.append(column.name());
             sqlBuilder.append(", ");
-            append(valuesBuilder, column);
+            appendValue(valuesBuilder, column);
             valuesBuilder.append(", ");
         }
         sqlBuilder.setLength(sqlBuilder.length()-2);
@@ -96,7 +96,7 @@ public class MysqlReplication extends MysqlReceiver{
         for(Column column : row) {
             builder.append(column.name());
             builder.append('=');
-            append(builder, column);
+            appendValue(builder, column);
             builder.append(seperator);
         }
         builder.setLength(builder.length()-seperator.length());
@@ -107,7 +107,7 @@ public class MysqlReplication extends MysqlReceiver{
         appendEqual(builder, row, " AND ");
     }
     
-    private void append(StringBuilder builder, Column column) {
+    private void appendValue(StringBuilder builder, Column column) {
         if (column.doesUseQuotation()) {
             if (null == column.value()) {
                 builder.append("NULL");

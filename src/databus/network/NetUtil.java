@@ -1,7 +1,6 @@
 package databus.network;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -10,9 +9,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.buffer.Unpooled;
+import io.netty.buffer.PooledByteBufAllocator;
 
 public final class NetUtil {    
     
@@ -22,7 +22,7 @@ public final class NetUtil {
 
     public ByteBuf compress(String message) {
         byte[] data = message.getBytes(UTF_8);
-        ByteBuf buffer = Unpooled.buffer(1024);
+        ByteBuf buffer = allocate(SIZE);
         buffer.writeBytes(START_SEPERATORS);
         try (ByteBufOutputStream os = new ByteBufOutputStream(buffer);
              GZIPOutputStream gos = new GZIPOutputStream(os);) {            
@@ -57,20 +57,20 @@ public final class NetUtil {
         dulicatedData.writerIndex(end);
         data.readerIndex(end+END_SEPERATORS.length);
         
-        ByteBuffer buffer = ByteBuffer.allocate(SIZE);
+        ByteBuf buffer = allocate(SIZE);
         buffer.clear();        
         try (ByteBufInputStream is = new ByteBufInputStream(dulicatedData);
              GZIPInputStream gis = new GZIPInputStream(is);) {
             byte[] bytes = new byte[SIZE];
             int count;
-            while((count=gis.read(bytes)) != -1) {
-                buffer.put(bytes, 0, count);
+            while((count=gis.read(bytes)) != -1) {                
+                buffer.writeBytes(bytes, 0, count);
             }
         } catch (IOException e) {
             log.error("Cann't be decompressed : "+dulicatedData.toString(), e);
         }
 
-        return new String(buffer.array(),0 ,buffer.position(), UTF_8);
+        return buffer.toString(0 ,buffer.writerIndex(), UTF_8);
     }
     
     public int indexOf(ByteBuf buffer, byte[] find) {
@@ -98,7 +98,12 @@ public final class NetUtil {
         }
         
         return index;
-    }    
+    }
+    
+    public ByteBuf allocate(int capacity) {
+        return bufAllocator.buffer(capacity);
+    }
+    
     
     public final byte[] START_SEPERATORS = {'\r','\n','\r','\n','<','-'};
     public final byte[] END_SEPERATORS = {'-','>','\r','\n','\r','\n'};
@@ -107,4 +112,6 @@ public final class NetUtil {
     private static final int SIZE = 1024;
     
     private static Log log = LogFactory.getLog(NetUtil.class);
+    
+    private ByteBufAllocator bufAllocator = new PooledByteBufAllocator(false);
 }
