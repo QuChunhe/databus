@@ -2,7 +2,7 @@ package databus.core;
 
 import java.net.InetAddress;
 
-public interface Event {
+public interface Event extends Clearable {
     
     public static enum Source {REDIS, MYSQL, MANAGEMENT, CONFIRMATION}
 

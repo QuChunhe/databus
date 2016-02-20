@@ -36,6 +36,8 @@ public abstract class AbstractRedisEvent extends AbstractEvent
         return this;
     }
     
+    
+    
     private String key;
 
 }

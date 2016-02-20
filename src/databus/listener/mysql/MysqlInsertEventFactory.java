@@ -15,12 +15,23 @@ public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
     
     public MysqlInsertEventFactory(String[] columns, ColumnAttribute[] attributes,
                                   Set<String> primaryKeysSet, List<Row> rows) {
+        this.rows = rows;
         iterator = rows.listIterator();
         this.columns = columns;
         this.attributes = attributes;
         this.primaryKeysSet = primaryKeysSet;
     }
     
+    @Override
+    public void clear() {
+        for(Row row : rows) {
+            row.getColumns().clear();
+        }
+        rows.clear();
+        rows = null;
+        iterator = null;
+    }
+
     @Override
     public boolean hasMore() {
         return iterator.hasNext();
@@ -51,7 +62,7 @@ public class MysqlInsertEventFactory extends MysqlWriteEventFactory {
     protected AbstractMysqlWriteRow newInstance() {
         return new MysqlInsertRow();
     }
-
+    private List<Row> rows;
     private ListIterator<Row> iterator;
     private String[] columns;
     private ColumnAttribute[] attributes;

@@ -12,10 +12,11 @@ import com.google.code.or.common.glossary.column.LongLongColumn;
 import com.google.code.or.common.glossary.column.ShortColumn;
 import com.google.code.or.common.glossary.column.TinyColumn;
 
+import databus.core.Clearable;
 import databus.event.mysql.AbstractMysqlWriteRow;
 
 
-public abstract class MysqlWriteEventFactory {
+public abstract class MysqlWriteEventFactory implements Clearable{
     
     abstract public  boolean hasMore();
     

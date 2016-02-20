@@ -28,6 +28,10 @@ public abstract class AbstractEvent implements Event{
         return this;
     }
     
+    @Override
+    public void clear() {        
+    }
+
     private InetAddress ipAddress;
     private long time;
 }

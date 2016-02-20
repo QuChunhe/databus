@@ -88,11 +88,13 @@ public class Client  implements Startable {
             buffer.retain();
             send(duplicatedBuffer, address);
         }
+        event.clear();
     }
     
     public void send(Event event, SocketAddress destination) {
         ByteBuf buffer = netUtil.compress(stringOf(event));
         send(buffer, destination);
+        event.clear();
     }
 
     private void run0() {
@@ -103,7 +105,8 @@ public class Client  implements Startable {
                 SocketAddress address = task.address();
                 ChannelPool pool = channelPoolMap.get(address);
                 pool.acquire()
-                    .addListener(new ConnectingListener(buffer, pool));                    
+                    .addListener(new ConnectingListener(buffer, pool)); 
+                task.clear();
             } catch (InterruptedException e) {
                 log.warn("Has been interrupped!", e);
                 Thread.interrupted();
@@ -147,6 +150,7 @@ public class Client  implements Startable {
                 log.warn(netUtil.decompress(buffer)+" can't send", future.cause());
             }
             channelPool.release(future.channel());
+            buffer = null;
         }  
         
         private ByteBuf buffer;
@@ -171,6 +175,7 @@ public class Client  implements Startable {
                 log.warn(netUtil.decompress(buffer)+" can't send because connection to " + 
                          channel.remoteAddress().toString() + " is failed", future.cause());
             }
+            buffer = null;
         }
         
         private ByteBuf buffer;
