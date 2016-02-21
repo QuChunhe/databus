@@ -6,7 +6,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -16,30 +15,21 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         super();
         this.publisher = publisher;
         this.subscriber = subscriber;
-        buffer = netUtil.allocate(1 << 10);
-        buffer.clear();
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object data) throws Exception {
-        ByteBuf in;
-        if (data instanceof ByteBuf) {
-             in = (ByteBuf) data;
+        InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress(); 
+        if (data instanceof String) {
+            receive0((String) data, address);  
         } else {
-            log.error(data.getClass().getName()+" cannot cast to ByteBuf");
-            return;
-        }
-        buffer.writeBytes(in);
+            log.error(data.getClass().getName() + " isn't String from " + address.toString()+
+                      " : " + data.toString());
+        }             
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception { 
-        InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress(); 
-        String message = null;
-        do {
-            message = netUtil.decompress(buffer);        
-            receive0(message, address); 
-        } while (null != message);        
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {     
     }
 
     @Override
@@ -63,7 +53,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         }
         
         event.ipAddress(address.getAddress());
-
         try {
             if (null != subscriber) {
                 subscriber.receive(event);
@@ -84,9 +73,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         
     private static Log log = LogFactory.getLog(ServerHandler.class);
     private static MessageParser parser = new MessageParser();
-    private static NetUtil netUtil = new NetUtil();
     
     private Publisher publisher;
     private Subscriber subscriber;
-    private ByteBuf buffer;
 }

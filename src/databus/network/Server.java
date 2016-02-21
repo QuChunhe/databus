@@ -1,5 +1,6 @@
 package databus.network;
 
+
 import java.net.SocketAddress;
 
 import org.apache.commons.logging.Log;
@@ -14,11 +15,19 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.compression.ZlibCodecFactory;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.CharsetUtil;
+
+import static databus.network.NetUtil.*;
 
 public class Server implements Startable{    
     
     public Server(SocketAddress localAddress) {
-        this(localAddress,1);
+        this(localAddress, 1);
     }
     
     public Server(SocketAddress localAddress, int workerPoolSize) {
@@ -61,6 +70,8 @@ public class Server implements Startable{
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)
+                     .option(ChannelOption.TCP_NODELAY, true)
+                     .option(ChannelOption.SO_KEEPALIVE, true)
                      .group(bossGroup, workerGroup)
                      .channel(NioServerSocketChannel.class)
                      .localAddress(localAddress)
@@ -68,7 +79,15 @@ public class Server implements Startable{
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            p.addLast(new ServerHandler(publisher, subscriber));
+                            p.addLast(new IdleStateHandler(0, 0, CHANNEL_IDLE_DURATION_SECONDS))
+                             .addLast(ZlibCodecFactory.newZlibDecoder(DEFAULT_ZIP))
+                             .addLast(new DelimiterBasedFrameDecoder(
+                                              MAX_FRAME_LENGTH, DELIMITER_BUFFER
+                                          )
+                                     )
+                             .addLast(stringEncoder)
+                             .addLast(stringDecoder)
+                             .addLast(new ServerHandler(publisher, subscriber));
                         }                         
                      });
             
@@ -90,5 +109,6 @@ public class Server implements Startable{
     private EventLoopGroup workerGroup;
     private SocketAddress localAddress;
     private Thread thread = null;   
-
+    private StringEncoder stringEncoder = new StringEncoder(CharsetUtil.UTF_8);
+    private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);
 }

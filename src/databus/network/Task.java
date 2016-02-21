@@ -2,32 +2,21 @@ package databus.network;
 
 import java.net.SocketAddress;
 
-import databus.core.Clearable;
-import io.netty.buffer.ByteBuf;
-
-public class Task implements Clearable{    
+public class Task {    
     
-    public Task(SocketAddress address, ByteBuf buffer) {
-        this.address = address;
-        this.buffer = buffer;
+    public Task(SocketAddress socketAddress, String message) {
+        this.socketAddress = socketAddress;
+        this.message = message;
     }
     
-    public SocketAddress address() {
-        return address;
+    public SocketAddress socketAddress() {
+        return socketAddress;
     }
-
     
-    public ByteBuf buffer() {
-        return buffer;
-    }   
-
-    @Override
-    public void clear() {
-        buffer = null;
-        address = null;        
-    }    
+    public String message() {
+        return message;
+    }
     
-    private SocketAddress address;
-    private ByteBuf buffer;
-
+    private SocketAddress socketAddress;
+    private String message;
 }

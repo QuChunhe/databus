@@ -14,8 +14,6 @@ import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import databus.core.Event;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
@@ -23,6 +21,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+
+import databus.core.Event;
+
+import static databus.network.NetUtil.DELIMITER_STRING;
 
 
 public class Client  implements Startable {
@@ -55,7 +57,7 @@ public class Client  implements Startable {
                                     }
                                },
                            "DataBus Client");
-        group = new NioEventLoopGroup(threadPoolSize);
+        group = new NioEventLoopGroup(threadPoolSize);        
         channelPoolMap = new DatabusChannelPoolMap(group, threadPoolSize);
     }
     
@@ -80,20 +82,16 @@ public class Client  implements Startable {
     }
     
     public void send(Event event, Collection<SocketAddress> destinations){
-        ByteBuf buffer = netUtil.compress(stringOf(event));
+        String message = stringOf(event);
         for(SocketAddress address: destinations) {
-            ByteBuf duplicatedBuffer = buffer.duplicate();
-            duplicatedBuffer.readerIndex(buffer.readerIndex());
-            duplicatedBuffer.writerIndex(buffer.writerIndex());
-            buffer.retain();
-            send(duplicatedBuffer, address);
+            send(message, address);
         }
         event.clear();
     }
     
     public void send(Event event, SocketAddress destination) {
-        ByteBuf buffer = netUtil.compress(stringOf(event));
-        send(buffer, destination);
+        String message = stringOf(event);
+        send(message, destination);
         event.clear();
     }
 
@@ -101,12 +99,11 @@ public class Client  implements Startable {
         while (doRun) {
             try {
                 Task task = taskQueue.take();                
-                ByteBuf buffer = task.buffer();
-                SocketAddress address = task.address();
+                String message = task.message();
+                SocketAddress address = task.socketAddress();
                 ChannelPool pool = channelPoolMap.get(address);
                 pool.acquire()
-                    .addListener(new ConnectingListener(buffer, pool)); 
-                task.clear();
+                    .addListener(new ConnectingListener(message, pool)); 
             } catch (InterruptedException e) {
                 log.warn("Has been interrupped!", e);
                 Thread.interrupted();
@@ -119,8 +116,8 @@ public class Client  implements Startable {
         channelPoolMap.close(); 
     }
     
-    private void send(ByteBuf buffer, SocketAddress destination) {
-        add(new Task(destination, buffer));
+    private void send(String message, SocketAddress destination) {
+        add(new Task(destination, message));
     }
     
     private void add(Task task) {
@@ -137,30 +134,31 @@ public class Client  implements Startable {
     
     private static class SendingListener implements GenericFutureListener<ChannelFuture> {
 
-        public SendingListener(ByteBuf buffer, ChannelPool channelPool) {
-            this.buffer = buffer;
+        public SendingListener(String message, ChannelPool channelPool) {
+            this.message = message;
             this.channelPool = channelPool;
         }
 
         @Override
         public void operationComplete(ChannelFuture future) throws Exception {
             if(future.isDone() && future.isSuccess()) {               
-                log.info("Message has sent : "+netUtil.decompress(buffer));                    
+                log.info("Message has sent : "+message);                    
             } else {
-                log.warn(netUtil.decompress(buffer)+" can't send", future.cause());
+                
+                log.error(message+" can't send", future.cause());
             }
             channelPool.release(future.channel());
-            buffer = null;
+            message = null;
         }  
         
-        private ByteBuf buffer;
+        private String message;
         private ChannelPool channelPool;
     }
     
     private static class ConnectingListener implements GenericFutureListener<Future<Channel>> {
         
-        public ConnectingListener(ByteBuf buffer, ChannelPool channelPool) {
-            this.buffer = buffer;
+        public ConnectingListener(String message, ChannelPool channelPool) {
+            this.message = message;
             this.channelPool = channelPool;
         }
 
@@ -168,24 +166,24 @@ public class Client  implements Startable {
         public void operationComplete(Future<Channel> future) throws Exception {
             Channel channel = future.get();
             if(future.isDone() && future.isSuccess()) {
-                channel.writeAndFlush(buffer)
-                       .addListener(new SendingListener(buffer, channelPool));
+                channel.pipeline()
+                       .writeAndFlush(message + DELIMITER_STRING)
+                       .addListener(new SendingListener(message, channelPool));
             } else {
                 channelPool.release(channel);
-                log.warn(netUtil.decompress(buffer)+" can't send because connection to " + 
+                log.warn(message+" can't send because connection to " + 
                          channel.remoteAddress().toString() + " is failed", future.cause());
             }
-            buffer = null;
+            message = null;
         }
         
-        private ByteBuf buffer;
+        private String message;
         private ChannelPool channelPool;
     }
     
     private static int TASK_CAPACITY = 128;
     
     private static Log log = LogFactory.getLog(Client.class);
-    private static NetUtil netUtil = new NetUtil();
     
     private BlockingQueue<Task> taskQueue;
     private volatile boolean doRun = false;
