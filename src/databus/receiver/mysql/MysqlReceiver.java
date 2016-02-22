@@ -32,7 +32,8 @@ public abstract class MysqlReceiver implements Receiver{
             receive0(connection, event);
         } catch (SQLException e) {
             log.error("Can't create Connection", e);
-        }        
+        }
+        event.clear();
     }
 
     abstract protected void receive0(Connection conn, Event event);

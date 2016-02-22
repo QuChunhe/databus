@@ -42,6 +42,7 @@ public abstract class RedisReceiver implements Receiver {
         } catch(Exception e) {
             log.error("Redis can't save "+event.toString(), e);
         }
+        event.clear();
     }
     
     abstract protected void receive0(Jedis jedis, Event event);
