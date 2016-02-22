@@ -18,4 +18,7 @@ public final class NetUtil {
     
     public final static int MAX_FRAME_LENGTH = 102400;
     
+    
+    public final static int TASK_CAPACITY = 16;
+    
 }

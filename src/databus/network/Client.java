@@ -25,7 +25,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import databus.core.Event;
 
 import static databus.network.NetUtil.DELIMITER_STRING;
-
+import static databus.network.NetUtil.TASK_CAPACITY;
 
 public class Client  implements Startable {
 
@@ -180,8 +180,6 @@ public class Client  implements Startable {
         private String message;
         private ChannelPool channelPool;
     }
-    
-    private static int TASK_CAPACITY = 128;
     
     private static Log log = LogFactory.getLog(Client.class);
     
