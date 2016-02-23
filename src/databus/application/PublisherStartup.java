@@ -18,7 +18,7 @@ public class PublisherStartup {
             configFileName = args[0];
         } 
         Configurations config = new Configurations(configFileName);  
-        Client client = new Client();        
+        Client client = new Client(config.clientThreadPoolSize());        
         Publisher publisher = new Publisher(client);
         config.loadSubscribers(publisher);       
         Thread clientThread = client.start();        

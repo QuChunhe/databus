@@ -21,7 +21,7 @@ public class SubscriberStartup {
         }         
         Configurations config = new Configurations(configFileName);
         SocketAddress localAddress = config.serverAddress();
-        Server server = new Server(localAddress);
+        Server server = new Server(localAddress, config.serverThreadPoolSize());
         Subscriber subscriber = new Subscriber();
         server.setSubscriber(subscriber);        
         Thread serverThread = server.start(); 
