@@ -1,7 +1,7 @@
 package databus.network;
 
-import static databus.network.NetUtil.CHANNEL_IDLE_DURATION_SECONDS;
-import static databus.network.NetUtil.DEFAULT_ZIP;
+import static databus.network.NetConstants.CHANNEL_IDLE_DURATION_SECONDS;
+import static databus.network.NetConstants.DEFAULT_ZIP;
 
 
 import io.netty.channel.Channel;
@@ -28,7 +28,6 @@ public class DatabusChannelPoolHandler extends AbstractChannelPoolHandler{
          .addLast(stringEncoder)
          .addLast(stringDecoder);
     }
-    
 
     private StringEncoder stringEncoder = new StringEncoder(CharsetUtil.UTF_8);
     private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);

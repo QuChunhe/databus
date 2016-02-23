@@ -41,8 +41,7 @@ public class MysqlReplication extends MysqlReceiver{
         int count = executeWrite(conn, sql);        
         if (count < 1) {
             log.error(sql + " cann't be executed ");
-        }
-        
+        }        
     }
 
     private String getInsertSql(MysqlInsertRow event) {
@@ -113,7 +112,7 @@ public class MysqlReplication extends MysqlReceiver{
                 builder.append("NULL");
             } else {
                 builder.append("'");
-                builder.append(column.value().replace("'", "\\'"));
+                builder.append(quoteReplacement(column.value()));
                 builder.append("'");
             }
         } else {

@@ -10,7 +10,6 @@ import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.pool.FixedChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-
 public class DatabusChannelPoolMap
                        extends AbstractChannelPoolMap<SocketAddress, FixedChannelPool> {
 
@@ -34,13 +33,13 @@ public class DatabusChannelPoolMap
                  .remoteAddress(key);
 
         FixedChannelPool pool = new FixedChannelPool(bootstrap,
-                                                     nullChannelPoolHandler, 
+                                                     databusChannelPoolHandler, 
                                                      maxConnections);
         return pool;
     }
 
     private int maxConnections;
     private EventLoopGroup group;
-    private ChannelPoolHandler nullChannelPoolHandler = new DatabusChannelPoolHandler();
+    private ChannelPoolHandler databusChannelPoolHandler = new DatabusChannelPoolHandler();
 
 }

@@ -41,14 +41,14 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         ctx.close();
     }
     
-    private void receive0(String message, InetSocketAddress address) {
-        if ((null==message) || (message.length()==0)) {
+    private void receive0(String frame, InetSocketAddress address) {
+        if ((null==frame) || (frame.length()==0)) {
             return;
         }
-        Event event = parser.parse(message);
+        Event event = eventParser.toEvent(frame);
         if (null == event) {
             log.error("Message from " + address.toString() +
-                      " cannot be parsed as Event : " + message);
+                      " cannot be parsed as Event : " + frame);
             return;
         }
         
@@ -73,7 +73,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     }
         
     private static Log log = LogFactory.getLog(ServerHandler.class);
-    private static MessageParser parser = new MessageParser();
+    private static EventParser eventParser = new EventParser();
     
     private Publisher publisher;
     private Subscriber subscriber;

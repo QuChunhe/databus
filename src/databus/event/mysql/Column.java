@@ -2,7 +2,9 @@ package databus.event.mysql;
 
 import java.sql.Types;
 
-public class Column {    
+import databus.core.Clearable;
+
+public class Column implements Clearable {    
     public Column(String name, String value, int type) {
         this.name = name;
         this.value = value;
@@ -80,6 +82,12 @@ public class Column {
                .append(type)
                .append("}");
         return builder.toString();
+    }
+
+    @Override
+    public void clear() {
+        name = null;
+        value = null;
     }
 
     private String name;

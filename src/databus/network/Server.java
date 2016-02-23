@@ -22,7 +22,7 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
-import static databus.network.NetUtil.*;
+import static databus.network.NetConstants.*;
 
 public class Server implements Startable{    
     

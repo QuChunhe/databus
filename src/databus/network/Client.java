@@ -1,18 +1,13 @@
 package databus.network;
 
 import java.net.SocketAddress;
-import java.text.DateFormat;
 import java.util.Collection;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -24,8 +19,9 @@ import io.netty.util.concurrent.GenericFutureListener;
 
 import databus.core.Event;
 
-import static databus.network.NetUtil.DELIMITER_STRING;
-import static databus.network.NetUtil.TASK_CAPACITY;
+import static databus.network.NetConstants.DELIMITER_STRING;
+import static databus.network.NetConstants.TASK_CAPACITY;
+import static databus.network.NetConstants.CONNECTING_LISTENER_LIMIT_PER_THREAD;
 
 public class Client  implements Startable {
 
@@ -34,21 +30,6 @@ public class Client  implements Startable {
     }
     
     public Client(int threadPoolSize) {
-        gson = new GsonBuilder().enableComplexMapKeySerialization()
-                                .serializeNulls()
-                                .setDateFormat(DateFormat.LONG)
-                                .addSerializationExclusionStrategy(new ExclusionStrategy() {
-                                    @Override
-                                    public boolean shouldSkipClass(Class<?> clazz) {
-                                        return false;
-                                    }
-
-                                    @Override
-                                    public boolean shouldSkipField(FieldAttributes f) {
-                                        return "ipAddress".equals(f.getName());
-                                    }                                    
-                                })
-                                .create();
         taskQueue = new LinkedBlockingQueue<Task>(TASK_CAPACITY);
         thread = new Thread(new Runnable() {
                                     @Override
@@ -59,6 +40,8 @@ public class Client  implements Startable {
                            "DataBus Client");
         group = new NioEventLoopGroup(threadPoolSize);        
         channelPoolMap = new DatabusChannelPoolMap(group, threadPoolSize);
+        eventParser = new EventParser();
+        connectingLimiter = new Semaphore(CONNECTING_LISTENER_LIMIT_PER_THREAD * threadPoolSize);
     }
     
     @Override
@@ -82,7 +65,7 @@ public class Client  implements Startable {
     }
     
     public void send(Event event, Collection<SocketAddress> destinations){
-        String message = stringOf(event);
+        String message = eventParser.toString(event);
         for(SocketAddress address: destinations) {
             send(message, address);
         }
@@ -90,7 +73,7 @@ public class Client  implements Startable {
     }
     
     public void send(Event event, SocketAddress destination) {
-        String message = stringOf(event);
+        String message = eventParser.toString(event);
         send(message, destination);
         event.clear();
     }
@@ -98,12 +81,13 @@ public class Client  implements Startable {
     private void run0() {
         while (doRun) {
             try {
+                connectingLimiter.acquire();
                 Task task = taskQueue.take();                
                 String message = task.message();
                 SocketAddress address = task.socketAddress();
                 ChannelPool pool = channelPoolMap.get(address);
                 pool.acquire()
-                    .addListener(new ConnectingListener(message, pool)); 
+                    .addListener(new ConnectingListener(message, pool));
             } catch (InterruptedException e) {
                 log.warn("Has been interrupped!", e);
                 Thread.interrupted();
@@ -127,10 +111,6 @@ public class Client  implements Startable {
             log.error("LinkedBlockingQueue overflow", e);
         }
     }
-
-    private String stringOf(Event e) {
-        return e.source().toString() + ":" + e.type() + "=" + gson.toJson(e);
-    }
     
     private static class SendingListener implements GenericFutureListener<ChannelFuture> {
 
@@ -148,14 +128,13 @@ public class Client  implements Startable {
                 log.error(message+" can't send", future.cause());
             }
             channelPool.release(future.channel());
-            message = null;
         }  
         
         private String message;
         private ChannelPool channelPool;
     }
     
-    private static class ConnectingListener implements GenericFutureListener<Future<Channel>> {
+    private class ConnectingListener implements GenericFutureListener<Future<Channel>> {
         
         public ConnectingListener(String message, ChannelPool channelPool) {
             this.message = message;
@@ -164,6 +143,9 @@ public class Client  implements Startable {
 
         @Override
         public void operationComplete(Future<Channel> future) throws Exception {
+            // This must be first avoid to throw Exception.
+            connectingLimiter.release();
+            
             Channel channel = future.get();
             if(future.isDone() && future.isSuccess()) {
                 channel.pipeline()
@@ -173,21 +155,20 @@ public class Client  implements Startable {
                 channelPool.release(channel);
                 log.warn(message+" can't send because connection to " + 
                          channel.remoteAddress().toString() + " is failed", future.cause());
-            }
-            message = null;
+            }                         
         }
-        
+
         private String message;
         private ChannelPool channelPool;
     }
     
-    private static Log log = LogFactory.getLog(Client.class);
-    
+    private static Log log = LogFactory.getLog(Client.class);  
+     
     private BlockingQueue<Task> taskQueue;
     private volatile boolean doRun = false;
-    private Gson gson;
     private Thread thread;
     private EventLoopGroup group;
-    private DatabusChannelPoolMap channelPoolMap;
-    
+    private DatabusChannelPoolMap channelPoolMap;    
+    private EventParser eventParser;
+    private Semaphore connectingLimiter;
 }

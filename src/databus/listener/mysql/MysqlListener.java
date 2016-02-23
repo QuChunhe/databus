@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.code.or.OpenReplicator;
 import com.google.code.or.binlog.impl.AbstractBinlogParser;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
@@ -72,7 +71,7 @@ public class MysqlListener extends AbstractListener{
         int serverId = Integer.valueOf(properties.getProperty("mysql.serverId", "1"));
         binlogFileName = properties.getProperty("mysql.binlogFileName", "master-bin.000001");
         nextPosition = Integer.valueOf(properties.getProperty("mysql.position", "1"));
-        openRelicator = new ExtendedOpenReplicator();
+        openRelicator = new DatabusOpenReplicator();
         openRelicator.setUser(user);
         openRelicator.setPassword(password);
         openRelicator.setHost(host);
@@ -195,21 +194,11 @@ public class MysqlListener extends AbstractListener{
     
     private static Log log = LogFactory.getLog(MysqlListener.class);
 
-    private ExtendedOpenReplicator openRelicator;
+    private DatabusOpenReplicator openRelicator;
     private volatile long nextPosition;
     private volatile String binlogFileName;
     private Map<String, String[]> columnsMap;
     private Map<String, ColumnAttribute[]> attributesMap;
     private Map<String, Set<String>> primaryKeysMap;
     private Set<String> permittedTableSet;
-    
-    private static class ExtendedOpenReplicator extends OpenReplicator {
-        public ExtendedOpenReplicator() {
-            super();
-        }
-        
-        public void setRunning(boolean flag) {
-            running.lazySet(flag);
-        }
-    }
 }
