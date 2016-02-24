@@ -41,5 +41,4 @@ public class DatabusChannelPoolMap
     private int maxConnections;
     private EventLoopGroup group;
     private ChannelPoolHandler databusChannelPoolHandler = new DatabusChannelPoolHandler();
-
 }

@@ -80,6 +80,7 @@ public class Server implements Startable{
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
                             p.addLast(new IdleStateHandler(0, 0, CHANNEL_IDLE_DURATION_SECONDS))
+                             .addLast(new IdleConnectionHandler())
                              .addLast(ZlibCodecFactory.newZlibDecoder(DEFAULT_ZIP))
                              .addLast(new DelimiterBasedFrameDecoder(
                                               MAX_FRAME_LENGTH, DELIMITER_BUFFER

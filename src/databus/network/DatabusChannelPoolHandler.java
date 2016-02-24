@@ -23,6 +23,7 @@ public class DatabusChannelPoolHandler extends AbstractChannelPoolHandler{
     public void channelCreated(Channel ch) throws Exception {
         ChannelPipeline p = ch.pipeline();
         p.addLast(new IdleStateHandler(0, 0, CHANNEL_IDLE_DURATION_SECONDS))
+         .addLast(new IdleConnectionHandler())
          .addLast(ZlibCodecFactory.newZlibEncoder(DEFAULT_ZIP))
          .addLast(ZlibCodecFactory.newZlibDecoder(DEFAULT_ZIP))
          .addLast(stringEncoder)
