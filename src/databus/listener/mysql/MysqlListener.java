@@ -25,12 +25,12 @@ import databus.network.Publisher;
 public class MysqlListener extends AbstractListener{  
     
     public MysqlListener(Publisher publisher, Properties properties) {
-        super(publisher);
+        super(publisher, "MysqlListener");
         initialize(properties);        
     }
 
     public MysqlListener() {
-        super();
+        super("MysqlListener");
     }
     
     @Override

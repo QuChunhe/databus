@@ -8,8 +8,12 @@ import redis.clients.jedis.Jedis;
 
 public abstract class RedisListener extends AbstractListener {
 
+    public RedisListener(String name) {
+        super(name);
+    }
+    
     public RedisListener() {
-        super();
+        this("RedisListener");
     }
 
     @Override

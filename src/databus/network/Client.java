@@ -22,6 +22,7 @@ import databus.core.Event;
 import static databus.network.NetConstants.DELIMITER_STRING;
 import static databus.network.NetConstants.TASK_CAPACITY;
 import static databus.network.NetConstants.CONNECTING_LISTENER_LIMIT_PER_THREAD;
+import static databus.network.NetConstants.MAX_CONNECTION_PER_THREAD;
 
 public class Client  implements Startable {
 
@@ -39,7 +40,8 @@ public class Client  implements Startable {
                                },
                            "DataBus Client");
         group = new NioEventLoopGroup(threadPoolSize);        
-        channelPoolMap = new DatabusChannelPoolMap(group, threadPoolSize);
+        channelPoolMap = new DatabusChannelPoolMap(group, 
+                                                   threadPoolSize * MAX_CONNECTION_PER_THREAD);
         eventParser = new EventParser();
         connectingLimiter = new Semaphore(CONNECTING_LISTENER_LIMIT_PER_THREAD * threadPoolSize);
     }

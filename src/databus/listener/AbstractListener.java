@@ -7,15 +7,19 @@ import databus.core.Listener;
 import databus.network.Publisher;
 
 public abstract class AbstractListener implements Listener, Runnable{
-    
-    public AbstractListener(Publisher publisher) {
+        
+    public AbstractListener(Publisher publisher, String name) {
         this.publisher = publisher;
-        runner = new Thread(this);
+        runner = new Thread(this, name);
         doesRun = false;
     }
     
+    public AbstractListener(String name) {
+        this(null, name);
+    }
+    
     public AbstractListener() {
-        this(null);
+        this(AbstractListener.class.getSimpleName());
     }
     
     public void setPublisher(Publisher publisher) {

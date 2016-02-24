@@ -12,7 +12,7 @@ import databus.event.redis.RedisMessaging;
 public class RedisMessagingListener extends RedisListener {    
 
     public RedisMessagingListener() {
-        super();
+        super("RedisMessagingListener");
     }
 
     @Override
