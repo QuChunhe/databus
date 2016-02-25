@@ -30,13 +30,13 @@ public abstract class MysqlReceiver implements Receiver{
     @Override
     public void receive(Event event) {
         try (Connection connection = dataSource.getConnection();){
-            receive0(connection, event);
+            receive(connection, event);
         } catch (SQLException e) {
             log.error("Can't create Connection", e);
         }
     }
 
-    abstract protected void receive0(Connection conn, Event event);
+    abstract protected void receive(Connection conn, Event event);
     
     protected Properties removePrefix(Properties originalProperties, String prefix) {
         Properties properties = new Properties();

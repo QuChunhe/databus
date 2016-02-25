@@ -55,7 +55,7 @@ public class MessagePersistence extends MysqlReceiver{
     }
 
     @Override
-    protected void receive0(Connection conn, Event event) {
+    protected void receive(Connection conn, Event event) {
         if (!(event instanceof RedisMessaging)) {
             log.error(event.getClass().getName()+" is't RedisMessaging");
             return;

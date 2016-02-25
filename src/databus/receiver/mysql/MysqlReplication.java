@@ -22,7 +22,7 @@ public class MysqlReplication extends MysqlReceiver{
     }
 
     @Override
-    protected void receive0(Connection conn, Event event) {
+    protected void receive(Connection conn, Event event) {
         String sql = null;;
         if (event instanceof MysqlInsertRow) {
             sql = getInsertSql((MysqlInsertRow) event);

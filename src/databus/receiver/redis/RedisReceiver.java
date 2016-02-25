@@ -38,13 +38,13 @@ public abstract class RedisReceiver implements Receiver {
     @Override
     public void receive(Event event) {
         try (Jedis jedis = jedisPool.getResource();) {
-            receive0(jedis, event);
+            receive(jedis, event);
         } catch(Exception e) {
             log.error("Redis can't save "+event.toString(), e);
         }
     }
     
-    abstract protected void receive0(Jedis jedis, Event event);
+    abstract protected void receive(Jedis jedis, Event event);
     
     private static Log log = LogFactory.getLog(RedisReceiver.class);
     

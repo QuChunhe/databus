@@ -21,7 +21,8 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object data) throws Exception {
         InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress(); 
         if (data instanceof String) {
-            receive0((String) data, address);  
+            receive0((String) data, address);
+            log.info("Have receive : "+data.toString());
         } else {
             log.error(data.getClass().getName() + " isn't String from " + address.toString()+
                       " : " + data.toString());
@@ -29,7 +30,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {     
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
     }
 
     @Override
