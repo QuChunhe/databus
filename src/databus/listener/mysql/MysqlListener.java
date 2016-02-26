@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.code.or.binlog.impl.AbstractBinlogParser;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.listener.AbstractListener;
@@ -68,8 +67,8 @@ public class MysqlListener extends AbstractListener{
         String host = properties.getProperty("mysql.host", "127.0.0.1");
         int port = Integer.valueOf(properties.getProperty("mysql.port", "3306"));
         int serverId = Integer.valueOf(properties.getProperty("mysql.serverId", "1"));
-        binlogFileName = properties.getProperty("mysql.binlogFileName", "master-bin.000001");
-        nextPosition = Integer.valueOf(properties.getProperty("mysql.position", "1"));
+        String binlogFileName = properties.getProperty("mysql.binlogFileName", "master-bin.000001");
+        int nextPosition = Integer.valueOf(properties.getProperty("mysql.position", "1"));
         openRelicator = new DatabusOpenReplicator();
         openRelicator.setUser(user);
         openRelicator.setPassword(password);
@@ -97,14 +96,9 @@ public class MysqlListener extends AbstractListener{
         } catch(InterruptedException e) {
             log.warn("Have been interrupted", e);
         }
-        AbstractBinlogParser parser = (AbstractBinlogParser)openRelicator.getBinlogParser();
-        if ((null == parser) || (!parser.isRunning())) {
-            openRelicator.setRunning(false);
-            openRelicator.setTransport(null);
-            openRelicator.setBinlogParser(null);
-            openRelicator.setBinlogPosition(nextPosition);
-            openRelicator.setBinlogFileName(binlogFileName);
-            openRelicator.start();
+
+        if (!openRelicator.isRunning()) {
+            openRelicator.restart();
         }
     }
     
@@ -113,11 +107,11 @@ public class MysqlListener extends AbstractListener{
     }
 
     public void setNextPosition(long nextPosition) {
-        this.nextPosition = nextPosition;
+        openRelicator.setBinlogPosition(nextPosition);
     }
     
     public void setBinlogFileName(String binlogFileName) {
-        this.binlogFileName = binlogFileName;
+        openRelicator.setBinlogFileName(binlogFileName);;
     }
     
     protected String[] getColumns(String fullName) {
@@ -190,8 +184,6 @@ public class MysqlListener extends AbstractListener{
     private static Log log = LogFactory.getLog(MysqlListener.class);
 
     private DatabusOpenReplicator openRelicator;
-    private volatile long nextPosition;
-    private volatile String binlogFileName;
     private Map<String, String[]> columnsMap;
     private Map<String, ColumnAttribute[]> attributesMap;
     private Map<String, Set<String>> primaryKeysMap;
