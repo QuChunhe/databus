@@ -31,7 +31,7 @@ public class BothStartup {
         server.setPublisher(publisher).setSubscriber(subscriber);
         
         Thread serverThread = server.start();       
-        Thread clientThread = client.start();
+
         
         BatchListener listener = config.loadListeners();
         listener.setPublisher(publisher);
@@ -41,7 +41,7 @@ public class BothStartup {
         listener.start();
         try {
             serverThread.join();
-            clientThread.join();
+            client.awaitTermination();
         } finally {
             client.stop();
             server.stop();

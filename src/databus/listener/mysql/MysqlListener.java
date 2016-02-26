@@ -18,7 +18,6 @@ import org.apache.commons.logging.LogFactory;
 import com.google.code.or.binlog.impl.AbstractBinlogParser;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
-import databus.event.MysqlEvent;
 import databus.listener.AbstractListener;
 import databus.network.Publisher;
 
@@ -108,12 +107,8 @@ public class MysqlListener extends AbstractListener{
             openRelicator.start();
         }
     }
-
-    public void onEvent(MysqlEvent event) {
-        publisher.publish(event);
-    }
     
-    public boolean doPermit(String fullTableName) {
+    public boolean doesPermit(String fullTableName) {
         return permittedTableSet.contains(fullTableName);
     }
 

@@ -21,18 +21,14 @@ public class PublisherStartup {
         Client client = new Client(config.clientThreadPoolSize());        
         Publisher publisher = new Publisher(client);
         config.loadSubscribers(publisher);       
-        Thread clientThread = client.start();        
+      
         BatchListener listener = config.loadListeners();
         listener.setPublisher(publisher);
-        listener.start();
-        try {
-            clientThread.join();
-        } catch (InterruptedException e) {
-            log.error("Client Thread is interrupted!", e);
-        } finally {
-            client.stop();
-            listener.stop();
-        }
+        listener.start();       
+        client.awaitTermination();       
+        client.stop();
+        listener.stop();
+        
         log.info("PublisherStartup has finished!");
         System.exit(0);
     }

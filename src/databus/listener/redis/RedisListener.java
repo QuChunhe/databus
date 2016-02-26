@@ -32,7 +32,7 @@ public abstract class RedisListener extends AbstractListener {
         }
         RedisEvent event = listen();
         if (null != event) {
-           publisher.publish(event); 
+           onEvent(event); 
         }        
     }
 

@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 
-public class Publisher{   
+public class Publisher{    
 
     public Publisher(Client client) {
         this.client = client;

@@ -3,14 +3,21 @@ package databus.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.core.Event;
 import databus.core.Listener;
 import databus.network.Publisher;
 
-public abstract class AbstractListener implements Listener, Runnable{
+public abstract class AbstractListener implements Listener {
         
     public AbstractListener(Publisher publisher, String name) {
         this.publisher = publisher;
-        runner = new Thread(this, name);
+        runner = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    run0();                                    
+                                }
+                            }, 
+                            name);
         doesRun = false;
     }
     
@@ -47,8 +54,13 @@ public abstract class AbstractListener implements Listener, Runnable{
         }        
     }
     
-    @Override
-    public void run() {
+    public void onEvent(Event event) {
+        publisher.publish(event);
+    }
+    
+    abstract protected void runOnce(boolean hasException) throws Exception;
+  
+    private void run0() {
         int exceptionCount = 0;
         while (doesRun) {
             try {
@@ -81,13 +93,10 @@ public abstract class AbstractListener implements Listener, Runnable{
         }        
     }
     
-    abstract protected void runOnce(boolean hasException) throws Exception;    
-
-    protected Publisher publisher;
-    
     private static Log log = LogFactory.getLog(AbstractListener.class);
     
     private Thread runner;
     //only one thread modify doesRun
     private volatile boolean doesRun;
+    private Publisher publisher;
 }
