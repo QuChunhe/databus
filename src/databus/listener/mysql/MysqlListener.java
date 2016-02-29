@@ -17,23 +17,28 @@ import org.apache.commons.logging.LogFactory;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
-import databus.listener.AbstractListener;
+import databus.listener.RestartableListener;
 import databus.network.Publisher;
 
-public class MysqlListener extends AbstractListener{  
+public class MysqlListener extends RestartableListener{  
     
     public MysqlListener(Publisher publisher, Properties properties) {
-        super(publisher, "MysqlListener");
+        super(publisher);
         initialize(properties);        
     }
 
     public MysqlListener() {
-        super("MysqlListener");
+        super();
     }
     
     @Override
     public boolean isRunning() {
-        return (super.isRunning() && openRelicator.isRunning());
+        return  openRelicator.isRunning();
+    }
+
+    @Override
+    public void restart() {
+        openRelicator.restart();        
     }
 
     @Override
@@ -88,19 +93,6 @@ public class MysqlListener extends AbstractListener{
         ds.setPort(port);
         loadSchema(ds);       
     }    
-    
-    @Override
-    protected void runOnce(boolean hasException) throws Exception {
-        try {
-            Thread.sleep(TEN_SECONDS);
-        } catch(InterruptedException e) {
-            log.warn("Have been interrupted", e);
-        }
-
-        if (!openRelicator.isRunning()) {
-            openRelicator.restart();
-        }
-    }
     
     public boolean doesPermit(String fullTableName) {
         return permittedTableSet.contains(fullTableName);
@@ -177,9 +169,7 @@ public class MysqlListener extends AbstractListener{
                 log.error("Cannot load the schema of "+fullName, e);
             }
         }
-    }    
-
-    final private static long TEN_SECONDS = 10000L;
+    }
     
     private static Log log = LogFactory.getLog(MysqlListener.class);
 

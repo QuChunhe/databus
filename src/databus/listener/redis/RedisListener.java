@@ -3,10 +3,10 @@ package databus.listener.redis;
 import java.util.Properties;
 
 import databus.event.RedisEvent;
-import databus.listener.AbstractListener;
+import databus.listener.RunnableListener;
 import redis.clients.jedis.Jedis;
 
-public abstract class RedisListener extends AbstractListener {
+public abstract class RedisListener extends RunnableListener {
 
     public RedisListener(String name) {
         super(name);
