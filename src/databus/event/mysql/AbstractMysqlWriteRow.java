@@ -76,23 +76,6 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
         return builder.toString();
     }    
 
-    @Override
-    public void clear() {
-        super.clear();
-        
-        for(Column column : row) {
-            column.clear();
-        }
-        row.clear();
-        row = null;
-        
-        for(Column column : primaryKeys) {
-            column.clear();
-        }
-        primaryKeys.clear();        
-        primaryKeys = null;
-    }
-
     private List<Column> row;
     private List<Column> primaryKeys;
 }

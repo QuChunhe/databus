@@ -70,7 +70,6 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             log.error(publisher.getClass().getName()+" can't receive event :" 
                       + event.toString(), e);            
         }
-        event.clear();
     }
         
     private static Log log = LogFactory.getLog(ServerHandler.class);

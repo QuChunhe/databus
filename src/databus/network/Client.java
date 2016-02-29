@@ -64,13 +64,11 @@ public class Client {
         for(SocketAddress address: destinations) {
             send(message, address);
         }
-        event.clear();
     }
     
     public void send(Event event, SocketAddress destination) {
         String message = eventParser.toString(event);
         send(message, destination);
-        event.clear();
     }
 
     private void send(String message, SocketAddress destination) {        

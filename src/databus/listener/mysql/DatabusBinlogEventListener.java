@@ -131,7 +131,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
                 listener.onEvent(event);  
             }
         }
-        factory.clear();
     }
     
     private void setTableMapEvent(TableMapEvent tableMapEvent) {

@@ -27,10 +27,6 @@ public abstract class AbstractEvent implements Event{
         this.ipAddress = ipAddress;
         return this;
     }
-    
-    @Override
-    public void clear() {        
-    }
 
     private InetAddress ipAddress;
     private long time;

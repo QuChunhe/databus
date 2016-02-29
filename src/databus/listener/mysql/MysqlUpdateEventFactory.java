@@ -15,22 +15,10 @@ public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
     
     public MysqlUpdateEventFactory(String[] columns, ColumnAttribute[] attributes,
                                   Set<String> primaryKeysSet, List<Pair<Row>> rows) {
-        this.rows = rows;
         iterator = rows.listIterator();
         this.columns = columns;
         this.attributes = attributes;
         this.primaryKeysSet = primaryKeysSet;
-    }
-    
-    @Override
-    public void clear() {
-          for(Pair<Row> pair : rows) {
-              pair.getBefore().getColumns().clear();
-              pair.getAfter().getColumns().clear();
-          }
-          rows.clear();
-          rows = null;
-          iterator = null;
     }
 
     @Override
@@ -78,7 +66,6 @@ public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
         }
     }
     
-    private List<Pair<Row>> rows;
     private ListIterator<Pair<Row>> iterator;
     private String[] columns;
     private ColumnAttribute[] attributes;
