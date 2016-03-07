@@ -1,14 +1,11 @@
 package databus.application;
 
-import java.net.SocketAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.listener.BatchListener;
-import databus.network.Client;
 import databus.network.Publisher;
-import databus.network.Server;
 import databus.network.Subscriber;
 
 public class BothStartup {
@@ -21,31 +18,23 @@ public class BothStartup {
         if (args.length > 0) {
             configFileName = args[0];
         }        
-        Configurations config = new Configurations(configFileName);
-        SocketAddress localAddress =config.serverAddress();
-        Server server = new Server(localAddress, config.serverThreadPoolSize());
-        Client client = new Client(config.clientThreadPoolSize());        
+        DatabusBuilder builder = new DatabusBuilder(configFileName);
+        Subscriber subscriber = builder.createSubscriber() ;
+        Publisher publisher = builder.createPublisher();       
+        BatchListener listeners = builder.createListeners();
+        listeners.setPublisher(publisher);         
 
-        Publisher publisher = new Publisher(client);
-        Subscriber subscriber = new Subscriber();
-        server.setPublisher(publisher).setSubscriber(subscriber);
+        subscriber.start();
+        listeners.start();        
         
-        Thread serverThread = server.start();       
-
-        
-        BatchListener listener = config.loadListeners();
-        listener.setPublisher(publisher);
-        config.loadReceivers(subscriber);
-        config.loadSubscribers(publisher);        
-
-        listener.start();
         try {
-            serverThread.join();
-            client.awaitTermination();
+            subscriber.join();
+            listeners.join();
+        } catch (InterruptedException e) {
+            log.info("Has been interrupted!");
         } finally {
-            client.stop();
-            server.stop();
-            listener.stop();
+            subscriber.stop();
+            listeners.stop();
         }
         
         log.info("BothStartup has finished!");

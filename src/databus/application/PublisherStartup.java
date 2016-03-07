@@ -4,7 +4,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.listener.BatchListener;
-import databus.network.Client;
 import databus.network.Publisher;
 
 public class PublisherStartup {
@@ -17,17 +16,20 @@ public class PublisherStartup {
         if (args.length > 0) {
             configFileName = args[0];
         } 
-        Configurations config = new Configurations(configFileName);  
-        Client client = new Client(config.clientThreadPoolSize());        
-        Publisher publisher = new Publisher(client);
-        config.loadSubscribers(publisher);       
-      
-        BatchListener listener = config.loadListeners();
+        DatabusBuilder builder = new DatabusBuilder(configFileName);  
+     
+        Publisher publisher = builder.createPublisher();     
+        BatchListener listener = builder.createListeners();
         listener.setPublisher(publisher);
         listener.start();       
-        client.awaitTermination();       
-        client.stop();
-        listener.stop();
+        
+        try {
+            listener.join();
+        } catch (InterruptedException e) {
+            log.info("Has been interrupted!");
+        } finally {
+            listener.stop();
+        }       
         
         log.info("PublisherStartup has finished!");
         System.exit(0);

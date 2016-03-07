@@ -64,6 +64,7 @@ public abstract class RestartableListener extends AbstractListener implements Re
                     }
                 }
             }
+            Thread.currentThread().interrupt();
         }
         
     }

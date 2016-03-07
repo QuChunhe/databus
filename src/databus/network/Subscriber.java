@@ -9,10 +9,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
+import databus.core.Joinable;
 import databus.core.Receiver;
+import databus.core.Startable;
 import databus.util.InetTopic;
 
-public class Subscriber {
+public class Subscriber implements Joinable, Startable{
 
     public Subscriber() {
         receiversMap = new ConcurrentHashMap<InetTopic, Set<Receiver>>();
@@ -59,6 +61,30 @@ public class Subscriber {
             }
         }
     }
+    
+    @Override
+    public void join() throws InterruptedException {
+        server.join();
+    }
+    
+    public void stop() {
+        server.stop();
+    }   
+    
+    
+    @Override
+    public boolean isRunning() {
+        return server.isRunning();
+    }
+
+    @Override
+    public void start() {
+        server.start();
+    }
+
+    protected void setServer(Server server) {
+        this.server = server;
+    }
 
     protected void remove(InetTopic remoteTopic) {
         Set<Receiver> receivers = receiversMap.get(remoteTopic);
@@ -71,4 +97,6 @@ public class Subscriber {
     protected Map<InetTopic, Set<Receiver>> receiversMap;
 
     private static Log log = LogFactory.getLog(Subscriber.class);
+    
+    private Server server;
 }

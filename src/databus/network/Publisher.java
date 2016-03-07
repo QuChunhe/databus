@@ -11,7 +11,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 
-public class Publisher{    
+public class Publisher {    
 
     public Publisher(Client client) {
         this.client = client;
@@ -47,6 +47,10 @@ public class Publisher{
         } else {
             log.info(event.toString()+" has't any subscriber!");
         }
+    }
+    
+    public Client client() {
+        return client;
     }
 
     protected Map<String, Set<SocketAddress>> subscribersMap;

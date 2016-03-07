@@ -4,10 +4,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import databus.core.Joinable;
 import databus.core.Listener;
 import databus.network.Publisher;
 
-public class BatchListener implements Listener{    
+public class BatchListener implements Listener, Joinable{    
 
     public BatchListener() {
         listeners = new LinkedList<Listener>();
@@ -38,9 +39,16 @@ public class BatchListener implements Listener{
         for(Listener l : listeners) {
             l.stop();
         }
-        
+        listeners.clear();
     }
     
+    @Override
+    public void join() throws InterruptedException {
+        while(isRunning()) {
+            Thread.sleep(TEN_SECONDS);
+        }        
+    }
+
     public void add(Listener listener) {
         listeners.add(listener);
         if ((null != publisher) && (listener instanceof AbstractListener)) {
@@ -61,6 +69,8 @@ public class BatchListener implements Listener{
             }
         }
     }
+    
+    final private static long TEN_SECONDS = 10000L;
 
     private Publisher publisher;
     private List<Listener> listeners;

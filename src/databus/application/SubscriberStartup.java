@@ -1,12 +1,9 @@
 package databus.application;
 
 
-import java.net.SocketAddress;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.network.Server;
 import databus.network.Subscriber;
 
 public class SubscriberStartup {
@@ -19,20 +16,16 @@ public class SubscriberStartup {
         if (args.length > 0) {
             configFileName = args[0];
         }         
-        Configurations config = new Configurations(configFileName);
-        SocketAddress localAddress = config.serverAddress();
-        Server server = new Server(localAddress, config.serverThreadPoolSize());
-        Subscriber subscriber = new Subscriber();
-        server.setSubscriber(subscriber);        
-        Thread serverThread = server.start(); 
-        config.loadReceivers(subscriber);
+        DatabusBuilder builder = new DatabusBuilder(configFileName);
+
+        Subscriber subscriber = builder.createSubscriber();
 
         try {
-            serverThread.join();
+            subscriber.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.info("Has been interrupted!");
         } finally {
-            server.stop();
+            subscriber.stop();
         }
         log.info("SubscriberStartup has finished!");
         System.exit(0);

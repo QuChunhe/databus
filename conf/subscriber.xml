@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <configuration>
-<server>
-    <host>127.0.0.1</host>
-    <port>8765</port>
-</server>
+
   
 <subscriber>
-   
+    <server>
+       <host>127.0.0.1</host>
+       <port>8765</port>
+       <threadPoolSize>4</threadPoolSize>
+    </server>
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
         <remoteTopic>

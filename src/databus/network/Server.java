@@ -6,6 +6,7 @@ import java.net.SocketAddress;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.core.Startable;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -37,7 +38,12 @@ public class Server implements Startable{
     }
     
     @Override
-    public Thread start() {
+    public boolean isRunning() {
+        return (null!=thread) && (thread.getState()!=Thread.State.TERMINATED);
+    }
+    
+    @Override
+    public void start() {
         if (null == thread) {
             thread = new Thread(new Runnable() {
                             @Override
@@ -47,22 +53,21 @@ public class Server implements Startable{
                          }, "Databus Server");
             thread.start();
         }
-        return thread;
-    } 
+    }
 
+    public void join() throws InterruptedException {
+        thread.join();    
+    }
+    
     public void stop() {        
         if (null != thread) {
             thread.interrupt();
         }
     }
-
-    public Server setPublisher(Publisher publisher) {
-        this.publisher = publisher;
-        return this;
-    }
     
     public Server setSubscriber(Subscriber subscriber) {
         this.subscriber = subscriber;
+        subscriber.setServer(this);
         return this;
     }
     
