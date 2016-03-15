@@ -4,7 +4,9 @@
 
 <publisher> 
     <client>
-        <threadPoolSize>2</threadPoolSize>
+        <threadPoolSize>4</threadPoolSize>
+        <connectionsPerThread>10</connectionsPerThread>
+        <connectingListenersPerThread>256</connectingListenersPerThread>
     </client>
     <listener>
         <class>databus.listener.redis.RedisMessagingListener</class>
@@ -14,6 +16,7 @@
             <keys>access,postback</keys>
         </redis>
     </listener>
+ <!--
     <listener>
         <class>databus.listener.mysql.MysqlListener</class>
         <mysql>
@@ -27,13 +30,15 @@
             <position>120</position>
         </mysql>
     </listener>  
-    
+    -->
     <!-- subscriber tag for no ActivePublisher -->
+<!--
     <subscriber>
         <topic>/MYSQL/1/test</topic>
         <host>127.0.0.1</host>
         <port>8765</port>
     </subscriber>
+ -->
     <subscriber>
         <topic>/REDIS/LIST_MESSAGING/access</topic>
         <host>127.0.0.1</host>
@@ -50,10 +55,10 @@
     <server>
         <host>127.0.0.1</host>
         <port>8765</port>
-        <threadPoolSize>4</threadPoolSize>
-        <connectionsPerThread>10</connectionsPerThread>
-        <connectingListenersPerThread>256</connectingListenersPerThread>
+        <threadPoolSize>2</threadPoolSize>
     </server>
+    
+  <!--
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
         <remoteTopic>
@@ -61,7 +66,7 @@
              <topic>/MYSQL/1/test</topic>
         </remoteTopic>
         <mysql>
-            <url>jdbc:mysql://127.0.0.1:3306/test2</url>
+            <url>jdbc:mysql://127.0.0.1:3308/test2</url>
             <username>root</username>
             <password>quchunhe</password>
             <driverClassName>com.mysql.jdbc.Driver</driverClassName>
@@ -73,9 +78,8 @@
             <defaultAutoCommit>true</defaultAutoCommit>
             <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
         </mysql>
-    </receiver>
- 
-    <!--
+    </receiver> 
+  
     <receiver>
         <class>databus.receiver.redis.RedisSlave</class>
         <remoteTopic>
@@ -93,7 +97,7 @@
             <minIdle>0</minIdle>
         </redis>
     </receiver>
-   
+   -->
     <receiver>
         <class>databus.receiver.mysql.MessagePersistence</class>
         <remoteTopic>
@@ -107,7 +111,7 @@
             <bean>adm.stats.PostbackInfoBean</bean>
         </remoteTopic>
         <mysql>
-            <url>jdbc:mysql://127.0.0.1:3306/test2</url>
+            <url>jdbc:mysql://127.0.0.1:3308/test</url>
             <username>root</username>
             <password>quchunhe</password>
             <driverClassName>com.mysql.jdbc.Driver</driverClassName>
@@ -120,7 +124,7 @@
             <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
         </mysql>
     </receiver>
- -->
+ 
     <receiver>
         <class>databus.receiver.DefaultReceiver</class>
         <remoteTopic>

@@ -19,6 +19,7 @@ public class SubscriberStartup {
         DatabusBuilder builder = new DatabusBuilder(configFileName);
 
         Subscriber subscriber = builder.createSubscriber();
+        subscriber.start();
 
         try {
             subscriber.join();

@@ -69,8 +69,8 @@ public class MessagePersistence extends MysqlReceiver{
         }        
         String message = e.message();
         Object bean = gson.fromJson(message, beanClass);
-        if ((null!=bean) && (bean instanceof MysqlBean)) {
-            ((MysqlBean) bean).execute(conn);;
+        if ((null!=bean) && (bean instanceof ExecutableBean)) {
+            ((ExecutableBean) bean).execute(conn);;
         } else {
             log.error(message + " can't convert to "+beanClass.getName());
         }        

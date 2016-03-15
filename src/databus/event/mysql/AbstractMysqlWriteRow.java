@@ -42,11 +42,13 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
                .append("{")
                .append("\"time\": ")
                .append(time())
-               .append(", ")
-               .append("\"ipAddress\": \"")
-               .append(ipAddress().getHostAddress())
-               .append("\", ")
-               .append("\"source\": \"")
+               .append(", ");
+        if (ipAddress() != null) {
+            builder.append("\"ipAddress\": \"")
+                   .append(ipAddress().getHostAddress())
+                   .append("\", ");
+        }
+        builder.append("\"source\": \"")
                .append(source())
                .append("\", ")
                .append("\"serverId\": ")

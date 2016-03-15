@@ -94,4 +94,5 @@ public class EventParser {
     private Gson gson;
     private Map<String,Class<? extends Event>> eventClasses;
     private final Pattern SPLIT_PATTERN = Pattern.compile("=");
+
 }
