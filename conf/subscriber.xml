@@ -11,11 +11,7 @@
     </server>
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
-        <remoteTopic>
-            <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/MYSQL/1/test</topic>
-        </remoteTopic>
+        <remoteTopic>/MYSQL/1/test</remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/test2</url>
             <username>root</username>
@@ -34,11 +30,7 @@
    
     <receiver>
         <class>databus.receiver.redis.RedisReplication</class>
-        <remoteTopic>
-            <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/MYSQL/1/adm</topic>
-        </remoteTopic>
+        <remoteTopic>/MYSQL/1/adm</remoteTopic>
         <redis>
             <host>127.0.0.1</host>
             <port>6379</port>
@@ -53,18 +45,8 @@
    
     <receiver>
         <class>databus.receiver.mysql.MessagePersistence</class>
-        <remoteTopic>
-            <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/REDIS/LIST_MESSAGING/access</topic>
-            <bean>adm.stats.AccessInfoBean</bean>
-        </remoteTopic>
-        <remoteTopic>
-            <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/REDIS/LIST_MESSAGING/postback</topic>
-            <bean>adm.stats.PostbackInfoBean</bean>
-        </remoteTopic>
+        <remoteTopic>/REDIS/LIST_MESSAGING/access</remoteTopic>
+        <remoteTopic>/REDIS/LIST_MESSAGING/postback</remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/test2</url>
             <username>root</username>
@@ -78,6 +60,14 @@
             <defaultAutoCommit>true</defaultAutoCommit>
             <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
         </mysql>
+        <bean>
+            <key>access</key>
+            <class>adm.stats.AccessInfoBean</class>
+        </bean>
+        <bean>
+            <key>postback</key>
+            <class>adm.stats.PostbackInfoBean</class>
+        </bean>
     </receiver>
     <receiver>
         <class>databus.receiver.DefaultReceiver</class>

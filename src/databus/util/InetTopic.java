@@ -8,7 +8,7 @@ public class InetTopic {
     public InetTopic(InetAddress ipAddress, String topic) {
         this.ipAddress = ipAddress;
         this.topic = topic;
-        hashCode = (ipAddress.getHostAddress()+"/"+topic).hashCode();
+        hashCode = (ipAddress.toString()+"/"+topic).hashCode();
     }
     
     public InetTopic(String hostName, String topic) throws UnknownHostException {
@@ -25,26 +25,26 @@ public class InetTopic {
     
     @Override
     public boolean equals(Object other) {
-        if (other instanceof InetTopic) {
+        if ((null!=other) && (other instanceof InetTopic)) {
             InetTopic o = (InetTopic) other;
-            return ipAddress.equals(o.ipAddress) && topic.equals(o.topic);            
+            return ipAddress.equals(o.ipAddress) && topic.equals(o.topic);                                  
         }
         return false;
     }    
     
     @Override
     public String toString() {
-        return ipAddress+"/"+topic;
+        return ipAddress.toString()+"/"+topic;
     }
 
     @Override
     public int hashCode() {
-        return hashCode;
+        return topic.hashCode();
     }   
     
-    protected int hashCode;
+    protected final int hashCode;
     
-    private InetAddress ipAddress;
-    private String topic;
+    private final InetAddress ipAddress;
+    private final String topic;
     
 }

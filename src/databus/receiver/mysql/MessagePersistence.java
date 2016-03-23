@@ -29,27 +29,26 @@ public class MessagePersistence extends MysqlReceiver{
     public void initialize(Properties properties) {
         super.initialize(properties);
         
-        String[] topics  = split(properties.getProperty("remoteTopic.topic"));
-        String[] beans = split(properties.getProperty("remoteTopic.bean"));
-        if ((null==topics) || (null==beans)) {
-            log.error("Topic or bean is null");
+        String[] keys  = split(properties.getProperty("bean.key"));
+        String[] beans = split(properties.getProperty("bean.class"));
+        if ((null==keys) || (null==beans)) {
+            log.error("Key or class is null in Bean");
             System.exit(1);
         }
-        if (topics.length != beans.length) {
+        if (keys.length != beans.length) {
             log.error("The number of topics is't equal to beans!");
             System.exit(1);
         }
         
-        int len = topics.length;
-        for(int i=0; i<len; i++) {
-            String[] parts = topics[i].split("/");
-            String key = parts[parts.length - 1];
+        int len = keys.length;
+        for(int i=0; i<len; i++) {            
+            String key = keys[i];
             String className = beans[i];
             try {                
                 Class<?> beanClass =  Class.forName(className);                
                 classesMap.put(key.trim(), beanClass);
             } catch (ClassNotFoundException e) {
-                log.error("Can't instantiate "+className+" for "+topics[i], e);
+                log.error("Can't instantiate "+className+" for "+keys[i], e);
             }
         }
     }

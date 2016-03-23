@@ -10,6 +10,8 @@ public interface Event{
     
     public String topic();
     
+    public String fullTopic();
+    
     public long time();
     
     public Event time(long time);

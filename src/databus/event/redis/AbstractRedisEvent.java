@@ -23,7 +23,7 @@ public abstract class AbstractRedisEvent extends AbstractEvent
 
     @Override
     public String topic() {
-        return source()+":"+type()+":"+key();
+        return "/"+source()+"/"+type()+"/"+key();
     }
 
     @Override

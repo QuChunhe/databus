@@ -27,6 +27,10 @@ public abstract class AbstractEvent implements Event{
         this.ipAddress = ipAddress;
         return this;
     }
+    
+    public String fullTopic() {
+        return ipAddress.getHostAddress() + topic();
+    }
 
     private InetAddress ipAddress;
     private long time;

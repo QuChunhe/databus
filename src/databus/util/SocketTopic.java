@@ -7,12 +7,11 @@ public class SocketTopic extends InetTopic {
     public SocketTopic(InetSocketAddress socketAddress, String topic) {
         super(socketAddress.getAddress(), topic);
         this.socketAddress = socketAddress;
-        hashCode =(socketAddress.toString() + topic).hashCode();
     }
 
     @Override
     public boolean equals(Object other) {
-        if (other instanceof SocketTopic) {
+        if ((null!=other) && (other instanceof SocketTopic)) {
             SocketTopic o = (SocketTopic) other;
             return super.equals(o) && (port()==o.port());            
         }
@@ -22,11 +21,6 @@ public class SocketTopic extends InetTopic {
     @Override
     public String toString() {
         return socketAddress.toString() + topic();
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
     
     public int port() {

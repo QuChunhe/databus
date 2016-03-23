@@ -12,19 +12,20 @@ import databus.core.Event;
 import databus.core.Joinable;
 import databus.core.Receiver;
 import databus.core.Startable;
-import databus.util.InetTopic;
 
 public class Subscriber implements Joinable, Startable{
 
     public Subscriber() {
-        receiversMap = new ConcurrentHashMap<InetTopic, Set<Receiver>>();
+        receiversMap = new ConcurrentHashMap<String, Set<Receiver>>();
     }
 
     public boolean receive(Event event) {
-        InetTopic remoteTopic = new InetTopic(event.ipAddress(), event.topic());
-        Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
+        Set<Receiver> receiversSet = receiversMap.get(event.fullTopic());
         if (null == receiversSet) {
-            log.warn(remoteTopic.toString() + " has't been subscribed!");
+            receiversSet = receiversMap.get(event.topic());
+        }
+        if (null == receiversSet) {
+            log.warn(event.fullTopic() + " has't been subscribed!");
             return false;
         } else {
             for (Receiver receiver : receiversSet) {
@@ -39,25 +40,25 @@ public class Subscriber implements Joinable, Startable{
         return true;
     }
 
-    public void register(InetTopic remoteTopic, Receiver receiver) {
-        Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
+    public void register(String topic, Receiver receiver) {
+        Set<Receiver> receiversSet = receiversMap.get(topic);
         if (null == receiversSet) {
             receiversSet = new CopyOnWriteArraySet<Receiver>();
-            receiversMap.put(remoteTopic, receiversSet);
+            receiversMap.put(topic, receiversSet);
         }
         receiversSet.add(receiver);
     }
 
-    public void withdraw(InetTopic remoteTopic, Receiver receiver) {
-        Set<Receiver> receiversSet = receiversMap.get(remoteTopic);
+    public void withdraw(String topic, Receiver receiver) {
+        Set<Receiver> receiversSet = receiversMap.get(topic);
         if (null == receiversSet) {
             log.error(
-                    "Don't contain the RemoteTopic " + remoteTopic.toString());
+                    "Don't contain the RemoteTopic " + topic.toString());
         } else {
             if (!receiversSet.remove(receiver)) {
                 log.error("Don't contain the receiver " + receiver.toString());
             } else if (receiversSet.size() == 0) {
-                remove(remoteTopic);
+                remove(topic);
             }
         }
     }
@@ -86,15 +87,15 @@ public class Subscriber implements Joinable, Startable{
         this.server = server;
     }
 
-    protected void remove(InetTopic remoteTopic) {
-        Set<Receiver> receivers = receiversMap.get(remoteTopic);
+    protected void remove(String topic) {
+        Set<Receiver> receivers = receiversMap.get(topic);
         if (null != receivers) {
             receivers.clear();
         }
-        receiversMap.remove(remoteTopic);
+        receiversMap.remove(topic);
     }
 
-    protected Map<InetTopic, Set<Receiver>> receiversMap;
+    protected Map<String, Set<Receiver>> receiversMap;
 
     private static Log log = LogFactory.getLog(Subscriber.class);
     

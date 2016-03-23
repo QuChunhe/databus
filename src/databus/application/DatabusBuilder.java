@@ -1,9 +1,7 @@
 package databus.application;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Properties;
 
@@ -23,7 +21,6 @@ import databus.network.Client;
 import databus.network.Publisher;
 import databus.network.Server;
 import databus.network.Subscriber;
-import databus.util.InetTopic;
 
 
 public class DatabusBuilder {
@@ -100,20 +97,10 @@ public class DatabusBuilder {
             Object object = loadInitialiableObject(sc);
             if ((null!=object) && (object instanceof Receiver)) {
                 Receiver receiver = (Receiver)object;
-                List<HierarchicalConfiguration> 
-                             topicsConfig = sc.configurationsAt("remoteTopic");                
-                for(HierarchicalConfiguration rc : topicsConfig) {
-                    String topic = normalizeTopic(rc.getString("topic"));
-                    String host = rc.getString("host");
-                    try {
-                        InetAddress address = InetAddress.getByName(host);
-                        InetTopic remoteTopic = new InetTopic(address, topic);
-                        subscriber.register(remoteTopic, receiver); 
-                    } catch (UnknownHostException e) {
-                        log.error("Cann't resolved "+host, e);
-                    }                    
+                String[] remoteTopics = sc.getStringArray("remoteTopic");                
+                for(String t : remoteTopics) {
+                    subscriber.register(t, receiver);                                    
                 }
-                
             } else {
                 log.error("Can't instantiate "+sc.toString());
             }
@@ -124,7 +111,7 @@ public class DatabusBuilder {
         List<HierarchicalConfiguration> 
              subscribersConfig = config.configurationsAt("publisher.subscriber");
         for(HierarchicalConfiguration c : subscribersConfig) {
-            String topic = normalizeTopic(c.getString("topic"));
+            String topic = c.getString("topic");
             String host = c.getString("host");
             int port = c.getInt("port");
             InetSocketAddress remoteAddress = new InetSocketAddress(host, port);
@@ -167,12 +154,7 @@ public class DatabusBuilder {
         
         return instance;
     }    
-    
-    private String normalizeTopic(String topic) {
-        topic = topic.startsWith("/") ? topic.substring(1) : topic;
-        topic = topic.replace('/', ':');
-        return topic;
-    }
+
     
     private static Log log = LogFactory.getLog(DatabusBuilder.class);
         
