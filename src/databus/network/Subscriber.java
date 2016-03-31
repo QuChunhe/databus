@@ -20,22 +20,14 @@ public class Subscriber implements Joinable, Startable{
     }
 
     public boolean receive(Event event) {
-        Set<Receiver> receiversSet = receiversMap.get(event.fullTopic());
-        if (null == receiversSet) {
-            receiversSet = receiversMap.get(event.topic());
-        }
-        if (null == receiversSet) {
+        Set<Receiver> fullTopicReceiversSet = receiversMap.get(event.fullTopic());
+        Set<Receiver> topicReceiversSet = receiversMap.get(event.topic());
+        if ((null==fullTopicReceiversSet) && (null==topicReceiversSet)){
             log.warn(event.fullTopic() + " has't been subscribed!");
             return false;
         } else {
-            for (Receiver receiver : receiversSet) {
-                try {
-                    receiver.receive(event);
-                } catch (Exception e) {
-                    String className = receiver.getClass().getName();
-                    log.error(className+" can't receive "+ event.toString(), e);
-                }
-            }
+            receive0(fullTopicReceiversSet, event);
+            receive0(topicReceiversSet, event);
         }
         return true;
     }
@@ -93,6 +85,20 @@ public class Subscriber implements Joinable, Startable{
             receivers.clear();
         }
         receiversMap.remove(topic);
+    }
+    
+    protected void receive0(Set<Receiver> receiversSet, Event event) {
+        if (null == receiversSet) {
+            return;
+        }
+        for (Receiver receiver : receiversSet) {
+            try {
+                receiver.receive(event);
+            } catch (Exception e) {
+                String className = receiver.getClass().getName();
+                log.error(className+" can't receive "+ event.toString(), e);
+            }
+        }
     }
 
     protected Map<String, Set<Receiver>> receiversMap;

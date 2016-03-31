@@ -69,23 +69,37 @@
             <class>adm.stats.PostbackInfoBean</class>
         </bean>
     </receiver>
+        <class>databus.receiver.mysql.MessagePersistence</class>
+        <remoteTopic>127.0.0.1/REDIS/LIST_MESSAGING/access</remoteTopic>
+        <remoteTopic>/REDIS/LIST_MESSAGING/postback</remoteTopic>
+        <mysql>
+            <url>jdbc:mysql://127.0.0.1:3308/test</url>
+            <username>root</username>
+            <password>quchunhe</password>
+            <driverClassName>com.mysql.jdbc.Driver</driverClassName>
+            <initialSize>1</initialSize>
+            <maxActive>10</maxActive>
+            <maxIdle>5</maxIdle>
+            <minIdle>0</minIdle>
+            <maxWait>50000</maxWait>
+            <defaultAutoCommit>true</defaultAutoCommit>
+            <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
+        </mysql>
+        <bean>
+            <key>access</key>
+            <class>adm.stats.AccessInfoBean</class>
+        </bean>
+        <bean>
+            <key>postback</key>
+            <class>adm.stats.PostbackInfoBean</class>
+        </bean>
+    </receiver>
+ 
     <receiver>
         <class>databus.receiver.DefaultReceiver</class>
-        <remoteTopic>
-            <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/REDIS/LIST_MESSAGING/access</topic>
-        </remoteTopic>
-        <remoteTopic>
-            <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/REDIS/LIST_MESSAGING/postback</topic>
-        </remoteTopic>
-        <remoteTopic>
-            <host>127.0.0.1</host>
-            <port>8765</port>
-            <topic>/MYSQL/1/test</topic>
-        </remoteTopic>
+        <remoteTopic>/REDIS/LIST_MESSAGING/access</remoteTopic>
+        <remoteTopic>/REDIS/LIST_MESSAGING/postback</remoteTopic>
+        <remoteTopic>/MYSQL/1/test</remoteTopic>
     </receiver>
 </subscriber>
 
