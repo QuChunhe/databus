@@ -14,7 +14,7 @@ public final class NetConstants {
     public final static ByteBuf DELIMITER_BUFFER = Unpooled.copiedBuffer(DELIMITER_STRING, 
                                                                          CharsetUtil.UTF_8);
     
-    public final static int CHANNEL_IDLE_DURATION_SECONDS = 10;
+    public final static int CHANNEL_IDLE_DURATION_SECONDS = 1000;
     
     public final static int MAX_FRAME_LENGTH = 102400;    
     

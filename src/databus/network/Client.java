@@ -96,8 +96,7 @@ public class Client {
         public void operationComplete(ChannelFuture future) throws Exception {
             if(future.isDone() && future.isSuccess()) {               
                 log.info("Message has sent : "+message);                    
-            } else {
-                
+            } else {                
                 log.error(message+" can't send", future.cause());
             }
             channelPool.release(future.channel());
@@ -117,17 +116,16 @@ public class Client {
         @Override
         public void operationComplete(Future<Channel> future) throws Exception {
             // This must be first avoid to throw Exception.
-            connectingLimiter.release();
+            connectingLimiter.release();            
             
-            Channel channel = future.get();
             if(future.isDone() && future.isSuccess()) {
+                Channel channel = future.get();
                 channel.pipeline()
                        .writeAndFlush(message + DELIMITER_STRING)
                        .addListener(new SendingListener(message, channelPool));
             } else {
-                channelPool.release(channel);
                 log.warn(message+" can't send because connection to " + 
-                         channel.remoteAddress().toString() + " is failed", future.cause());
+                         " is failed", future.cause());
             }                         
         }
 

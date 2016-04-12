@@ -29,7 +29,7 @@ public abstract class AbstractMysqlEvent extends AbstractEvent
 
     @Override
     public String topic() {
-        return "/"+source()+"/"+serverId()+":/"+database();
+        return "/"+source()+"/"+serverId()+"/"+database();
     }
     
     public AbstractMysqlEvent serverId(long serverId) {
