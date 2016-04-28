@@ -5,11 +5,15 @@ import java.net.SocketAddress;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationConverter;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.ConfigurationConverter;
+
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -31,7 +35,13 @@ public class DatabusBuilder {
 
     public DatabusBuilder(String configFile) {
         try {
-            config = new XMLConfiguration(configFile);
+            Parameters params = new Parameters();
+            FileBasedConfigurationBuilder<XMLConfiguration> builder =
+                    new FileBasedConfigurationBuilder<XMLConfiguration>(XMLConfiguration.class)
+                        .configure(params.xml()
+                        .setFileName(configFile));
+
+            config = builder.getConfiguration();
         } catch (ConfigurationException e) {
             log.error("Can't load "+configFile, e);
             System.exit(1);
@@ -63,9 +73,9 @@ public class DatabusBuilder {
     
     public BatchListener createListeners() {
         BatchListener batchListener = new BatchListener();
-        List<HierarchicalConfiguration> 
+        List<HierarchicalConfiguration<ImmutableNode>> 
              listenersConfig = config.configurationsAt("publisher.listener");
-        for(HierarchicalConfiguration c : listenersConfig) {
+        for(HierarchicalConfiguration<ImmutableNode> c : listenersConfig) {
             Object object = loadInitialiableObject(c);
             if ((null!=object) && (object instanceof Listener)) {
                 batchListener.add((Listener) object);
@@ -91,9 +101,9 @@ public class DatabusBuilder {
     }
     
     public void loadReceivers(Subscriber subscriber) {
-        List<HierarchicalConfiguration> 
+        List<HierarchicalConfiguration<ImmutableNode>> 
             subscribersConfig = config.configurationsAt("subscriber.receiver");
-        for(HierarchicalConfiguration sc : subscribersConfig) {
+        for(HierarchicalConfiguration<ImmutableNode> sc : subscribersConfig) {
             Object object = loadInitialiableObject(sc);
             if ((null!=object) && (object instanceof Receiver)) {
                 Receiver receiver = (Receiver)object;
@@ -108,9 +118,9 @@ public class DatabusBuilder {
     }
     
     public void loadSubscribers(Publisher publisher) {
-        List<HierarchicalConfiguration> 
+        List<HierarchicalConfiguration<ImmutableNode>> 
              subscribersConfig = config.configurationsAt("publisher.subscriber");
-        for(HierarchicalConfiguration c : subscribersConfig) {
+        for(HierarchicalConfiguration<ImmutableNode> c : subscribersConfig) {
             String topic = c.getString("topic");
             String host = c.getString("host");
             int port = c.getInt("port");
