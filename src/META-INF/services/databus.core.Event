@@ -5,11 +5,5 @@ databus.event.mysql.MysqlDeleteRow
 databus.event.mysql.MysqlUpdateRow
 
 
-#ManagementEvent
-databus.event.management.Withdrawal
-databus.event.management.Subscription
-databus.event.management.SubscribingConfirmation
-
-
 #RedisEvent
 databus.event.redis.RedisMessaging

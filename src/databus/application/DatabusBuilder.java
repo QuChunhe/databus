@@ -1,6 +1,5 @@
 package databus.application;
 
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Properties;
 
@@ -20,7 +19,6 @@ import databus.core.Initializable;
 import databus.core.Listener;
 import databus.core.Receiver;
 import databus.listener.BatchListener;
-import databus.network.NettyPublisher;
 import databus.network.Publisher;
 import databus.network.Subscriber;
 
@@ -113,18 +111,6 @@ public class DatabusBuilder {
             } else {
                 log.error("Can't instantiate "+sc.toString());
             }
-        }
-    }
-    
-    public void loadSubscribers(NettyPublisher publisher) {
-        List<HierarchicalConfiguration<ImmutableNode>> 
-             subscribersConfig = config.configurationsAt("publisher.subscriber");
-        for(HierarchicalConfiguration<ImmutableNode> c : subscribersConfig) {
-            String topic = c.getString("topic");
-            String host = c.getString("host");
-            int port = c.getInt("port");
-            InetSocketAddress remoteAddress = new InetSocketAddress(host, port);
-            publisher.subscribe(topic, remoteAddress);
         }
     }
 

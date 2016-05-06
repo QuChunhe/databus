@@ -64,7 +64,7 @@ public class KafkaPublisher implements Publisher{
     }
     
     private static Log log = LogFactory.getLog(KafkaPublisher.class);
-    private static EventParser eventParser = new EventParser();
+    private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaProducer<Long, String> producer;
     private InetAddress localAddress = null;

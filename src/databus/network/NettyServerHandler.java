@@ -62,7 +62,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     }
         
     private static Log log = LogFactory.getLog(NettyServerHandler.class);
-    private static EventParser eventParser = new EventParser();
+    private static JsonEventParser eventParser = new JsonEventParser();
     
     private NettySubscriber subscriber;
 }

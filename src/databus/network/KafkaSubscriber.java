@@ -76,7 +76,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     }
     
     private static Log log = LogFactory.getLog(KafkaSubscriber.class);
-    private static EventParser eventParser = new EventParser();
+    private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaConsumer<Long, String> consumer;
 

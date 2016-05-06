@@ -38,7 +38,7 @@ public class NettyClient {
     public NettyClient(int threadPoolSize, int connectionsPerThread, int connectingListenersPerThread) {
         group = new NioEventLoopGroup(threadPoolSize);        
         channelPoolMap = new NettyChannelPoolMap(group, threadPoolSize * connectionsPerThread);
-        eventParser = new EventParser();
+        eventParser = new JsonEventParser();
         connectingLimiter = new Semaphore(connectingListenersPerThread * threadPoolSize);
     }
 
@@ -137,6 +137,6 @@ public class NettyClient {
      
     private EventLoopGroup group;
     private NettyChannelPoolMap channelPoolMap;    
-    private EventParser eventParser;
+    private JsonEventParser eventParser;
     private Semaphore connectingLimiter;
 }
