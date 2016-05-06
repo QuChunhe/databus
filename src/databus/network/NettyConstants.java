@@ -5,7 +5,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.compression.ZlibWrapper;
 import io.netty.util.CharsetUtil;
 
-public final class NetConstants {
+public final class NettyConstants {
     
     public final static ZlibWrapper DEFAULT_ZIP = ZlibWrapper.GZIP;
     

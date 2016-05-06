@@ -1,7 +1,6 @@
 package databus.application;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.List;
 import java.util.Properties;
 
@@ -21,9 +20,8 @@ import databus.core.Initializable;
 import databus.core.Listener;
 import databus.core.Receiver;
 import databus.listener.BatchListener;
-import databus.network.Client;
+import databus.network.NettyPublisher;
 import databus.network.Publisher;
-import databus.network.Server;
 import databus.network.Subscriber;
 
 
@@ -49,24 +47,39 @@ public class DatabusBuilder {
     }
     
     public Publisher createPublisher() {
-        int threadPoolSize = getIntValue("publisher.client.threadPoolSize", 1); 
-        int connectionsPerThread = getIntValue("publisher.client.connectionsPerThread", 10);
-        int connectingListenersPerThread 
-                          = getIntValue("publisher.client.connectingListenersPerThread", 256);
-        
-        Client client = new Client(threadPoolSize, 
-                                   connectionsPerThread, 
-                                   connectingListenersPerThread);
-        Publisher publisher = new Publisher(client);
-        loadSubscribers(publisher);
+        String className = config.getString("publisher.class").trim();
+        if ((null==className) || (className.length()==0)) {
+            log.error("pulisher.class is null!");
+            System.exit(1);
+        }
+
+        Publisher publisher = null;
+        try {
+            publisher = (Publisher)Class.forName(className).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            log.error("Can't initiate Publisher class : "+className, e);
+            System.exit(1);
+        }
+        Configuration pubConfig = config.configurationAt("publisher");
+        publisher.initialize(ConfigurationConverter.getProperties(pubConfig));
         return publisher;
     }
     
-    public Subscriber createSubscriber() {
-        Subscriber subscriber = new Subscriber();
-        SocketAddress localAddress = serverAddress();
-        Server server = new Server(localAddress, serverThreadPoolSize());
-        server.setSubscriber(subscriber);
+    public Subscriber createSubscriber() { 
+        String className = config.getString("subscriber.class").trim();
+        if ((null==className) || (className.length()==0)) {
+            log.error("subscriber.class is null!");
+            System.exit(1);
+        }
+        Subscriber subscriber = null;
+        try {
+            subscriber = (Subscriber) Class.forName(className).newInstance();
+        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+            log.error("Can't initiate Subscriber class : "+className, e);
+            System.exit(1);
+        }
+        Configuration subConfig = config.configurationAt("subscriber");
+        subscriber.initialize(ConfigurationConverter.getProperties(subConfig));
         loadReceivers(subscriber);
         return subscriber;
     }
@@ -86,20 +99,6 @@ public class DatabusBuilder {
         return batchListener;
     }
     
-    public SocketAddress serverAddress() {
-        String host = config.getString("subscriber.server.host");
-        int port = config.getInt("subscriber.server.port");
-        return new InetSocketAddress(host, port);
-    }
-    
-    public int serverThreadPoolSize() {
-        return getIntValue("subscriber.server.threadPoolSize", 1);
-    }
-    
-    public int clientThreadPoolSize() {
-        return getIntValue("publisher.client.threadPoolSize", 1);
-    }
-    
     public void loadReceivers(Subscriber subscriber) {
         List<HierarchicalConfiguration<ImmutableNode>> 
             subscribersConfig = config.configurationsAt("subscriber.receiver");
@@ -117,7 +116,7 @@ public class DatabusBuilder {
         }
     }
     
-    public void loadSubscribers(Publisher publisher) {
+    public void loadSubscribers(NettyPublisher publisher) {
         List<HierarchicalConfiguration<ImmutableNode>> 
              subscribersConfig = config.configurationsAt("publisher.subscriber");
         for(HierarchicalConfiguration<ImmutableNode> c : subscribersConfig) {
@@ -128,17 +127,7 @@ public class DatabusBuilder {
             publisher.subscribe(topic, remoteAddress);
         }
     }
-    
-    private int getIntValue(String key, int defaultValue) {
-        String valueString = config.getString(key);
-        int value = defaultValue;
-        if (null != valueString) {           
-            value = Integer.parseInt(valueString);
-        } else {
-            log.warn(key+" hasn't value");
-        }
-        return value;
-    }
+
     
     private Object loadInitialiableObject(Configuration c) {
         String className = c.getString("class");

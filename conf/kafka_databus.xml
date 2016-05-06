@@ -3,12 +3,16 @@
 <configuration>
 
 <publisher> 
-    <class>databus.network.KafkaPublisher</class>
-    <kafka>
-        <servers>127.0.0.1:9092</servers>
-        <acks>1</acks>
-        <localAddress>127.0.0.1</localAddress>
-    </kafka>
+    <class>databus.network.NettyPublisher</class>
+    <netty>
+        <threadPoolSize>4</threadPoolSize>
+        <connectionsPerThread>10</connectionsPerThread>
+        <connectingListenersPerThread>256</connectingListenersPerThread>
+        <subscriber>
+            <topic>/MYSQL/1/test</topic>
+            <host>127.0.0.1:8765</host>
+        </subscriber>
+    </netty>
 
     <listener>
         <class>databus.listener.mysql.MysqlListener</class>
@@ -20,21 +24,21 @@
             <serverId>1</serverId>
             <permittedTables>test.user</permittedTables>
             <binlogFileName>master-bin.000079</binlogFileName>
-            <position>820</position>
+            <position>120</position>
         </mysql>
     </listener> 
 </publisher>
 
 <subscriber>
-    <class>databus.network.KafkaSubscriber</class>
-    <kafka>
-        <servers>127.0.0.1:9092</servers>
-        <groupId>127.0.0.1</groupId>
-    </kafka> 
+    <class>databus.network.NettySubscriber</class>
+    <netty>
+        <host>127.0.0.1:8765</host>
+        <threadPoolSize>2</threadPoolSize>
+    </netty> 
   
     <receiver>
         <class>databus.receiver.redis.RedisSlave4Mysql</class>
-        <remoteTopic>127.0.0.1/MYSQL/1/test</remoteTopic>
+        <remoteTopic>/MYSQL/1/test</remoteTopic>
         <redis>
             <host>127.0.0.1</host>
             <port>6379</port>

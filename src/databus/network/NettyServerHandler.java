@@ -10,10 +10,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 
-public class ServerHandler extends ChannelInboundHandlerAdapter {
-    public ServerHandler(Publisher publisher, Subscriber subscriber) {
+public class NettyServerHandler extends ChannelInboundHandlerAdapter {
+    public NettyServerHandler(NettySubscriber subscriber) {
         super();
-        this.publisher = publisher;
         this.subscriber = subscriber;
     }
 
@@ -34,8 +33,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, 
-                                Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         String remoteAddress = ctx.channel().remoteAddress().toString();
         String localAddress = ctx.channel().localAddress().toString();
         log.error("Connection ("+localAddress+", "+remoteAddress+") has error", cause);
@@ -54,27 +52,17 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
         }
         
         event.ipAddress(address.getAddress());
-        try {
-            if (null != subscriber) {
-                subscriber.receive(event);
-            }
+        try {         
+            subscriber.receive(event);
         } catch (Exception e) {
             log.error(subscriber.getClass().getName()+" can't receive event :" 
                       + event.toString(), e);           
         }
-        try {
-            if (null != publisher) {
-                publisher.receive(event);
-            }
-        } catch (Exception e) {
-            log.error(publisher.getClass().getName()+" can't receive event :" 
-                      + event.toString(), e);            
-        }
+
     }
         
-    private static Log log = LogFactory.getLog(ServerHandler.class);
+    private static Log log = LogFactory.getLog(NettyServerHandler.class);
     private static EventParser eventParser = new EventParser();
     
-    private Publisher publisher;
-    private Subscriber subscriber;
+    private NettySubscriber subscriber;
 }

@@ -9,8 +9,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -22,20 +20,8 @@ public class EventParser {
     
     public EventParser() {
         loadEventClass();
-        gson = new GsonBuilder().enableComplexMapKeySerialization()
-                                .serializeNulls()
-                                .setDateFormat(DateFormat.LONG)
-                                .addSerializationExclusionStrategy(new ExclusionStrategy() {
-                                    @Override
-                                    public boolean shouldSkipClass(Class<?> clazz) {
-                                        return false;
-                                    }
-                
-                                    @Override
-                                    public boolean shouldSkipField(FieldAttributes f) {
-                                        return "ipAddress".equals(f.getName());
-                                    }                                    
-                                })
+        gson = new GsonBuilder().enableComplexMapKeySerialization() 
+                                .setDateFormat(DateFormat.LONG)                              
                                 .create();        
     }
     
@@ -50,15 +36,15 @@ public class EventParser {
         return builder.toString();
     }
     
-    public Event toEvent(String frame) {
-        if (null == frame) {
+    public Event toEvent(String message) {
+        if (null == message) {
             log.error("Received message is null!");
             return null;
         }
         
-        String[] parts = SPLIT_PATTERN.split(frame, 2);
+        String[] parts = SPLIT_PATTERN.split(message, 2);
         if (parts.length != 2) {
-            log.error(frame + " cannot be splitted by '='!");
+            log.error(message + " cannot be splitted by '='!");
             return null;
         }
         

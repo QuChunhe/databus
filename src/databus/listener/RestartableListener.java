@@ -10,7 +10,7 @@ import databus.network.Publisher;
 public abstract class RestartableListener extends AbstractListener implements Restartable {
 
     public RestartableListener(Publisher publisher) {
-        super(publisher);        
+        setPublisher(publisher);     
     }
     
     public RestartableListener() {

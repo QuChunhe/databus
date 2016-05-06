@@ -5,9 +5,9 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 
-public class IdleConnectionHandler extends ChannelDuplexHandler {    
+public class NettyIdleConnectionHandler extends ChannelDuplexHandler {    
     
-    public IdleConnectionHandler() {
+    public NettyIdleConnectionHandler() {
         super();
     }
 

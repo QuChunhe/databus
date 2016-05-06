@@ -5,10 +5,6 @@ import databus.core.Listener;
 import databus.network.Publisher;
 
 public abstract class AbstractListener implements Listener {
-        
-    public AbstractListener(Publisher publisher) {
-        this.publisher = publisher;        
-    }
     
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;

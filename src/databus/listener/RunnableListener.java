@@ -8,7 +8,7 @@ import databus.network.Publisher;
 public abstract class RunnableListener extends AbstractListener implements Runnable {    
         
     public RunnableListener(Publisher publisher, String name) {
-        super(publisher);
+        setPublisher(publisher);
         runner = new Thread(this, name);
         doesRun = false;
     }

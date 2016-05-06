@@ -10,14 +10,14 @@ import io.netty.channel.pool.ChannelPoolHandler;
 import io.netty.channel.pool.FixedChannelPool;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-public class DatabusChannelPoolMap
+public class NettyChannelPoolMap
                        extends AbstractChannelPoolMap<SocketAddress, FixedChannelPool> {
 
-    public DatabusChannelPoolMap(EventLoopGroup group) {
+    public NettyChannelPoolMap(EventLoopGroup group) {
         this(group, 1);
     }
 
-    public DatabusChannelPoolMap(EventLoopGroup group, int maxConnections) {
+    public NettyChannelPoolMap(EventLoopGroup group, int maxConnections) {
         super();
         this.maxConnections = maxConnections;
         this.group = group;
@@ -40,5 +40,5 @@ public class DatabusChannelPoolMap
 
     private int maxConnections;
     private EventLoopGroup group;
-    private ChannelPoolHandler databusChannelPoolHandler = new DatabusChannelPoolHandler();
+    private ChannelPoolHandler databusChannelPoolHandler = new NettyChannelPoolHandler();
 }

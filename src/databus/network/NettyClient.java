@@ -17,27 +17,27 @@ import io.netty.util.concurrent.GenericFutureListener;
 
 import databus.core.Event;
 
-import static databus.network.NetConstants.DELIMITER_STRING;
-import static databus.network.NetConstants.DEFAULT_CONNECTING_LISTENERS_PER_THREAD;
-import static databus.network.NetConstants.DEFAULT_CONNECTIONS_PER_THREAD;
+import static databus.network.NettyConstants.DELIMITER_STRING;
+import static databus.network.NettyConstants.DEFAULT_CONNECTING_LISTENERS_PER_THREAD;
+import static databus.network.NettyConstants.DEFAULT_CONNECTIONS_PER_THREAD;
 
-public class Client {
+public class NettyClient {
 
-    public Client() {
+    public NettyClient() {
         this(1);
     }
     
-    public Client(int threadPoolSize) {
+    public NettyClient(int threadPoolSize) {
         this(threadPoolSize, DEFAULT_CONNECTIONS_PER_THREAD);
     }
     
-    public Client(int threadPoolSize, int connectionsPerThread) {
+    public NettyClient(int threadPoolSize, int connectionsPerThread) {
         this(threadPoolSize, connectionsPerThread, DEFAULT_CONNECTING_LISTENERS_PER_THREAD);
     }
     
-    public Client(int threadPoolSize, int connectionsPerThread, int connectingListenersPerThread) {
+    public NettyClient(int threadPoolSize, int connectionsPerThread, int connectingListenersPerThread) {
         group = new NioEventLoopGroup(threadPoolSize);        
-        channelPoolMap = new DatabusChannelPoolMap(group, threadPoolSize * connectionsPerThread);
+        channelPoolMap = new NettyChannelPoolMap(group, threadPoolSize * connectionsPerThread);
         eventParser = new EventParser();
         connectingLimiter = new Semaphore(connectingListenersPerThread * threadPoolSize);
     }
@@ -133,10 +133,10 @@ public class Client {
         private ChannelPool channelPool;
     }
     
-    private static Log log = LogFactory.getLog(Client.class);  
+    private static Log log = LogFactory.getLog(NettyClient.class);  
      
     private EventLoopGroup group;
-    private DatabusChannelPoolMap channelPoolMap;    
+    private NettyChannelPoolMap channelPoolMap;    
     private EventParser eventParser;
     private Semaphore connectingLimiter;
 }

@@ -18,11 +18,11 @@ import org.apache.commons.logging.LogFactory;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.listener.RestartableListener;
-import databus.network.Publisher;
+import databus.network.NettyPublisher;
 
 public class MysqlListener extends RestartableListener{  
     
-    public MysqlListener(Publisher publisher, Properties properties) {
+    public MysqlListener(NettyPublisher publisher, Properties properties) {
         super(publisher);
         initialize(properties);        
     }

@@ -23,15 +23,15 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
-import static databus.network.NetConstants.*;
+import static databus.network.NettyConstants.*;
 
-public class Server implements Startable{    
+public class NettyServer implements Startable{    
     
-    public Server(SocketAddress localAddress) {
+    public NettyServer(SocketAddress localAddress) {
         this(localAddress, 1);
     }
     
-    public Server(SocketAddress localAddress, int workerPoolSize) {
+    public NettyServer(SocketAddress localAddress, int workerPoolSize) {
         this.localAddress = localAddress;
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup(workerPoolSize);
@@ -50,7 +50,7 @@ public class Server implements Startable{
                             public void run() {
                                 run0();               
                             }                
-                         }, "Databus Server");
+                         }, "Netty Server");
             thread.start();
         }
     }
@@ -65,9 +65,8 @@ public class Server implements Startable{
         }
     }
     
-    public Server setSubscriber(Subscriber subscriber) {
+    public NettyServer setSubscriber(NettySubscriber subscriber) {
         this.subscriber = subscriber;
-        subscriber.setServer(this);
         return this;
     }
     
@@ -85,7 +84,7 @@ public class Server implements Startable{
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
                             p.addLast(new IdleStateHandler(0, 0, CHANNEL_IDLE_DURATION_SECONDS))
-                             .addLast(new IdleConnectionHandler())
+                             .addLast(new NettyIdleConnectionHandler())
                              .addLast(ZlibCodecFactory.newZlibDecoder(DEFAULT_ZIP))
                              .addLast(new DelimiterBasedFrameDecoder(
                                               MAX_FRAME_LENGTH, DELIMITER_BUFFER
@@ -93,7 +92,7 @@ public class Server implements Startable{
                                      )
                              .addLast(stringEncoder)
                              .addLast(stringDecoder)
-                             .addLast(new ServerHandler(publisher, subscriber));
+                             .addLast(new NettyServerHandler(subscriber));
                         }                         
                      });
             
@@ -107,10 +106,9 @@ public class Server implements Startable{
         }
     }
     
-    private static Log log = LogFactory.getLog(Server.class);
+    private static Log log = LogFactory.getLog(NettyServer.class);
     
-    private Subscriber subscriber;
-    private Publisher publisher;
+    private NettySubscriber subscriber;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private SocketAddress localAddress;
