@@ -8,12 +8,13 @@ import databus.listener.BatchListener;
 import databus.network.Publisher;
 import databus.network.Subscriber;
 
-public class BothStartup {
+public class BothStartup extends Startup {
 
     public static void main(String[] args) throws InterruptedException {                
         log.info("******************************************************************************");
         log.info("BothStartup will begin!");
         
+        savePid("data/pid");
         String configFileName = "conf/databus.xml";
         if (args.length > 0) {
             configFileName = args[0];
