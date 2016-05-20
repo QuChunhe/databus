@@ -22,10 +22,10 @@ public class BothStartup {
         Subscriber subscriber = builder.createSubscriber() ;
         Publisher publisher = builder.createPublisher();       
         BatchListener listeners = builder.createListeners();
-        listeners.setPublisher(publisher);         
-
+ 
         subscriber.start();
-        listeners.start();        
+        listeners.setPublisher(publisher);         
+        listeners.start();   
         
         try {
             subscriber.join();

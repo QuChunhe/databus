@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,7 +47,14 @@ public class KafkaSubscriber extends AbstractSubscriber {
         configs.put("key.deserializer", "org.apache.kafka.common.serialization.LongDeserializer");
         configs.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         
-        consumer = new KafkaConsumer<Long, String>(configs);        
+        consumer = new KafkaConsumer<Long, String>(configs); 
+        
+        String maxThreadPoolSizeValue = properties.getProperty("kafka.maxThreadPoolSize");
+        int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
+                                         MAX_THREAD_POOL_SIZE : 
+                                         Integer.parseInt(maxThreadPoolSizeValue);
+        executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 100, TimeUnit.SECONDS, 
+                                          new LinkedBlockingQueue<Runnable>());
     }
 
     @Override
@@ -59,12 +70,16 @@ public class KafkaSubscriber extends AbstractSubscriber {
             try {
                 ConsumerRecords<Long, String> records = consumer.poll(3600);
                 if ((null != records) && (!records.isEmpty())) {
-                    System.out.println(records.count());
                     for(TopicPartition p : records.partitions()) {
                         for(ConsumerRecord<Long, String> r : records.records(p)) {                         
                             Event event = eventParser.toEvent(r.value());
                             log.info(event.toString());
-                            receive(event);
+                            executor.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    receive(event);                                    
+                                }                                 
+                            });                            
                         }
                     }
                 }
@@ -75,9 +90,12 @@ public class KafkaSubscriber extends AbstractSubscriber {
         
     }
     
+    private static final int MAX_THREAD_POOL_SIZE = 1;
+    
     private static Log log = LogFactory.getLog(KafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaConsumer<Long, String> consumer;
+    private Executor executor;
 
 }
