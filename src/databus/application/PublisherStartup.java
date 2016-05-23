@@ -6,11 +6,13 @@ import org.apache.commons.logging.LogFactory;
 import databus.listener.BatchListener;
 import databus.network.Publisher;
 
-public class PublisherStartup {
+public class PublisherStartup extends Startup {
 
     public static void main(String[] args) {
         log.info("******************************************************************************");
         log.info("PublisherStartup will begin!");
+        
+        savePid("data/pid");
         
         String configFileName = "conf/publisher.xml";
         if (args.length > 0) {

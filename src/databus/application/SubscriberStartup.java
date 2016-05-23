@@ -6,11 +6,13 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.network.Subscriber;
 
-public class SubscriberStartup {
+public class SubscriberStartup extends Startup {
 
     public static void main(String[] args) { 
         log.info("******************************************************************************");
         log.info("SubscriberStartup will begin!");
+        
+        savePid("data/pid");
         
         String configFileName = "conf/subscriber.xml";
         if (args.length > 0) {
