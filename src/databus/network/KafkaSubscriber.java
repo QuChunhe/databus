@@ -50,12 +50,14 @@ public class KafkaSubscriber extends AbstractSubscriber {
         
         consumer = new KafkaConsumer<Long, String>(configs); 
         
-        String maxThreadPoolSizeValue = properties.getProperty("kafka.maxThreadPoolSize");
-        int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
-                                         MAX_THREAD_POOL_SIZE : 
-                                         Integer.parseInt(maxThreadPoolSizeValue);
-        executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 100, TimeUnit.SECONDS, 
-                                          new LinkedBlockingQueue<Runnable>());
+        if (null == executor) {
+            String maxThreadPoolSizeValue = properties.getProperty("kafka.maxThreadPoolSize");
+            int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
+                                    MAX_THREAD_POOL_SIZE : 
+                                    Integer.parseInt(maxThreadPoolSizeValue);
+            executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 100, TimeUnit.SECONDS, 
+                                              new LinkedBlockingQueue<Runnable>());
+        }
         
         String  fromBeginningValue = properties.getProperty("kafka.fromBeginning");
         if (null != fromBeginningValue) {
@@ -117,7 +119,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaConsumer<Long, String> consumer;
-    private Executor executor;
+    private Executor executor = null;
     private boolean doesPollFromBeginning = true;
     private long beginTime = 0;
 }

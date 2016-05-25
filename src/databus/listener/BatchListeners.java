@@ -8,9 +8,9 @@ import databus.core.Joinable;
 import databus.core.Listener;
 import databus.network.Publisher;
 
-public class BatchListener implements Listener, Joinable{    
+public class BatchListeners implements Listener, Joinable{    
 
-    public BatchListener() {
+    public BatchListeners() {
         listeners = new LinkedList<Listener>();
         publisher = null;
     }

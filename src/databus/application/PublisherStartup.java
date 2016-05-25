@@ -3,7 +3,7 @@ package databus.application;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.listener.BatchListener;
+import databus.listener.BatchListeners;
 import databus.network.Publisher;
 
 public class PublisherStartup extends Startup {
@@ -21,7 +21,7 @@ public class PublisherStartup extends Startup {
         DatabusBuilder builder = new DatabusBuilder(configFileName);  
      
         Publisher publisher = builder.createPublisher();     
-        BatchListener listener = builder.createListeners();
+        BatchListeners listener = builder.createListeners();
         listener.setPublisher(publisher);
         listener.start();       
         

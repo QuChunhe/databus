@@ -18,7 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Initializable;
 import databus.core.Listener;
 import databus.core.Receiver;
-import databus.listener.BatchListener;
+import databus.listener.BatchListeners;
 import databus.network.Publisher;
 import databus.network.Subscriber;
 
@@ -82,8 +82,8 @@ public class DatabusBuilder {
         return subscriber;
     }
     
-    public BatchListener createListeners() {
-        BatchListener batchListener = new BatchListener();
+    public BatchListeners createListeners() {
+        BatchListeners batchListener = new BatchListeners();
         List<HierarchicalConfiguration<ImmutableNode>> 
              listenersConfig = config.configurationsAt("publisher.listener");
         for(HierarchicalConfiguration<ImmutableNode> c : listenersConfig) {

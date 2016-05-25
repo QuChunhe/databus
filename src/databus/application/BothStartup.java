@@ -4,7 +4,7 @@ package databus.application;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.listener.BatchListener;
+import databus.listener.BatchListeners;
 import databus.network.Publisher;
 import databus.network.Subscriber;
 
@@ -22,7 +22,7 @@ public class BothStartup extends Startup {
         DatabusBuilder builder = new DatabusBuilder(configFileName);
         Subscriber subscriber = builder.createSubscriber() ;
         Publisher publisher = builder.createPublisher();       
-        BatchListener listeners = builder.createListeners();
+        BatchListeners listeners = builder.createListeners();
  
         subscriber.start();
         listeners.setPublisher(publisher);         
