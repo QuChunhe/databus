@@ -19,6 +19,7 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.listener.RestartableListener;
 import databus.network.NettyPublisher;
+import databus.util.Backup;
 
 public class MysqlListener extends RestartableListener{  
     
@@ -72,6 +73,10 @@ public class MysqlListener extends RestartableListener{
         String host = properties.getProperty("mysql.host", "127.0.0.1");
         int port = Integer.valueOf(properties.getProperty("mysql.port", "3306"));
         int serverId = Integer.valueOf(properties.getProperty("mysql.serverId", "1"));
+        
+        recordedId = "MysqlListener-" + host + "-" + serverId;
+        loadBackup(properties);
+        
         String binlogFileName = properties.getProperty("mysql.binlogFileName", "master-bin.000001");
         int nextPosition = Integer.valueOf(properties.getProperty("mysql.position", "1"));
         openRelicator = new DatabusOpenReplicator();
@@ -91,7 +96,13 @@ public class MysqlListener extends RestartableListener{
         ds.setPassword(password);
         ds.setServerName(host);
         ds.setPort(port);
-        loadSchema(ds);       
+        loadSchema(ds);
+        
+        
+        Backup.instance()
+              .store(recordedId, 
+                     "mysql.binlogFileName", binlogFileName,
+                     "mysql.position", Long.toString(nextPosition));
     }    
     
     public boolean doesPermit(String fullTableName) {
@@ -100,10 +111,18 @@ public class MysqlListener extends RestartableListener{
 
     public void setNextPosition(long nextPosition) {
         openRelicator.setBinlogPosition(nextPosition);
+        Backup.instance()
+              .store(recordedId,
+                     "mysql.position", Long.toString(nextPosition));
     }
     
-    public void setBinlogFileName(String binlogFileName) {
-        openRelicator.setBinlogFileName(binlogFileName);;
+    public void setBinlog(String binlogFileName, long nextPosition) {
+        openRelicator.setBinlogFileName(binlogFileName);
+        openRelicator.setBinlogPosition(nextPosition);
+        Backup.instance()
+              .store(recordedId, 
+                     "mysql.binlogFileName", binlogFileName,
+                     "mysql.position", Long.toString(nextPosition));
     }
     
     protected String[] getColumns(String fullName) {
@@ -128,6 +147,21 @@ public class MysqlListener extends RestartableListener{
         permittedTableSet = new HashSet<String>();
         for(String t : tables) {
             permittedTableSet.add(t.trim().toLowerCase());
+        }
+    }
+    
+    private void loadBackup(Properties properties) {
+        Properties backup = Backup.instance().restore(recordedId);
+        if (null == backup) {
+            return;
+        }
+        String backupBinfileName =  backup.getProperty("mysql.binlogFileName");
+        if (null != backupBinfileName) {
+            properties.setProperty("mysql.binlogFileName", backupBinfileName);
+        }
+        String backupPosition = backup.getProperty("mysql.position");
+        if (null != backupPosition) {
+            properties.setProperty("mysql.position", backupPosition);
         }
     }
     
@@ -178,4 +212,6 @@ public class MysqlListener extends RestartableListener{
     private Map<String, ColumnAttribute[]> attributesMap;
     private Map<String, Set<String>> primaryKeysMap;
     private Set<String> permittedTableSet;
+    
+    private String recordedId;
 }

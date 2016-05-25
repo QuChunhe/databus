@@ -1,13 +1,11 @@
 package databus.util;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,82 +13,71 @@ import org.apache.commons.logging.LogFactory;
 public class Backup {
     
     public static Backup instance() {
+        if (null == instance) {
+            synchronized(Backup.class) {
+                if (null == instance) {
+                    instance = new Backup();
+                }
+            }
+        }
         return instance;
+    }    
+ 
+    public void store(String recordedId, String...recordedPairs) {
+        int len = recordedPairs.length;
+        if ((len%2) != 0) {
+            log.error("recoredPairs must be even!");
+            return;
+        }
+        Recorder recorder = getRecorder(recordedId);
+        if (null == recorder) {
+            log.error("Can't record : "+Arrays.toString(recordedPairs));
+            return;
+        }
+        Properties properties = recorder.loadProperties();
+        for(int i=0; i<len; i+=2) {
+            properties.put(recordedPairs[i], recordedPairs[i+1]);
+        }
+        recorder.saveProperties(properties);                
     }
     
-    public void store(String name, Object copy) {
-        String fileName = BACKUP_DIR_NAME+"/"+name+".data";
-        File bacupFile = new File(fileName);
-        if (!bacupFile.exists()) {
+    public Properties restore(String recordedId) {
+        Recorder recorder = getRecorder(recordedId);
+        if (null != recorder) {
+            return recorder.loadProperties();
+        }
+        return null;
+    }
+    
+    
+    private String getFileName(String recordedId) {
+        recordedId = recordedId.replace('.', '_');
+        recordedId = recordedId.replace('/', '-');
+        return BACKUP_DIR_NAME + recordedId+"_backup.data";
+    }
+    
+    private Recorder getRecorder(String recordedId) {
+        Recorder recorder = recorders.get(recordedId);
+        if (null == recorder) {
             try {
-                bacupFile.createNewFile();
+                recorder = new Recorder(getFileName(recordedId));
+                recorders.put(recordedId, recorder);
             } catch (IOException e) {
-                log.error("Can't create file "+fileName);
+                log.error("Can't create Recorder for " + recordedId);
             }
         }
-        FileOutputStream fileStream = null;        
-        try {
-            fileStream = new FileOutputStream(bacupFile);
-            ObjectOutputStream objectStream = new ObjectOutputStream(fileStream);
-            objectStream.writeObject(copy);
-            objectStream.flush();
-            objectStream.close();
-        } catch (FileNotFoundException e) {
-            log.error(fileName + " does't exist", e);
-        } catch(IOException e){
-            log.error("Can't write "+fileName,e);
-        } finally {
-            close(fileStream);
-        }
+        return recorder;
     }
     
-    
-    @SuppressWarnings("unchecked")
-    public <T> T restore(String name, T t) {
-        String fileName = BACKUP_DIR_NAME+"/"+name+".data";
-        File backupFile = new File(fileName);
-        if (!backupFile.exists()) {
-            log.info(name+" has't store");
-            return null;
-        }
-        FileInputStream fileStream = null;
-        T copy = null;
-        try {
-            fileStream = new FileInputStream(backupFile);
-            ObjectInputStream objectStream = new ObjectInputStream(fileStream);
-            Object c = objectStream.readObject();
-            if (t.getClass().isInstance(c)) {
-                copy = (T) c;
-            } else {
-                log.error(c.getClass().getName()+" can't cast to "+
-                          t.getClass().getName());
-            }
-            objectStream.close();
-        } catch (IOException e) {
-            log.error("Can't read " + t.getClass().getSimpleName() + " object" +
-                      " from " + fileName);
-        } catch(ClassNotFoundException e) {
-            log.error("Can't find class " + t.getClass().getSimpleName() +
-                      " info in "+fileName);
-        } finally {
-            close(fileStream);
-        }
-        
-        return copy;
-    }
-
-    private void close (Closeable io) {
-        try {
-            if (null != io) {
-               io.close(); 
-            }            
-        } catch (IOException e) {
-            log.error("Can't close "+io.toString(),e);
-        }
-    }
-    
-    private static final String BACKUP_DIR_NAME = "data";
+    private static final String BACKUP_DIR_NAME = "data/";
     
     private static Log log = LogFactory.getLog(Backup.class);
-    private static Backup instance = new Backup();
+    
+    private static  Backup instance = null;    
+    
+    private Backup() {
+        recorders = new ConcurrentHashMap<String, Recorder>();
+    }
+    
+    private Map<String, Recorder> recorders;
 }

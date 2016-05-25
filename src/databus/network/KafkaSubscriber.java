@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,40 +56,60 @@ public class KafkaSubscriber extends AbstractSubscriber {
                                          Integer.parseInt(maxThreadPoolSizeValue);
         executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 100, TimeUnit.SECONDS, 
                                           new LinkedBlockingQueue<Runnable>());
+        
+        String  fromBeginningValue = properties.getProperty("kafka.fromBeginning");
+        if (null != fromBeginningValue) {
+            doesPollFromBeginning = Boolean.parseBoolean(fromBeginningValue);
+        }
+        
+        String beginTimeValue = properties.getProperty("kafka.beginTime");
+        if (null != beginTimeValue) {
+            beginTime = Long.parseUnsignedLong(beginTimeValue);
+        }
     }
 
     @Override
     protected void run0() {
         LinkedList<String> topics = new LinkedList<String>();
-        for(String t : receiversMap.keySet()) {
-            log.info(t.replace('/', '-'));
-            topics.add(t.replace('/', '-'));
+        for(String t : receiversMap.keySet()) {;
+            topics.add(t.replace('/', '-')
+                        .replace(':', '-')
+                        .replace('_', '-'));
+        } 
+        log.info(topics.toString());
+        consumer.subscribe(topics);
+        Set<TopicPartition> partitions = consumer.assignment();
+        if (!doesPollFromBeginning) {            
+            consumer.seekToEnd(partitions.toArray(new TopicPartition[partitions.size()]));
+        } else {
+            consumer.seekToBeginning(partitions.toArray(new TopicPartition[partitions.size()]));
         }
-        consumer.subscribe(topics);        
         
         while (true) {
             try {
                 ConsumerRecords<Long, String> records = consumer.poll(3600);
                 if ((null != records) && (!records.isEmpty())) {
                     for(TopicPartition p : records.partitions()) {
-                        for(ConsumerRecord<Long, String> r : records.records(p)) {                         
+                        for(ConsumerRecord<Long, String> r : records.records(p)) {
                             Event event = eventParser.toEvent(r.value());
-                            log.info(event.toString());
-                            executor.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    receive(event);                                    
-                                }                                 
-                            });                            
+                            if (doesPollFromBeginning && (event.time()>=beginTime)) {                                
+                                executor.execute(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        receive(event);
+                                    }
+                                });
+                            }
+                            log.info(p.partition() + " " + r.topic()+ " : " + event.toString());
                         }
                     }
                 }
             } catch(Exception e) {
                 log.error("Exception Throws", e);
             }
-        }   
-        
+        }
     }
+
     
     private static final int MAX_THREAD_POOL_SIZE = 1;
     
@@ -97,5 +118,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
     
     private KafkaConsumer<Long, String> consumer;
     private Executor executor;
-
+    private boolean doesPollFromBeginning = true;
+    private long beginTime = 0;
 }

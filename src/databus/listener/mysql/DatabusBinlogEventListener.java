@@ -32,8 +32,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
 
     @Override
     public void onEvents(BinlogEventV4 event) {
-        listener.setNextPosition(event.getHeader().getNextPosition());
-        
         switch (event.getHeader().getEventType()) {
         case MySQLConstants.TABLE_MAP_EVENT:
             setTableMapEvent((TableMapEvent) event);
@@ -57,12 +55,14 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         }
     }
     
-    private void updateMysqlListener(RotateEvent event) {
-        listener.setBinlogFileName(event.getBinlogFileName().toString());
-        listener.setNextPosition(event.getBinlogPosition());
+    private void updateMysqlListener(RotateEvent event) {        
+        listener.setBinlog(event.getBinlogFileName().toString(),
+                           event.getBinlogPosition());
     }
 
     private void buildMySQLEvent(AbstractRowEvent currentEvent) {
+        listener.setNextPosition(currentEvent.getHeader().getNextPosition());
+        
         String database = preTableMapEvent.getDatabaseName().toString().toLowerCase();
         String table = preTableMapEvent.getTableName().toString().toLowerCase();
         String fullName = database+"."+table;

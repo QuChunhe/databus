@@ -48,8 +48,11 @@ public class KafkaPublisher implements Publisher{
     public void publish(Event event) {
         Long time = System.currentTimeMillis();
         event.ipAddress(localAddress);
-        String topic = getKafcaTopic(event.topic().replace('/', '-'));
+        String topic = getKafcaTopic(event.topic().replace('/', '-')
+                                                  .replace('_', '-')
+                                                  .replace(':', '-'));
         String value = eventParser.toString(event);
+        log.info("send : "+value);
         ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(topic, time, value);
         producer.send(record);         
     }
