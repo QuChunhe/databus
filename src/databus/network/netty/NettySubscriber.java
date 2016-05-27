@@ -1,12 +1,22 @@
-package databus.network;
+package databus.network.netty;
 
+import static databus.network.netty.NettyConstants.CHANNEL_IDLE_DURATION_SECONDS;
+import static databus.network.netty.NettyConstants.DEFAULT_ZIP;
+import static databus.network.netty.NettyConstants.DELIMITER_BUFFER;
+import static databus.network.netty.NettyConstants.MAX_FRAME_LENGTH;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.Properties;
+import java.util.Set;
+
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Startable;
+import databus.core.Event;
+import databus.core.Receiver;
+import databus.network.AbstractSubscriber;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -23,54 +33,53 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
-import static databus.network.NettyConstants.*;
+public class NettySubscriber extends AbstractSubscriber {
 
-public class NettyServer implements Startable{    
-    
-    public NettyServer(SocketAddress localAddress) {
-        this(localAddress, 1);
+    public NettySubscriber() {
+        super();
     }
     
-    public NettyServer(SocketAddress localAddress, int workerPoolSize) {
-        this.localAddress = localAddress;
+    @Override
+    public void initialize(Properties properties) {
+        String rawHost = properties.getProperty("netty.host");
+        String[] parts = rawHost.split(":");
+        String addr = parts[0].trim();
+        int port = Integer.parseInt(parts[1]);
+        localAddress = new InetSocketAddress(addr, port);
+        String threadPoolSize = properties.getProperty("netty.threadPoolSize");
+        if (null != threadPoolSize) {
+            workerPoolSize = Integer.parseInt(threadPoolSize);
+        }      
+    }
+
+    public void withdraw(String topic, Receiver receiver) {
+        Set<Receiver> receiversSet = receiversMap.get(topic);
+        if (null == receiversSet) {
+            log.error(
+                    "Don't contain the RemoteTopic " + topic.toString());
+        } else {
+            if (!receiversSet.remove(receiver)) {
+                log.error("Don't contain the receiver " + receiver.toString());
+            } else if (receiversSet.size() == 0) {
+                remove(topic);
+            }
+        }
+    }
+    
+    @Override
+    public boolean receive(Event event) {
+        boolean hasReceived = receive0(event.topic(), event);
+        if (event.fullTopic() != null) {
+            hasReceived = hasReceived || receive0(event.fullTopic(), event);
+        }
+         return hasReceived;
+    }
+
+    @Override
+    protected void run0() {
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup(workerPoolSize);
-    }
-    
-    @Override
-    public boolean isRunning() {
-        return (null!=thread) && (thread.getState()!=Thread.State.TERMINATED);
-    }
-    
-    @Override
-    public void start() {
-        if (null == thread) {
-            thread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                run0();               
-                            }                
-                         }, "Netty Server");
-            thread.start();
-        }
-    }
-
-    public void join() throws InterruptedException {
-        thread.join();    
-    }
-    
-    public void stop() {        
-        if (null != thread) {
-            thread.interrupt();
-        }
-    }
-    
-    public NettyServer setSubscriber(NettySubscriber subscriber) {
-        this.subscriber = subscriber;
-        return this;
-    }
-    
-    private void run0() {        
+        NettySubscriber subscriber = this;
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)
@@ -104,15 +113,25 @@ public class NettyServer implements Startable{
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
+        
     }
+  
+    protected void remove(String topic) {
+        Set<Receiver> receivers = receiversMap.get(topic);
+        if (null != receivers) {
+            receivers.clear();
+        }
+        receiversMap.remove(topic);
+    }
+
+    private static Log log = LogFactory.getLog(NettySubscriber.class);
     
-    private static Log log = LogFactory.getLog(NettyServer.class);
+    private int workerPoolSize = 1;
     
-    private NettySubscriber subscriber;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private SocketAddress localAddress;
-    private Thread thread = null;   
     private StringEncoder stringEncoder = new StringEncoder(CharsetUtil.UTF_8);
     private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);
+
 }

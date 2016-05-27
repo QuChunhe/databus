@@ -4,7 +4,7 @@ package databus.application;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.network.Subscriber;
+import databus.core.Subscriber;
 
 public class SubscriberStartup extends Startup {
 

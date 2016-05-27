@@ -1,4 +1,8 @@
-package databus.network;
+package databus.network.netty;
+
+import static databus.network.netty.NettyConstants.DEFAULT_CONNECTING_LISTENERS_PER_THREAD;
+import static databus.network.netty.NettyConstants.DEFAULT_CONNECTIONS_PER_THREAD;
+import static databus.network.netty.NettyConstants.DELIMITER_STRING;
 
 import java.net.SocketAddress;
 import java.util.Collection;
@@ -16,10 +20,7 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 
 import databus.core.Event;
-
-import static databus.network.NettyConstants.DELIMITER_STRING;
-import static databus.network.NettyConstants.DEFAULT_CONNECTING_LISTENERS_PER_THREAD;
-import static databus.network.NettyConstants.DEFAULT_CONNECTIONS_PER_THREAD;
+import databus.network.JsonEventParser;
 
 public class NettyClient {
 

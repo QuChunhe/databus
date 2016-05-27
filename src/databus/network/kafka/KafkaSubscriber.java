@@ -1,4 +1,4 @@
-package databus.network;
+package databus.network.kafka;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +19,8 @@ import org.apache.kafka.common.TopicPartition;
 
 import databus.core.Event;
 import databus.core.Receiver;
+import databus.network.AbstractSubscriber;
+import databus.network.JsonEventParser;
 
 
 public class KafkaSubscriber extends AbstractSubscriber {

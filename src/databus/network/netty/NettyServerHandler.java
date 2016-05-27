@@ -1,4 +1,4 @@
-package databus.network;
+package databus.network.netty;
 
 import java.net.InetSocketAddress;
 
@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
+import databus.network.JsonEventParser;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 

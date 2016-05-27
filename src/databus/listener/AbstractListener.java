@@ -2,7 +2,7 @@ package databus.listener;
 
 import databus.core.Event;
 import databus.core.Listener;
-import databus.network.Publisher;
+import databus.core.Publisher;
 
 public abstract class AbstractListener implements Listener {
     

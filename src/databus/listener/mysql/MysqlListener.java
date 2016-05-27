@@ -18,7 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.listener.RestartableListener;
-import databus.network.NettyPublisher;
+import databus.network.netty.NettyPublisher;
 import databus.util.Backup;
 
 public class MysqlListener extends RestartableListener{  

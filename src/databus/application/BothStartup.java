@@ -4,9 +4,9 @@ package databus.application;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.core.Publisher;
+import databus.core.Subscriber;
 import databus.listener.BatchListeners;
-import databus.network.Publisher;
-import databus.network.Subscriber;
 
 public class BothStartup extends Startup {
 

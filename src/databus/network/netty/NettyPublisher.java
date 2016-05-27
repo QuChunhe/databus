@@ -1,4 +1,4 @@
-package databus.network;
+package databus.network.netty;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
+import databus.core.Publisher;
 
 public class NettyPublisher implements Publisher{    
 

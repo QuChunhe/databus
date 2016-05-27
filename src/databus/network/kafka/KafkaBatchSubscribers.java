@@ -1,4 +1,4 @@
-package databus.network;
+package databus.network.kafka;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Receiver;
+import databus.core.Subscriber;
 
 public class KafkaBatchSubscribers implements Subscriber {    
 

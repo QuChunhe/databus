@@ -1,4 +1,4 @@
-package databus.network;
+package databus.network.kafka;
 
 import java.util.Properties;
 import java.util.concurrent.Executor;

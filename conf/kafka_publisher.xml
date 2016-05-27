@@ -3,7 +3,7 @@
 <configuration>
 
 <publisher> 
-    <class>databus.network.KafkaPublisher</class>
+    <class>databus.network.kafka.KafkaPublisher</class>
     <kafka>
         <server>127.0.0.1:9092</server>
         <acks>1</acks>

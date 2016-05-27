@@ -3,8 +3,8 @@ package databus.listener;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import databus.core.Publisher;
 import databus.core.Restartable;
-import databus.network.Publisher;
 
 
 public abstract class RestartableListener extends AbstractListener implements Restartable {

@@ -3,7 +3,7 @@ package databus.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.network.Publisher;
+import databus.core.Publisher;
 
 public abstract class RunnableListener extends AbstractListener implements Runnable {    
         

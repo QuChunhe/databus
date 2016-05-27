@@ -1,8 +1,7 @@
-package databus.network;
+package databus.network.netty;
 
-import static databus.network.NettyConstants.CHANNEL_IDLE_DURATION_SECONDS;
-import static databus.network.NettyConstants.DEFAULT_ZIP;
-
+import static databus.network.netty.NettyConstants.CHANNEL_IDLE_DURATION_SECONDS;
+import static databus.network.netty.NettyConstants.DEFAULT_ZIP;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelPipeline;

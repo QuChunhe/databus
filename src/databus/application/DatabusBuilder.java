@@ -17,10 +17,10 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Initializable;
 import databus.core.Listener;
+import databus.core.Publisher;
 import databus.core.Receiver;
+import databus.core.Subscriber;
 import databus.listener.BatchListeners;
-import databus.network.Publisher;
-import databus.network.Subscriber;
 
 
 public class DatabusBuilder {

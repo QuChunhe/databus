@@ -6,7 +6,7 @@ import java.util.Properties;
 
 import databus.core.Joinable;
 import databus.core.Listener;
-import databus.network.Publisher;
+import databus.core.Publisher;
 
 public class BatchListeners implements Listener, Joinable{    
 

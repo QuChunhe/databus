@@ -4,7 +4,7 @@
 
   
 <subscriber>
-    <class>databus.network.NettySubscriber</class>
+    <class>databus.network.netty.NettySubscriber</class>
     <netty>
         <host>127.0.0.1:8765</host>
         <threadPoolSize>2</threadPoolSize>

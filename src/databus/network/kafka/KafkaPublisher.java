@@ -1,4 +1,4 @@
-package databus.network;
+package databus.network.kafka;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,6 +11,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import databus.core.Event;
+import databus.core.Publisher;
+import databus.network.JsonEventParser;
 import databus.util.Helper;
 
 public class KafkaPublisher implements Publisher{    

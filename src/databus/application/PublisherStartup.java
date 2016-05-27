@@ -3,8 +3,8 @@ package databus.application;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.core.Publisher;
 import databus.listener.BatchListeners;
-import databus.network.Publisher;
 
 public class PublisherStartup extends Startup {
 

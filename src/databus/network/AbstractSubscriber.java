@@ -11,6 +11,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
+import databus.core.Subscriber;
 
 public abstract class AbstractSubscriber implements Subscriber {    
 

@@ -1,4 +1,4 @@
-package databus.network;
+package databus.network.netty;
 
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;

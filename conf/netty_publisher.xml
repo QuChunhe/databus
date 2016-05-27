@@ -3,7 +3,7 @@
 <configuration>
 
 <publisher> 
-    <class>databus.network.NettyPublisher</class>
+    <class>databus.network.netty.NettyPublisher</class>
     <netty>
         <threadPoolSize>4</threadPoolSize>
         <connectionsPerThread>10</connectionsPerThread>
