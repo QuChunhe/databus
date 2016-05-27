@@ -4,11 +4,11 @@
 
   
 <subscriber>
-    <server>
-       <host>127.0.0.1</host>
-       <port>8765</port>
-       <threadPoolSize>4</threadPoolSize>
-    </server>
+    <class>databus.network.NettySubscriber</class>
+    <netty>
+        <host>127.0.0.1:8765</host>
+        <threadPoolSize>2</threadPoolSize>
+    </netty> 
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
         <remoteTopic>/MYSQL/1/test</remoteTopic>
@@ -25,8 +25,7 @@
             <defaultAutoCommit>true</defaultAutoCommit>
             <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
         </mysql>
-    </receiver>
- 
+    </receiver> 
    
     <receiver>
         <class>databus.receiver.redis.RedisReplication</class>

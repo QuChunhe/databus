@@ -3,11 +3,25 @@
 <configuration>
 
 <publisher> 
-    <client>
-        <threadPoolSize>5</threadPoolSize>
+    <class>databus.network.NettyPublisher</class>
+    <netty>
+        <threadPoolSize>4</threadPoolSize>
         <connectionsPerThread>10</connectionsPerThread>
         <connectingListenersPerThread>256</connectingListenersPerThread>
-    </client>
+        <subscriber>
+            <topic>/MYSQL/1/test</topic>
+            <host>127.0.0.1:8765</host>
+        </subscriber>
+        <subscriber>
+            <topic>/REDIS/LIST_MESSAGING/access</topic>
+            <host>192.168.101.150:8765</host>
+        </subscriber>
+    <subscriber>
+        <topic>/REDIS/LIST_MESSAGING/postback</topic>
+        <host>192.168.101.150</host>
+        <port>8765</port>
+    </subscriber>
+    </netty>
  
     <listener>
         <class>databus.listener.redis.RedisMessagingListener</class>
@@ -30,23 +44,7 @@
             <position>3226</position>
         </mysql>
     </listener>  
-    
-    <!-- subscriber tag for no ActivePublisher -->
-    <subscriber>
-        <topic>/MYSQL/1/test</topic>
-        <host>192.168.101.150</host>
-        <port>8765</port>
-    </subscriber>
-    <subscriber>
-        <topic>/REDIS/LIST_MESSAGING/access</topic>
-        <host>192.168.101.150</host>
-        <port>8765</port>
-    </subscriber>
-    <subscriber>
-        <topic>/REDIS/LIST_MESSAGING/postback</topic>
-        <host>192.168.101.150</host>
-        <port>8765</port>
-    </subscriber>
+
 </publisher>
   
 </configuration>

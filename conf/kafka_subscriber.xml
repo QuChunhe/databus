@@ -3,18 +3,17 @@
 <configuration>
 
 <subscriber>
-    <class>databus.network.KafkaSubscriber</class>
+    <class>databus.network.KafkaBatchSubscribers</class>
     <kafka>
-        <servers>127.0.0.1:9092</servers>
-        <groupId>127.0.0.2</groupId>
+        <groupId>127.0.0.11</groupId>
         <maxThreadPoolSize>4</maxThreadPoolSize>
-        <fromBeginning>false</fromBeginning>
-        <beginTime>0</beginTime>
+        <taskCapacity>1000</taskCapacity>
+        <fromBeginning>true</fromBeginning>
     </kafka> 
   
     <receiver>
         <class>databus.receiver.redis.RedisSlave4Mysql</class>
-        <remoteTopic>127.0.0.1/MYSQL/1/test</remoteTopic>
+        <remoteTopic>127.0.0.1:9092/MYSQL/1/test</remoteTopic>
         <redis>
             <host>127.0.0.1</host>
             <port>6379</port>
