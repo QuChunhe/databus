@@ -1,1 +1,1 @@
-cd $(pwd) && cd .. && kill `cat ./data/pid`
+cd $(dirname $_) && cd .. && kill `cat ./data/pid`
