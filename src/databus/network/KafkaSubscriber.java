@@ -1,14 +1,14 @@
 package databus.network;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,75 +18,64 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 
 import databus.core.Event;
+import databus.core.Receiver;
 
 
 public class KafkaSubscriber extends AbstractSubscriber {
     
     public KafkaSubscriber() {
-        super();
+        super(new HashMap<String, Set<Receiver>>());
+    }
+    
+    public KafkaSubscriber(Executor executor) {
+        this();
+        this.executor = executor;
     }
 
     @Override
     public void stop() {
         super.stop();
         consumer.close();
+    }    
+
+    @Override
+    public void register(String topic, Receiver receiver) {
+        super.register(topic, receiver);        
     }
 
     @Override
     public void initialize(Properties properties) {
-        String servers = properties.getProperty("kafka.servers");
         String groupId = properties.getProperty("kafka.groupId");
         if (null == groupId) {
-            groupId = "default";
+            groupId = "default" + Math.round(Math.random()*1000000);
         }
-        Map<String, Object> configs = new HashMap<String, Object>(16);
-        configs.put("bootstrap.servers", servers);
-        configs.put("group.id", groupId);
-        configs.put("enable.auto.commit", true);
-        configs.put("auto.commit.interval.ms", 1000);
-        configs.put("session.timeout.ms", 30000);
-        configs.put("key.deserializer", "org.apache.kafka.common.serialization.LongDeserializer");
-        configs.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        
-        consumer = new KafkaConsumer<Long, String>(configs); 
-        
+        kafkaConfigs = new HashMap<String, Object>(16);        
+        kafkaConfigs.put("group.id", groupId);
+        kafkaConfigs.put("enable.auto.commit", true);
+        kafkaConfigs.put("auto.commit.interval.ms", 1000);
+        kafkaConfigs.put("session.timeout.ms", 30000);
+        kafkaConfigs.put("key.deserializer", 
+                         "org.apache.kafka.common.serialization.LongDeserializer");
+        kafkaConfigs.put("value.deserializer", 
+                         "org.apache.kafka.common.serialization.StringDeserializer");     
+
         if (null == executor) {
-            String maxThreadPoolSizeValue = properties.getProperty("kafka.maxThreadPoolSize");
-            int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
-                                    MAX_THREAD_POOL_SIZE : 
-                                    Integer.parseInt(maxThreadPoolSizeValue);
-            executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 100, TimeUnit.SECONDS, 
-                                              new LinkedBlockingQueue<Runnable>());
+            executor = KafkaHelper.loadExecutor(properties, 0);        
         }
         
         String  fromBeginningValue = properties.getProperty("kafka.fromBeginning");
+        boolean doesPollFromBeginning = true;
         if (null != fromBeginningValue) {
             doesPollFromBeginning = Boolean.parseBoolean(fromBeginningValue);
         }
-        
-        String beginTimeValue = properties.getProperty("kafka.beginTime");
-        if (null != beginTimeValue) {
-            beginTime = Long.parseUnsignedLong(beginTimeValue);
-        }
+        String offsetReset = doesPollFromBeginning ? "earliest" : "latest";
+        kafkaConfigs.put("auto.offset.reset", offsetReset);
     }
 
     @Override
     protected void run0() {
-        LinkedList<String> topics = new LinkedList<String>();
-        for(String t : receiversMap.keySet()) {;
-            topics.add(t.replace('/', '-')
-                        .replace(':', '-')
-                        .replace('_', '-'));
-        } 
-        log.info(topics.toString());
-        consumer.subscribe(topics);
-        Set<TopicPartition> partitions = consumer.assignment();
-        if (!doesPollFromBeginning) {            
-            consumer.seekToEnd(partitions.toArray(new TopicPartition[partitions.size()]));
-        } else {
-            consumer.seekToBeginning(partitions.toArray(new TopicPartition[partitions.size()]));
-        }
-        
+        initialize0();
+
         while (true) {
             try {
                 ConsumerRecords<Long, String> records = consumer.poll(3600);
@@ -94,32 +83,63 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     for(TopicPartition p : records.partitions()) {
                         for(ConsumerRecord<Long, String> r : records.records(p)) {
                             Event event = eventParser.toEvent(r.value());
-                            if (doesPollFromBeginning && (event.time()>=beginTime)) {                                
+                            if (null != executor) {
                                 executor.execute(new Runnable() {
                                     @Override
                                     public void run() {
-                                        receive(event);
+                                        receive0(r.topic(), event);
                                     }
                                 });
+                            } else {
+                                receive(event);
                             }
                             log.info(p.partition() + " " + r.topic()+ " : " + event.toString());
                         }
                     }
                 }
             } catch(Exception e) {
-                log.error("Exception Throws", e);
+                log.error("Exception Throwsn when polling Kafka", e);
             }
         }
-    }
+    }    
 
-    
-    private static final int MAX_THREAD_POOL_SIZE = 1;
+    private void initialize0() {
+        HashSet<String> serverSet = new HashSet<String>();
+        Map<String, Set<Receiver>> newMap = new ConcurrentHashMap<String, Set<Receiver>>();
+        for(String t : receiversMap.keySet()) {;
+            newMap.put(t.replace('/', '-')
+                        .replace(':', '-')
+                        .replace('_', '-'),
+                       receiversMap.get(t));  
+            String address = KafkaHelper.splitSocketAddress(t);
+            if (null == address) {
+                log.error("remoteTopic " + t + " is illegal");
+                System.exit(1);
+            }
+            serverSet.add(address);            
+        }
+        receiversMap = newMap;
+        StringBuilder servers = new StringBuilder(64);
+        for(String s : serverSet) {
+            if (servers.length() > 0) {
+                servers.append(',');
+            }
+            servers.append(s);
+        }
+        kafkaConfigs.put("bootstrap.servers", servers.toString());
+
+        consumer = new KafkaConsumer<Long, String>(kafkaConfigs);
+        List<String> topicList = new ArrayList<String>(receiversMap.size());
+        topicList.addAll(receiversMap.keySet());
+        consumer.subscribe(topicList);
+        log.info(topicList.toString());
+    }
     
     private static Log log = LogFactory.getLog(KafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaConsumer<Long, String> consumer;
     private Executor executor = null;
-    private boolean doesPollFromBeginning = true;
-    private long beginTime = 0;
+    private Map<String, Object> kafkaConfigs;    
+
 }

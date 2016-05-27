@@ -14,6 +14,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.core.Event;
 import databus.core.Receiver;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -62,8 +63,17 @@ public class NettySubscriber extends AbstractSubscriber {
                 remove(topic);
             }
         }
-    } 
+    }
     
+    @Override
+    public boolean receive(Event event) {
+        boolean hasReceived = receive0(event.topic(), event);
+        if (event.fullTopic() != null) {
+            hasReceived = hasReceived || receive0(event.fullTopic(), event);
+        }
+         return hasReceived;
+    }
+
     @Override
     protected void run0() {
         bossGroup = new NioEventLoopGroup(1);

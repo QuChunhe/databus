@@ -17,6 +17,10 @@ public abstract class AbstractSubscriber implements Subscriber {
     public AbstractSubscriber() {
         receiversMap = new ConcurrentHashMap<String, Set<Receiver>>();
     }
+    
+    public AbstractSubscriber(Map<String, Set<Receiver>> receoversMap) {
+        this.receiversMap = receoversMap;
+    }
 
     @Override
     public void join() throws InterruptedException {
@@ -59,19 +63,21 @@ public abstract class AbstractSubscriber implements Subscriber {
     }
     
     public boolean receive(Event event) {
-        Set<Receiver> fullTopicReceiversSet = receiversMap.get(event.fullTopic());
-        Set<Receiver> topicReceiversSet = receiversMap.get(event.topic());
-        if ((null==fullTopicReceiversSet) && (null==topicReceiversSet)){
-            log.warn(event.fullTopic() + " has't been subscribed!");
+        return receive0(event.topic(), event);
+    }
+    
+    protected boolean receive0(String topic, Event event) {
+        Set<Receiver> receiversSet = receiversMap.get(topic);
+        if ((null==receiversSet) || (receiversSet.size()==0)){
+            log.error(topic + " has't been subscribed!");
             return false;
         } else {
-            receive0(fullTopicReceiversSet, event);
-            receive0(topicReceiversSet, event);
+            receive1(receiversSet, event);
         }
         return true;
     }
     
-    protected void receive0(Set<Receiver> receiversSet, Event event) {
+    private void receive1(Set<Receiver> receiversSet, Event event) {
         if (null == receiversSet) {
             return;
         }
