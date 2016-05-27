@@ -13,11 +13,10 @@ import databus.core.Initializable;
 import databus.event.redis.RedisMessaging;
 
 
-public class RedisMessagingParser implements EventParser, Initializable{  
+public class RedisMessagingParser implements BeanParser, Initializable{  
 
     public RedisMessagingParser() {
-        gson = new GsonBuilder().enableComplexMapKeySerialization() 
-                                .serializeNulls()   
+        gson = new GsonBuilder().enableComplexMapKeySerialization()  
                                 .setDateFormat(DateFormat.LONG)
                                 .create();
         classesMap = new HashMap<String, Class<Bean>>();
