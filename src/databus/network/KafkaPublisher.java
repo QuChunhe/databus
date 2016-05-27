@@ -26,15 +26,15 @@ public class KafkaPublisher implements Publisher{
         if (null == kafkaAddress) {
             log.error("kafka.server has illegal value "+kafkaAddressValue);
         }
-        String acks = properties.getProperty("kafka.acks");
+        String acks = properties.getProperty("kafka.acks", "1");
                
         Map<String, Object> config = new HashMap<String, Object>(6);
         config.put("bootstrap.servers", kafkaAddress);
         config.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         config.put("compression.type", "gzip");
-        config.put("request.required.acks", acks);
-        config.put("block.on.buffer.full", true);
+        config.put("acks", acks);
+        config.put("max.block.ms", 60000);
         producer = new KafkaProducer<Long, String>(config);        
     }
 
