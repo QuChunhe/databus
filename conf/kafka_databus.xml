@@ -27,7 +27,7 @@
 <subscriber>
     <class>databus.network.kafka.KafkaBatchSubscribers</class>
     <kafka>
-        <groupId>127.0.0.7</groupId>
+        <groupId>127.0.0.12</groupId>
         <maxThreadPoolSize>4</maxThreadPoolSize>
         <taskCapacity>1000</taskCapacity>
         <fromBeginning>true</fromBeginning>

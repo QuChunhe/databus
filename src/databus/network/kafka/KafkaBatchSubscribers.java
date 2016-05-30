@@ -69,7 +69,7 @@ public class KafkaBatchSubscribers implements Subscriber {
             subscribers.put(address, target);
             target.initialize(properties);
         }
-        target.register(topic, receiver);
+        target.register(topic.trim(), receiver);
         
     }
     

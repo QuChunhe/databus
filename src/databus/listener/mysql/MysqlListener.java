@@ -166,9 +166,7 @@ public class MysqlListener extends RestartableListener{
     }
     
     private void loadSchema(MysqlDataSource ds) {
-        columnsMap = new HashMap<String, String[]>();
-        attributesMap = new HashMap<String, ColumnAttribute[]>();
-        primaryKeysMap = new HashMap<String, Set<String>>();
+        HashMap<String, Set<String>> tablesMap = new HashMap<String, Set<String>>();
         for(String fullName : permittedTableSet) {
             String[] r = fullName.split("\\.");
             if (r.length != 2) {
@@ -177,32 +175,51 @@ public class MysqlListener extends RestartableListener{
             }
             String databaseName = r[0].trim();
             String tableName = r[1].trim();
+            Set<String> tables = tablesMap.get(databaseName);
+            if (null == tables) {
+                tables = new HashSet<String>();
+                tablesMap.put(databaseName, tables);
+            }
+            tables.add(tableName);
+        }
+        
+        columnsMap = new HashMap<String, String[]>();
+        attributesMap = new HashMap<String, ColumnAttribute[]>();
+        primaryKeysMap = new HashMap<String, Set<String>>();
+        
+        for(String databaseName : tablesMap.keySet()) {
             ds.setDatabaseName(databaseName);
-            try (Connection conn = ds.getConnection();){                
+            String fullName = databaseName;
+            try (Connection conn = ds.getConnection();){
                 DatabaseMetaData metaData = conn.getMetaData();  
                 LinkedList<String> columns = new LinkedList<String>();
                 LinkedList<ColumnAttribute> attribute = new LinkedList<ColumnAttribute>();
-                try (ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");) {                                    
-                    while (resultSet1.next()) {
-                        columns.addLast(resultSet1.getString("COLUMN_NAME"));
-                        int type = resultSet1.getInt("DATA_TYPE");
-                        String typeName = resultSet1.getString("TYPE_NAME");
-                        attribute.addLast(new ColumnAttribute(type, typeName));
+                Set<String> tables = tablesMap.get(databaseName);
+                for(String tableName : tables) {
+                    fullName = databaseName + "." + tableName;
+                    try (ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");) {                                   
+                        while (resultSet1.next()) {
+                            columns.addLast(resultSet1.getString("COLUMN_NAME"));
+                            int type = resultSet1.getInt("DATA_TYPE");
+                            String typeName = resultSet1.getString("TYPE_NAME");
+                            attribute.addLast(new ColumnAttribute(type, typeName));
+                        }
+                    }                
+                    columnsMap.put(fullName, columns.toArray(new String[columns.size()]));
+                    attributesMap.put(fullName, 
+                                      attribute.toArray(new ColumnAttribute[attribute.size()]));
+                    
+                    HashSet<String> keys = new HashSet<String>();
+                    ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName);
+                    while(resultSet2.next()) {
+                        keys.add(resultSet2.getString("COLUMN_NAME"));
                     }
-                }                
-                columnsMap.put(fullName, columns.toArray(new String[1]));
-                attributesMap.put(fullName, attribute.toArray(new ColumnAttribute[1]));
-                
-                HashSet<String> keys = new HashSet<String>();
-                ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName);
-                while(resultSet2.next()) {
-                    keys.add(resultSet2.getString("COLUMN_NAME"));
+                    primaryKeysMap.put(fullName, keys); 
                 }
-                primaryKeysMap.put(fullName, keys);                
             } catch (SQLException e) {
                 log.error("Cannot load the schema of "+fullName, e);
-            }
-        }
+            }           
+        } 
     }
     
     private static Log log = LogFactory.getLog(MysqlListener.class);
