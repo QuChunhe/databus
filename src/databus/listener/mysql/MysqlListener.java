@@ -192,10 +192,10 @@ public class MysqlListener extends RestartableListener{
             String fullName = databaseName;
             try (Connection conn = ds.getConnection();){
                 DatabaseMetaData metaData = conn.getMetaData();  
-                LinkedList<String> columns = new LinkedList<String>();
-                LinkedList<ColumnAttribute> attribute = new LinkedList<ColumnAttribute>();
                 Set<String> tables = tablesMap.get(databaseName);
                 for(String tableName : tables) {
+                    LinkedList<String> columns = new LinkedList<String>();
+                    LinkedList<ColumnAttribute> attribute = new LinkedList<ColumnAttribute>();
                     fullName = databaseName + "." + tableName;
                     try (ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");) {                                   
                         while (resultSet1.next()) {
