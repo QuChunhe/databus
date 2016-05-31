@@ -24,21 +24,13 @@ public class Backup {
     }    
  
     public void store(String recordedId, String...recordedPairs) {
-        int len = recordedPairs.length;
-        if ((len%2) != 0) {
-            log.error("recoredPairs must be even!");
-            return;
-        }
         Recorder recorder = getRecorder(recordedId);
         if (null == recorder) {
             log.error("Can't record : "+Arrays.toString(recordedPairs));
             return;
         }
-        Properties properties = recorder.loadProperties();
-        for(int i=0; i<len; i+=2) {
-            properties.put(recordedPairs[i], recordedPairs[i+1]);
-        }
-        recorder.saveProperties(properties);                
+        
+        recorder.saveProperties(recordedPairs);                
     }
     
     public Properties restore(String recordedId) {
@@ -47,8 +39,7 @@ public class Backup {
             return recorder.loadProperties();
         }
         return null;
-    }
-    
+    }    
     
     private String getFileName(String recordedId) {
         recordedId = recordedId.replace('.', '_');
@@ -59,20 +50,23 @@ public class Backup {
     private Recorder getRecorder(String recordedId) {
         Recorder recorder = recorders.get(recordedId);
         if (null == recorder) {
-            try {
-                recorder = new Recorder(getFileName(recordedId));
-                recorders.put(recordedId, recorder);
-            } catch (IOException e) {
-                log.error("Can't create Recorder for " + recordedId);
-            }
+            synchronized(this) {
+                if (null == recorder) {
+                    try {
+                        recorder = new Recorder(getFileName(recordedId));
+                        recorders.put(recordedId, recorder);
+                    } catch (IOException e) {
+                        log.error("Can't create Recorder for " + recordedId);
+                    }
+                }
+            }            
         }
         return recorder;
     }
     
     private static final String BACKUP_DIR_NAME = "data/";
     
-    private static Log log = LogFactory.getLog(Backup.class);
-    
+    private static Log log = LogFactory.getLog(Backup.class);    
     private static  Backup instance = null;    
     
     private Backup() {

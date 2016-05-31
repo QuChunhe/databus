@@ -34,11 +34,18 @@ public class Recorder {
     }
     
     public Properties loadProperties() {
-        return properties;
+        return new Properties(properties);
     }
     
-    public void saveProperties(Properties properties) {
-        this.properties = properties;
+    public synchronized void saveProperties(String...recordedPairs) {
+        int len = recordedPairs.length;
+        if ((len%2) != 0) {
+            log.error("recoredPairs must be even!");
+            return;
+        }
+        for(int i=0; i<len; i+=2) {
+            properties.put(recordedPairs[i], recordedPairs[i+1]);
+        }
         try {
             properties.store(writer, null);
             int currentSize = outputStream.size();
