@@ -151,15 +151,15 @@ public class MysqlListener extends RestartableListener{
     }
     
     private void loadBackup(Properties properties) {
-        Properties backup = Backup.instance().restore(recordedId);
+        Map<String, String> backup = Backup.instance().restore(recordedId);
         if (null == backup) {
             return;
         }
-        String backupBinfileName =  backup.getProperty("mysql.binlogFileName");
+        String backupBinfileName =  backup.get("mysql.binlogFileName");
         if (null != backupBinfileName) {
             properties.setProperty("mysql.binlogFileName", backupBinfileName);
         }
-        String backupPosition = backup.getProperty("mysql.position");
+        String backupPosition = backup.get("mysql.position");
         if (null != backupPosition) {
             properties.setProperty("mysql.position", backupPosition);
         }

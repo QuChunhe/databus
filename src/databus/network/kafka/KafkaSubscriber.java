@@ -1,5 +1,8 @@
 package databus.network.kafka;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,31 +50,38 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
     @Override
     public void initialize(Properties properties) {
-        String groupId = properties.getProperty("kafka.groupId");
-        if (null == groupId) {
-            groupId = "default" + Math.round(Math.random()*1000000);
+        String kafkaPropertieFile = properties.getProperty("kafka.consumerConfig");
+        if (null == kafkaPropertieFile) {
+            log.error("Must configure 'consumerConfig' for 'kafka'");
+            System.exit(1);
         }
-        kafkaConfigs = new HashMap<String, Object>(16);        
-        kafkaConfigs.put("group.id", groupId);
-        kafkaConfigs.put("enable.auto.commit", true);
-        kafkaConfigs.put("auto.commit.interval.ms", 1000);
-        kafkaConfigs.put("session.timeout.ms", 30000);
-        kafkaConfigs.put("key.deserializer", 
-                         "org.apache.kafka.common.serialization.LongDeserializer");
-        kafkaConfigs.put("value.deserializer", 
-                         "org.apache.kafka.common.serialization.StringDeserializer");     
+        kafkaProperties = new Properties();
+        try {
+            kafkaProperties.load(Files.newBufferedReader(Paths.get(kafkaPropertieFile)));
+            log.info(kafkaProperties.toString());
+        } catch (IOException e) {
+            log.error("Can't load properties file "+kafkaPropertieFile, e);
+            System.exit(1);
+        }
+
+        if (null == kafkaProperties.getProperty("group.id")) {
+            kafkaProperties.setProperty("group.id", 
+                                        "default-" + Math.round(Math.random()*1000000));
+        }
+
+        kafkaProperties.setProperty("key.deserializer", 
+                                    "org.apache.kafka.common.serialization.LongDeserializer");
+        kafkaProperties.setProperty("value.deserializer", 
+                                    "org.apache.kafka.common.serialization.StringDeserializer");
 
         if (null == executor) {
             executor = KafkaHelper.loadExecutor(properties, 0);        
         }
         
         String  fromBeginningValue = properties.getProperty("kafka.fromBeginning");
-        boolean doesPollFromBeginning = true;
         if (null != fromBeginningValue) {
-            doesPollFromBeginning = Boolean.parseBoolean(fromBeginningValue);
+            doesSeekFromBeginning = Boolean.parseBoolean(fromBeginningValue);
         }
-        String offsetReset = doesPollFromBeginning ? "earliest" : "latest";
-        kafkaConfigs.put("auto.offset.reset", offsetReset);
     }
 
     @Override
@@ -85,6 +95,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     for(TopicPartition p : records.partitions()) {
                         for(ConsumerRecord<Long, String> r : records.records(p)) {
                             Event event = eventParser.toEvent(r.value());
+                            log.info(p.partition() + " " + r.topic()+ " : " + event.toString());
                             if (null != executor) {
                                 executor.execute(new Runnable() {
                                     @Override
@@ -94,8 +105,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
                                 });
                             } else {
                                 receive(event);
-                            }
-                            log.info(p.partition() + " " + r.topic()+ " : " + event.toString());
+                            }                            
                         }
                     }
                 }
@@ -128,12 +138,13 @@ public class KafkaSubscriber extends AbstractSubscriber {
             }
             servers.append(s);
         }
-        kafkaConfigs.put("bootstrap.servers", servers.toString());
+        kafkaProperties.put("bootstrap.servers", servers.toString());
 
-        consumer = new KafkaConsumer<Long, String>(kafkaConfigs);
+        consumer = new KafkaConsumer<Long, String>(kafkaProperties);
         List<String> topicList = new ArrayList<String>(receiversMap.size());
         topicList.addAll(receiversMap.keySet());
-        consumer.subscribe(topicList);
+        consumer.subscribe(topicList, 
+                           new AutomaticRebalanceListener(consumer, doesSeekFromBeginning));
         log.info(topicList.toString());
     }
     
@@ -142,6 +153,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     
     private KafkaConsumer<Long, String> consumer;
     private Executor executor = null;
-    private Map<String, Object> kafkaConfigs;    
+    private Properties kafkaProperties; 
+    boolean doesSeekFromBeginning = true;
 
 }

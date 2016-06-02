@@ -16,7 +16,7 @@
             <port>3306</port>
             <user>root</user>
             <password>quchunhe</password>
-            <serverId>1</serverId>
+            <serverId>3</serverId>
             <permittedTables>test.user</permittedTables>
             <binlogFileName>master-bin.000087</binlogFileName>
             <position>582</position>
@@ -27,7 +27,7 @@
 <subscriber>
     <class>databus.network.kafka.KafkaBatchSubscribers</class>
     <kafka>
-        <groupId>127.0.0.12</groupId>
+        <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
         <maxThreadPoolSize>4</maxThreadPoolSize>
         <taskCapacity>1000</taskCapacity>
         <fromBeginning>true</fromBeginning>

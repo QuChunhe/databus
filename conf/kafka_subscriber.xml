@@ -5,7 +5,7 @@
 <subscriber>
     <class>databus.network.kafka.KafkaBatchSubscribers</class>
     <kafka>
-        <groupId>127.0.0.11</groupId>
+        <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
         <maxThreadPoolSize>4</maxThreadPoolSize>
         <taskCapacity>1000</taskCapacity>
         <fromBeginning>true</fromBeginning>
