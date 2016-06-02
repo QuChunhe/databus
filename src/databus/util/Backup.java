@@ -4,7 +4,6 @@ package databus.util;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
@@ -23,20 +22,36 @@ public class Backup {
         return instance;
     }    
  
-    public void store(String recordedId, String...recordedPairs) {
+    public void store(String recordedId, String...dataPairs) {
         Recorder recorder = getRecorder(recordedId);
         if (null == recorder) {
-            log.error("Can't record : "+Arrays.toString(recordedPairs));
+            log.error("Can't save : "+Arrays.toString(dataPairs)+" for "+recordedId);
             return;
         }
-        
-        recorder.saveProperties(recordedPairs);                
+        recorder.save(dataPairs);                
     }
     
-    public Properties restore(String recordedId) {
+    public void store(String recordedId, Map<String, String> data) {
+        Recorder recorder = getRecorder(recordedId);
+        if (null == recorder) {
+            log.error("Can't save : "+data.toString()+" for "+recordedId);
+            return;
+        }
+        recorder.save(data);                
+    }
+    
+    public String restore(String recordedId, String key) {
         Recorder recorder = getRecorder(recordedId);
         if (null != recorder) {
-            return recorder.loadProperties();
+            return recorder.getDatum(key);
+        }
+        return null;
+    }
+    
+    public Map<String, String> restore(String recordedId) {
+        Recorder recorder = getRecorder(recordedId);
+        if (null != recorder) {
+            return recorder.getData();
         }
         return null;
     }    
