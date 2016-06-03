@@ -29,6 +29,7 @@
     <kafka>
         <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
         <maxThreadPoolSize>4</maxThreadPoolSize>
+        <saveThreshold>1</saveThreshold>
         <taskCapacity>1000</taskCapacity>
         <fromBeginning>true</fromBeginning>
     </kafka> 

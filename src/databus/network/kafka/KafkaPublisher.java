@@ -46,7 +46,7 @@ public class KafkaPublisher implements Publisher{
         String topic = SPECIAL_CHARACTER.matcher(kafkaAddress+event.topic())
                                         .replaceAll("-");
         String value = eventParser.toString(event);
-        log.info(topic+" : "+value);
+        log.info(time + " " + topic + " : " +value);
         ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(topic, time, value);
         producer.send(record);         
     }

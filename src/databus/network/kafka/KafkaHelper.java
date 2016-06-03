@@ -1,7 +1,7 @@
 package databus.network.kafka;
 
 import java.util.Properties;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -11,12 +11,12 @@ import databus.util.Helper;
 
 public class KafkaHelper {
     
-    public static Executor loadExecutor(Properties properties, int defaultMaxThreadPoolSize) {
+    public static ExecutorService loadExecutor(Properties properties, int defaultMaxThreadPoolSize) {
         String maxThreadPoolSizeValue = properties.getProperty("kafka.maxThreadPoolSize");
         int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
                                 defaultMaxThreadPoolSize : 
                                 Integer.parseInt(maxThreadPoolSizeValue);
-        Executor executor = null;
+        ExecutorService executor = null;
         if (maxThreadPoolSize > 0) {
             String taskCapacityValue = properties.getProperty("kafka.taskCapacity");
             int taskCapacity = null==taskCapacityValue ? 
