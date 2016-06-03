@@ -1,8 +1,6 @@
 package databus.util;
 
-
-import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,71 +20,60 @@ public class Backup {
         return instance;
     }    
  
-    public void store(String recordedId, String...dataPairs) {
-        Recorder recorder = getRecorder(recordedId);
-        if (null == recorder) {
-            log.error("Can't save : "+Arrays.toString(dataPairs)+" for "+recordedId);
+    public void store(String id, final String...dataPairs) {        
+        int len = dataPairs.length;
+        if ((len%2) != 0) {
+            log.error("recoredPairs must be even!");
             return;
         }
-        recorder.save(dataPairs);                
+        RecordCache recorderCache = getRecordCache(id);
+        for(int i=0; i<len; i+=2) {
+            recorderCache.cache(dataPairs[i], dataPairs[i+1]);
+        } 
+        recorderCache.save();                
     }
     
-    public void store(String recordedId, Map<String, String> data) {
-        Recorder recorder = getRecorder(recordedId);
-        if (null == recorder) {
-            log.error("Can't save : "+data.toString()+" for "+recordedId);
-            return;
-        }
-        recorder.save(data);                
+    public void store(String id, Map<String, String> data) {
+        getRecordCache(id).cache(data).save();                
     }
     
-    public String restore(String recordedId, String key) {
-        Recorder recorder = getRecorder(recordedId);
-        if (null != recorder) {
-            return recorder.getDatum(key);
-        }
-        return null;
-    }
+    public Map<String, String> restore(String id) {
+        return getRecordCache(id).copyCache(id);
+    } 
     
-    public Map<String, String> restore(String recordedId) {
-        Recorder recorder = getRecorder(recordedId);
-        if (null != recorder) {
-            return recorder.getData();
-        }
-        return null;
-    }    
-    
-    private String getFileName(String recordedId) {
-        recordedId = recordedId.replace('.', '_');
-        recordedId = recordedId.replace('/', '-');
-        return BACKUP_DIR_NAME + recordedId+"_backup.data";
-    }
-    
-    private Recorder getRecorder(String recordedId) {
-        Recorder recorder = recorders.get(recordedId);
-        if (null == recorder) {
+    public RecordCache getRecordCache(String id) {
+        RecordCache recorderCache = recordCaches.get(id);
+        if (null == recorderCache) {
             synchronized(this) {
-                if (null == recorder) {
-                    try {
-                        recorder = new Recorder(getFileName(recordedId));
-                        recorders.put(recordedId, recorder);
-                    } catch (IOException e) {
-                        log.error("Can't create Recorder for " + recordedId);
-                    }
+                if (null == recorderCache) { 
+                    recorderCache = new RecordCache(new Recorder(getFileName(id)));
+                    recordCaches.put(id, recorderCache);                
                 }
             }            
         }
-        return recorder;
+        return recorderCache;
+    }
+    
+    public void save(Collection<String> ids) {
+        for(String id : ids) {
+            getRecordCache(id).save();
+        }
+    }
+    
+    private String getFileName(String id) {
+        id = id.replace('.', '_');
+        id = id.replace('/', '-');
+        return BACKUP_DIR_NAME + id+"_backup.data";
     }
     
     private static final String BACKUP_DIR_NAME = "data/";
     
     private static Log log = LogFactory.getLog(Backup.class);    
-    private static  Backup instance = null;    
+    private static Backup instance = null;    
     
     private Backup() {
-        recorders = new ConcurrentHashMap<String, Recorder>();
+        recordCaches = new ConcurrentHashMap<String, RecordCache>();
     }
     
-    private Map<String, Recorder> recorders;
+    private Map<String, RecordCache> recordCaches;
 }

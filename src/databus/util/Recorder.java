@@ -17,48 +17,22 @@ import org.apache.commons.logging.LogFactory;
 
 
 public class Recorder {
-    public Recorder(String fileName) throws IOException {
-        File file = new File(fileName);
+    
+    public Recorder(String fileName){
+        File file = new File(fileName);       
+        if (file.exists() && !file.isFile()) {        
+            log.error(fileName + " isn't a file");
+        }
         path = file.toPath().normalize();
-        if (file.exists()) {
-            if (file.isFile()) {
-                loadCache();
-            } else {
-                log.error("Can't read from "+fileName);
-                throw new IOException(fileName+" is't a file");
-            }           
-        } else {
-            cache = new HashMap<String, String>();
+    } 
+    
+    public Map<String, String> load(){
+        HashMap<String, String> data = new HashMap<String, String>();
+        File file = path.toFile();
+        if (!file.exists() || !file.isFile()) {        
+            return data;
         }
-    }
-    
-    public synchronized Map<String, String> getData() {
-        return new HashMap<String, String>(cache);        
-    }
-    
-    public synchronized  String getDatum(String key) {
-        return cache.get(key);
-    }
-    
-    public synchronized void save(Map<String, String> data) {
-        cache = new HashMap<String, String>(data);
-        saveCache();
-    }
-    
-    public synchronized void save(String...dataPairs) {
-        int len = dataPairs.length;
-        if ((len%2) != 0) {
-            log.error("recoredPairs must be even!");
-            return;
-        }
-        for(int i=0; i<len; i+=2) {
-            cache.put(dataPairs[i], dataPairs[i+1]);
-        } 
-        saveCache();
-    }
-    
-    private void loadCache() throws IOException {
-        HashMap<String, String> data = new HashMap<String, String>(); 
+        
         try (BufferedReader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8);) {
             String line;
             while((line=reader.readLine()) != null) {
@@ -70,12 +44,17 @@ public class Recorder {
                     data.put(parts[0].trim(), parts[1].trim());
                 }
             }
+        } catch (IOException e) {
+            log.error("Can't load data from "+path.getFileName(), e);
         }
         
-        cache = data;
+        return data;
     }
 
-    private void saveCache() { 
+    public void save(Map<String, String> data) {
+        if (data.size() == 0) {
+            return;
+        }
         try(BufferedWriter writer = Files.newBufferedWriter(
                                             path, 
                                             StandardCharsets.UTF_8,
@@ -84,7 +63,7 @@ public class Recorder {
                                             StandardOpenOption.WRITE);
                                           ) {      
             writer.write("#" + new Date().toString());            
-            for(Map.Entry<String, String> e : cache.entrySet()) {
+            for(Map.Entry<String, String> e : data.entrySet()) {
                 writer.newLine();
                 writer.append(e.getKey())
                       .append('=')
@@ -92,13 +71,11 @@ public class Recorder {
             }
             writer.flush();
         } catch (IOException e) {
-            log.error("Can't write "+cache.toString()+" to "+path.getFileName());
-        }
-        
+            log.error("Can't save "+data.toString()+" to "+path.getFileName(), e);
+        }        
     }
-    
+
     private static Log log = LogFactory.getLog(Recorder.class);
     
-    private Path path;
-    private HashMap<String, String> cache;
+    private Path path = null;
 }
