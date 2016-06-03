@@ -1,6 +1,5 @@
 package databus.util;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,12 +51,6 @@ public class Backup {
             }            
         }
         return recorderCache;
-    }
-    
-    public void save(Collection<String> ids) {
-        for(String id : ids) {
-            getRecordCache(id).save();
-        }
     }
     
     private String getFileName(String id) {

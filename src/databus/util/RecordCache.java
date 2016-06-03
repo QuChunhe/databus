@@ -8,6 +8,7 @@ public class RecordCache {
     
     public RecordCache(Recorder recorder) {
         cache = new ConcurrentHashMap<String, String>(recorder.load());
+        this.recorder = recorder;
     }
     
     public RecordCache cache(String key, String value) {
@@ -33,7 +34,7 @@ public class RecordCache {
         return new HashMap<String, String>(cache);
     }
 
-    private Map<String, String> cache;
+    private ConcurrentHashMap<String, String> cache;
     private Recorder recorder;
 
 }
