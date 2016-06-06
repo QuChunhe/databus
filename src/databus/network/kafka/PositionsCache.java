@@ -15,12 +15,13 @@ public class PositionsCache {
     }
     
     public long get(String topic, int partition) {
-        String value = Backup.instance().getRecordCache(topic).get(Integer.toString(partition));
-        long pos = 0;
-        if (null != value) {
-            pos = Long.parseLong(value);
+        String value = Backup.instance()
+                             .getRecordCache(topic)
+                             .get(Integer.toString(partition));
+        if (null == value) {
+            return -1;
         }
-        return pos;
+        return Long.parseLong(value);
     }
     
     public PositionsCache set(String topic, int partition, long position) {

@@ -22,10 +22,10 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
         for(TopicPartition p : partitions) {
             String topic = p.topic();
             long offset = cache.get(topic, p.partition());
-            if ((offset==0) && (doesSeekFromBeginning)) {
-                consumer.seekToBeginning(p);
-            } else {
-                consumer.seek(p, offset);
+            if (offset >= 0) {
+                consumer.seek(p, offset+1);
+            } else if (doesSeekFromBeginning) {
+                consumer.seekToBeginning(p);;
             }
         }
     }

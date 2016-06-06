@@ -62,8 +62,6 @@ public abstract class AbstractKafkaSubscriber extends AbstractSubscriber {
             log.error("Must configure 'consumerConfig' for 'kafka'");
             System.exit(1);
         }
-        saveThreshold = Integer.parseUnsignedInt(properties.getProperty("kafka.saveThreshold",
-                                                                        "16"));
 
         kafkaProperties = new Properties();
         try {
@@ -123,14 +121,9 @@ public abstract class AbstractKafkaSubscriber extends AbstractSubscriber {
         }
     }
     
-    protected abstract void cachePosition(String topic, int partition, long position);
+    protected abstract void cachePosition(String topic, int partition, long position); 
     
-    private void receive0(String topic, int partition, long position, Event event) {
-        receive0(topic, event);
-        cachePosition(topic, partition, position);
-    }
-    
-    private void initialize0() {
+    protected void initialize0() {
         HashSet<String> serverSet = new HashSet<String>();
         Map<String, Set<Receiver>> newMap = new ConcurrentHashMap<String, Set<Receiver>>();
         for(String t : receiversMap.keySet()) {;
@@ -163,13 +156,17 @@ public abstract class AbstractKafkaSubscriber extends AbstractSubscriber {
         log.info(topicList.toString());
     }
     
-    protected int saveThreshold = 0;
+    private void receive0(String topic, int partition, long position, Event event) {
+        receive0(topic, event);
+        cachePosition(topic, partition, position);
+    }
+    
+    protected KafkaConsumer<Long, String> consumer;
+    protected boolean doesSeekFromBeginning = false;   
     
     private static Log log = LogFactory.getLog(AbstractKafkaSubscriber.class);
-    private static JsonEventParser eventParser = new JsonEventParser();
-    
-    private KafkaConsumer<Long, String> consumer;
+    private static JsonEventParser eventParser = new JsonEventParser(); 
+
     private ExecutorService executor = null;
-    private Properties kafkaProperties; 
-    private boolean doesSeekFromBeginning = false;    
+    private Properties kafkaProperties;   
 }

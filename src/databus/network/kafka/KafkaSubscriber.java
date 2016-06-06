@@ -1,9 +1,12 @@
 package databus.network.kafka;
 
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.kafka.common.TopicPartition;
 
 
 public class KafkaSubscriber extends AbstractKafkaSubscriber {    
@@ -16,32 +19,54 @@ public class KafkaSubscriber extends AbstractKafkaSubscriber {
         super(executor);
     }
 
+    @Override
+    public void initialize(Properties properties) {
+        super.initialize(properties);
+        String saveThresholdValue = properties.getProperty("kafka.saveThreshold");
+        if (null != saveThresholdValue) {
+            saveThreshold = Integer.parseUnsignedInt(saveThresholdValue);
+        }
+        if (saveThreshold < 1) {
+            saveThreshold = 1;
+        }
+        positionCounters = new ConcurrentHashMap<String, AtomicInteger>();
+        positionCache = new PositionsCache();
+    }    
+
+    @Override
+    protected void initialize0() {
+        super.initialize0();
+        for(TopicPartition partition : consumer.assignment()) {
+            long position = positionCache.get(partition.topic(), partition.partition());
+            if (position >= 0) {
+                consumer.seek(partition, position+1);
+            } else if (doesSeekFromBeginning) {
+                consumer.seekToBeginning(partition);;
+            }
+        }
+    }
+
     /**
      * thread-safe method
      */
     @Override
     protected void cachePosition(String topic, int partition, long position) {
-        System.out.println(topic+"  ("+partition+", "+position+")");
         positionCache.set(topic, partition, position);
         AtomicInteger counter = positionCounters.get(topic);
-        int currentCount = 1;
         if (null == counter) {
             counter = new AtomicInteger(1);
             positionCounters.put(topic, counter);
-        } else {
-            currentCount = counter.incrementAndGet();
         }
-        if (currentCount < saveThreshold) {
-            return;
-        }
-        if (counter.compareAndSet(currentCount, currentCount-saveThreshold)) {
-            positionCache.save(topic);
-        }
-        
+        int currentCount = counter.incrementAndGet();
+        while((currentCount=counter.get()) >= saveThreshold) {
+            if (counter.compareAndSet(currentCount, currentCount-saveThreshold)) {
+                positionCache.save(topic);
+                break;
+            }
+        }        
     }
     
-    private Map<String,AtomicInteger> positionCounters = 
-                                          new ConcurrentHashMap<String, AtomicInteger>();
-    private PositionsCache positionCache = new PositionsCache();
-   
+    private Map<String,AtomicInteger> positionCounters;
+    private PositionsCache positionCache;    
+    private int saveThreshold = 1;   
 }

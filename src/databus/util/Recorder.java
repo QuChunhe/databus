@@ -68,16 +68,24 @@ public class Recorder {
                    .append('=')
                    .append(e.getValue());
         }
-        CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder();
-        ByteBuffer byteBuffer =  null;
-        try {
-            byteBuffer = encoder.encode(CharBuffer.wrap(builder, 0, builder.length()));
-        } catch (CharacterCodingException e) {
-            log.error("Can't encode "+builder.toString(), e);
-            return;
-        }
-        int size = byteBuffer.limit() - byteBuffer.position();
         synchronized (this) {
+            //guarantee atomic overwrite
+            long currentFileLength = builder.length();
+            for(long i=currentFileLength; i<prevFileLength; i++) {
+                builder.append(' ');
+            }
+            prevFileLength = currentFileLength;
+            
+            CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder();
+            ByteBuffer byteBuffer =  null;
+            try {
+                byteBuffer = encoder.encode(CharBuffer.wrap(builder, 0, builder.length()));
+            } catch (CharacterCodingException e) {
+                log.error("Can't encode "+builder.toString(), e);
+                return;
+            }
+            int size = byteBuffer.limit() - byteBuffer.position();
+        
             try {
                 int length = fileChannel.write(byteBuffer, 0);
                 fileChannel.truncate(length);
@@ -125,4 +133,5 @@ public class Recorder {
     
     private FileChannel recordFileChannel = null;
     private final String recordFileName;
+    private long prevFileLength = 0;
 }
