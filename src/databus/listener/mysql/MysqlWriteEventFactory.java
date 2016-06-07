@@ -2,10 +2,13 @@ package databus.listener.mysql;
 
 import java.math.BigInteger;
 import java.sql.Types;
-
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import com.google.code.or.common.glossary.Column;
 import com.google.code.or.common.glossary.column.BlobColumn;
+import com.google.code.or.common.glossary.column.Datetime2Column;
+import com.google.code.or.common.glossary.column.DatetimeColumn;
 import com.google.code.or.common.glossary.column.Int24Column;
 import com.google.code.or.common.glossary.column.LongColumn;
 import com.google.code.or.common.glossary.column.LongLongColumn;
@@ -23,7 +26,7 @@ public abstract class MysqlWriteEventFactory {
     public String toString(Column column, ColumnAttribute attribute) {
         if ((null==column) || (column.getValue()==null)) {
             return null;
-        }        
+        }
         if (column instanceof BlobColumn) {
             return new String(((BlobColumn)column).getValue());
         }
@@ -44,6 +47,10 @@ public abstract class MysqlWriteEventFactory {
             }
               
             return i.toString();
+        }
+        if ((column instanceof DatetimeColumn) || (column instanceof Datetime2Column)) {
+            Date date = (Date) column.getValue();
+            return DATE_FORMAT.format(date);
         }
         return column.toString();
     }
@@ -74,5 +81,8 @@ public abstract class MysqlWriteEventFactory {
     private static final BigInteger MEDIUMINT_MASK = ONE.shiftLeft(3*8).subtract(ONE);
     private static final BigInteger SMALLINT_MASK = ONE.shiftLeft(2*8).subtract(ONE);
     private static final BigInteger TINYINT_MASK = ONE.shiftLeft(1*8).subtract(ONE);
+    
+    private static final SimpleDateFormat DATE_FORMAT = 
+                                              new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
 
 }
