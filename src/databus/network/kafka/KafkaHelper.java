@@ -11,8 +11,9 @@ import databus.util.Helper;
 
 public class KafkaHelper {
     
-    public static ExecutorService loadExecutor(Properties properties, int defaultMaxThreadPoolSize) {
-        String maxThreadPoolSizeValue = properties.getProperty("kafka.maxThreadPoolSize");
+    public static ExecutorService loadExecutor(Properties properties, 
+                                               int defaultMaxThreadPoolSize) {
+        String maxThreadPoolSizeValue = properties.getProperty("kafka.maxWorkerThreadPoolSize");
         int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
                                 defaultMaxThreadPoolSize : 
                                 Integer.parseInt(maxThreadPoolSizeValue);
@@ -23,7 +24,7 @@ public class KafkaHelper {
                                DEFAULT_TASK_CAPACITY  : 
                                Integer.parseInt(taskCapacityValue);
             executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 
-                                              100, TimeUnit.SECONDS, 
+                                              30, TimeUnit.SECONDS, 
                                               new LinkedBlockingQueue<Runnable>(taskCapacity),
                                               Executors.defaultThreadFactory(),
                                               new ThreadPoolExecutor.CallerRunsPolicy());

@@ -6,9 +6,13 @@
     <class>databus.network.kafka.KafkaBatchSubscribers</class>
     <kafka>
         <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
-        <maxThreadPoolSize>4</maxThreadPoolSize>
+        <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
+        <pollingThread>
+           <host>127.0.0.1:9092</host>
+           <number>2</number>
+        </pollingThread>
         <taskCapacity>1000</taskCapacity>
-        <saveThreshold>1</saveThreshold>
+        <recordSaveThreshold>1</recordSaveThreshold>
         <fromBeginning>true</fromBeginning>
     </kafka> 
   

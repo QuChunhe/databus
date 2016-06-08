@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -22,25 +21,28 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.network.AbstractSubscriber;
+import databus.network.MultiThreadSubscriber;
 import databus.network.JsonEventParser;
 
 
-public abstract class AbstractKafkaSubscriber extends AbstractSubscriber {
+public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     
     public AbstractKafkaSubscriber() {
-        super(new HashMap<String, Set<Receiver>>());
+        this(null, 1);
     }
     
-    public AbstractKafkaSubscriber(ExecutorService executor) {
-        this();
+    public AbstractKafkaSubscriber(ExecutorService executor, int pollingThreadNumber) {
+        super(pollingThreadNumber);
         this.executor = executor;
-    }
+        consumers = new ConcurrentHashMap<Long, KafkaConsumer<Long, String>>(pollingThreadNumber);
+    }    
 
     @Override
     public void stop() {
         super.stop();
-        consumer.close();
+        for(KafkaConsumer<Long, String> c : consumers.values()) {
+            c.close();
+        }
         if ((null!=executor) && (!executor.isTerminated())) {
             try {
                 executor.awaitTermination(30, TimeUnit.SECONDS);
@@ -49,11 +51,6 @@ public abstract class AbstractKafkaSubscriber extends AbstractSubscriber {
             }
         }
     }    
-
-    @Override
-    public void register(String topic, Receiver receiver) {
-        super.register(topic, receiver);        
-    }
 
     @Override
     public void initialize(Properties properties) {
@@ -94,36 +91,35 @@ public abstract class AbstractKafkaSubscriber extends AbstractSubscriber {
 
     @Override
     protected void run0() {
-        initialize0();
-
-        while (true) {
-            try {
-                ConsumerRecords<Long, String> records = consumer.poll(3600);
-                if ((null != records) && (!records.isEmpty())) {                   
-                    for(ConsumerRecord<Long, String> r : records) {
-                        Event event = eventParser.toEvent(r.value());
-                        log.info(r.key() + " " + r.topic() + " : " + event.toString());
-                        if (null != executor) {
-                            executor.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    receive0(r.topic(), r.partition(), r.offset(), event);
-                                }
-                            });
-                        } else {
-                            receive0(r.topic(), r.partition(), r.offset(), event);
-                        }
+        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
+        try {
+            ConsumerRecords<Long, String> records = consumer.poll(3600);
+            if ((null != records) && (!records.isEmpty())) {                   
+                for(ConsumerRecord<Long, String> r : records) {
+                    Event event = eventParser.toEvent(r.value());
+                    log.info(r.key() + " " + r.topic() + " (" + r.partition() + "," + 
+                             r.offset() + ") : " + event.toString());
+                    if (null != executor) {
+                        executor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                receive0(r.topic(), r.partition(), r.offset(), event);
+                            }
+                        });
+                    } else {
+                        receive0(r.topic(), r.partition(), r.offset(), event);
                     }
                 }
-            } catch(Exception e) {
-                log.error("Exception Throwsn when polling Kafka", e);
             }
+        } catch(Exception e) {
+            log.error("Exception Throwsn when polling Kafka", e);
         }
     }
     
     protected abstract void cachePosition(String topic, int partition, long position); 
     
-    protected void initialize0() {
+    @Override
+    protected void initializeOnce() {
         HashSet<String> serverSet = new HashSet<String>();
         Map<String, Set<Receiver>> newMap = new ConcurrentHashMap<String, Set<Receiver>>();
         for(String t : receiversMap.keySet()) {;
@@ -139,29 +135,38 @@ public abstract class AbstractKafkaSubscriber extends AbstractSubscriber {
             serverSet.add(address);            
         }
         receiversMap = newMap;
-        StringBuilder servers = new StringBuilder(64);
+        StringBuilder serversBuilder = new StringBuilder(64);
         for(String s : serverSet) {
-            if (servers.length() > 0) {
-                servers.append(',');
+            if (serversBuilder.length() > 0) {
+                serversBuilder.append(',');
             }
-            servers.append(s);
+            serversBuilder.append(s);
         }
-        kafkaProperties.put("bootstrap.servers", servers.toString());
+        kafkaProperties.put("bootstrap.servers", serversBuilder.toString());       
+    }
 
-        consumer = new KafkaConsumer<Long, String>(kafkaProperties);
+    @Override
+    protected void initializePerThread() {
+        Properties properties = new Properties();
+        properties.putAll(kafkaProperties);
+        long currentThreadId = Thread.currentThread().getId();
+        String clientId = properties.getProperty("group.id")+"-"+currentThreadId;
+        properties.setProperty("client.id", clientId);
+        KafkaConsumer<Long, String> consumer = new KafkaConsumer<Long, String>(properties);
         List<String> topicList = new ArrayList<String>(receiversMap.size());
         topicList.addAll(receiversMap.keySet());
         consumer.subscribe(topicList, 
                            new AutoRebalanceListener(consumer, doesSeekFromBeginning));
-        log.info(topicList.toString());
+        log.info(clientId + " : " + topicList.toString());
+        consumers.put(currentThreadId, consumer);
     }
     
     private void receive0(String topic, int partition, long position, Event event) {
-        receive0(topic, event);
+        receive(topic, event);
         cachePosition(topic, partition, position);
     }
     
-    protected KafkaConsumer<Long, String> consumer;
+    protected ConcurrentHashMap<Long, KafkaConsumer<Long, String>> consumers;
     protected boolean doesSeekFromBeginning = false;   
     
     private static Log log = LogFactory.getLog(AbstractKafkaSubscriber.class);

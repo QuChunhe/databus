@@ -6,23 +6,24 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 
 
 public class KafkaSubscriber extends AbstractKafkaSubscriber {    
 
     public KafkaSubscriber() {
-        super();
+        this(null, 1);
     }
 
-    public KafkaSubscriber(ExecutorService executor) {
-        super(executor);
+    public KafkaSubscriber(ExecutorService executor, int pollingThreadNumber) {
+        super(executor, pollingThreadNumber);
     }
 
     @Override
     public void initialize(Properties properties) {
         super.initialize(properties);
-        String saveThresholdValue = properties.getProperty("kafka.saveThreshold");
+        String saveThresholdValue = properties.getProperty("kafka.recordSaveThreshold");
         if (null != saveThresholdValue) {
             saveThreshold = Integer.parseUnsignedInt(saveThresholdValue);
         }
@@ -34,8 +35,9 @@ public class KafkaSubscriber extends AbstractKafkaSubscriber {
     }    
 
     @Override
-    protected void initialize0() {
-        super.initialize0();
+    protected void initializePerThread() {
+        super.initializePerThread();
+        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
         for(TopicPartition partition : consumer.assignment()) {
             long position = positionCache.get(partition.topic(), partition.partition());
             if (position >= 0) {

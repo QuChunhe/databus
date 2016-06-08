@@ -16,7 +16,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.network.AbstractSubscriber;
+import databus.network.SingleThreadSubscriber;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -33,7 +33,7 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
-public class NettySubscriber extends AbstractSubscriber {
+public class NettySubscriber extends SingleThreadSubscriber {
 
     public NettySubscriber() {
         super();
@@ -68,9 +68,9 @@ public class NettySubscriber extends AbstractSubscriber {
     
     @Override
     public boolean receive(Event event) {
-        boolean hasReceived = receive0(event.topic(), event);
+        boolean hasReceived = receive(event.topic(), event);
         if (event.fullTopic() != null) {
-            hasReceived = hasReceived || receive0(event.fullTopic(), event);
+            hasReceived = hasReceived || receive(event.fullTopic(), event);
         }
          return hasReceived;
     }

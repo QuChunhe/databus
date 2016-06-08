@@ -28,8 +28,12 @@
     <class>databus.network.kafka.KafkaBatchSubscribers</class>
     <kafka>
         <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
-        <maxThreadPoolSize>4</maxThreadPoolSize>
-        <saveThreshold>1</saveThreshold>
+        <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
+        <pollingThread>
+           <host>127.0.0.1:9092</host>
+           <number>4</number>
+        </pollingThread>
+        <recordSaveThreshold>1</recordSaveThreshold>
         <taskCapacity>1000</taskCapacity>
         <fromBeginning>true</fromBeginning>
     </kafka> 
@@ -47,7 +51,7 @@
         </redis>
        <system>adm</system>
        <replicatedTables>
-         <user>age, position, salary</user>
+         <user>age, position, salary, time1, time2</user>
          <book>name, isdn, author</book>
        </replicatedTables>
     </receiver>

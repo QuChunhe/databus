@@ -15,12 +15,29 @@ public class KafkaBatchSubscribers implements Subscriber {
 
     public KafkaBatchSubscribers() {
         subscribers = new HashMap<String, AbstractKafkaSubscriber>();
+        pollingThreadNumberMap = new HashMap<String, Integer>();
     }
 
     @Override
     public void initialize(Properties properties) {
         this.properties = properties;
         executor = KafkaHelper.loadExecutor(properties, 1);
+        String rawHostValue = properties.getProperty("kafka.pollingThread.host");
+        String rawNumberValue = properties.getProperty("kafka.pollingThread.number");
+        if ((null==rawHostValue) || (null==rawNumberValue)) {
+            return;
+        }
+        String[] hosts = rawHostValue.split(",");        
+        String[] numbers = rawNumberValue.split(",");
+        if (hosts.length != numbers.length) {
+            log.error("kafka.pollingThread.host and kafka.pollingThread.number " +
+                      "must be matched");
+            return;
+        }
+        for(int i=0; i<hosts.length; i++) {
+            pollingThreadNumberMap.put(hosts[i].trim(), new Integer(numbers[i]));
+        }
+        log.info(pollingThreadNumberMap.toString());
     }
 
     @Override
@@ -65,7 +82,11 @@ public class KafkaBatchSubscribers implements Subscriber {
         }
         AbstractKafkaSubscriber target = subscribers.get(address);
         if (null == target) {
-            target = new KafkaSubscriber(executor);
+            Integer number = pollingThreadNumberMap.get(address);
+            if (null == number) {
+                number = 1;
+            }
+            target = new KafkaSubscriber(executor, number);
             subscribers.put(address, target);
             target.initialize(properties);
         }
@@ -78,5 +99,6 @@ public class KafkaBatchSubscribers implements Subscriber {
     private Properties properties;
     private Map<String, AbstractKafkaSubscriber> subscribers;
     private ExecutorService executor;
+    private Map<String, Integer> pollingThreadNumberMap;
 
 }
