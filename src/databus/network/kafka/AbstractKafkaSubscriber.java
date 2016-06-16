@@ -28,11 +28,11 @@ import databus.network.JsonEventParser;
 public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     
     public AbstractKafkaSubscriber() {
-        this(null, 1);
+        this(null, 1, "AbstractKafkaSubscriber");
     }
     
-    public AbstractKafkaSubscriber(ExecutorService executor, int pollingThreadNumber) {
-        super(pollingThreadNumber);
+    public AbstractKafkaSubscriber(ExecutorService executor, int pollingThreadNumber, String name) {
+        super(pollingThreadNumber, name);
         this.executor = executor;
         consumers = new ConcurrentHashMap<Long, KafkaConsumer<Long, String>>(pollingThreadNumber);
     }    
@@ -99,7 +99,10 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
                     Event event = eventParser.toEvent(r.value());
                     log.info(r.key() + " " + r.topic() + " (" + r.partition() + "," + 
                              r.offset() + ") : " + event.toString());
-                    if (null != executor) {
+                    if (!isLegal(r)) {
+                        log.warn( r.topic() + " (" + r.partition() + "," + r.offset() +
+                                  ") is illegal");
+                    }else if (null != executor) {
                         executor.execute(new Runnable() {
                             @Override
                             public void run() {
@@ -117,6 +120,8 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     }
     
     protected abstract void cachePosition(String topic, int partition, long position); 
+    
+    protected abstract boolean isLegal(ConsumerRecord<Long, String> record);
     
     @Override
     protected void initializeOnce() {

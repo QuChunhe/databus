@@ -12,12 +12,16 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
     }
     
     public MultiThreadSubscriber(int threadNumber) {
+       this(threadNumber, "MultiThreadSubscriber");          
+    }
+    
+    public MultiThreadSubscriber(int threadNumber, String name) {
         super();
         if (threadNumber < 1) {
             throw new IllegalArgumentException(threadNumber + " thread is illegal");
         }
         this.threadNumber = threadNumber;
-            
+        this.name = name;            
     }
 
     @Override
@@ -39,8 +43,7 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
             throw new InterruptedException(interruptedThreadNumber +
                                            " threads has been interrupted in " +
                                            threadNumber);
-        }
-                
+        }                
     }
 
     @Override
@@ -71,7 +74,7 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
                                             run0();
                                         }                                                       
                                     }                
-                                 }, this.getClass().getSimpleName()+"-"+i);
+                                 }, name+"-"+i);
                 threads[i].start();
             }
         }         
@@ -98,5 +101,6 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
     
     private Thread[] threads = null;
     private final int threadNumber;
+    private final String name;
     protected volatile boolean doesRun;
 }

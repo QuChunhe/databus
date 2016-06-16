@@ -86,7 +86,7 @@ public class KafkaBatchSubscribers implements Subscriber {
             if (null == number) {
                 number = 1;
             }
-            target = new KafkaSubscriber(executor, number);
+            target = new KafkaSubscriber(executor, number, "KafkaSubscriber"+'-'+address);
             subscribers.put(address, target);
             target.initialize(properties);
         }

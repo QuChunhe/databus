@@ -19,15 +19,23 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
     @Override
     public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
         PositionsCache cache = new PositionsCache(new HashSet<String>());
+        HashSet<TopicPartition> partitionsFromBeginning = null;
         for(TopicPartition p : partitions) {
             String topic = p.topic();
             long offset = cache.get(topic, p.partition());
             if (offset >= 0) {
                 consumer.seek(p, offset+1);
             } else if (doesSeekFromBeginning) {
-                consumer.seekToBeginning(p);;
-            }
+                if (null == partitionsFromBeginning) {
+                    partitionsFromBeginning = new HashSet<TopicPartition>();
+                }
+                partitionsFromBeginning.add(p);
+            }            
         }
+        if (partitionsFromBeginning != null) {
+            consumer.seekToBeginning(partitionsFromBeginning);
+        }
+        
     }
 
     @Override
