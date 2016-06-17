@@ -34,17 +34,14 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
         }
         if (partitionsFromBeginning != null) {
             consumer.seekToBeginning(partitionsFromBeginning);
-        }
-        
+        }        
     }
 
     @Override
     public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
         PositionsCache cache = new PositionsCache(new HashSet<String>());
         for(TopicPartition p : partitions) {
-            String topic = p.topic();
-            long position = consumer.position(p);
-            cache.set(topic, p.partition(), position);
+            cache.set(p.topic(), p.partition(), consumer.position(p)-1);
         }
         cache.saveAll();
     }
