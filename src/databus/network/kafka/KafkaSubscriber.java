@@ -1,6 +1,5 @@
 package databus.network.kafka;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.TopicPartition;
 
 
 public class KafkaSubscriber extends AbstractKafkaSubscriber {    
@@ -40,18 +38,7 @@ public class KafkaSubscriber extends AbstractKafkaSubscriber {
     protected void initializePerThread() {
         super.initializePerThread();
         KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
-        HashSet<TopicPartition> partitionsFromBeginning = new HashSet<TopicPartition>();
-        for(TopicPartition partition : consumer.assignment()) {
-            long position = positionCache.get(partition.topic(), partition.partition());
-            if (position >= 0) {
-                consumer.seek(partition, position+1);
-            } else if (doesSeekFromBeginning) {
-                partitionsFromBeginning.add(partition);                
-            }
-        }
-        if (partitionsFromBeginning.size() > 0) {
-            consumer.seekToBeginning(partitionsFromBeginning);;
-        }
+        KafkaHelper.seekRightPositions(consumer, consumer.assignment());  
     }
 
     /**
@@ -68,10 +55,10 @@ public class KafkaSubscriber extends AbstractKafkaSubscriber {
                     cacheCounters.put(topic, counter);
                 }
             }            
-        }
+        }        
         int currentCount = counter.incrementAndGet();
         do {
-           if (counter.compareAndSet(currentCount, currentCount-saveThreshold)) {
+           if (counter.compareAndSet(currentCount, 0)) {
                 positionCache.save(topic);
                 break;
             } 

@@ -82,11 +82,6 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
         if (null == executor) {
             executor = KafkaHelper.loadExecutor(properties, 0);        
         }
-        
-        String  fromBeginningValue = properties.getProperty("kafka.fromBeginning");
-        if (null != fromBeginningValue) {
-            doesSeekFromBeginning = Boolean.parseBoolean(fromBeginningValue);
-        }
     }
 
     @Override
@@ -160,8 +155,7 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
         KafkaConsumer<Long, String> consumer = new KafkaConsumer<Long, String>(properties);
         List<String> topicList = new ArrayList<String>(receiversMap.size());
         topicList.addAll(receiversMap.keySet());
-        consumer.subscribe(topicList, 
-                           new AutoRebalanceListener(consumer, doesSeekFromBeginning));
+        consumer.subscribe(topicList, new AutoRebalanceListener(consumer));
         log.info(clientId + " : " + topicList.toString());
         consumers.put(currentThreadId, consumer);
     }
@@ -172,7 +166,6 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     }
     
     protected ConcurrentHashMap<Long, KafkaConsumer<Long, String>> consumers;
-    protected boolean doesSeekFromBeginning = false;   
     
     private static Log log = LogFactory.getLog(AbstractKafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser(); 

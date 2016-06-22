@@ -45,7 +45,7 @@ public class PositionsCache {
     }  
     
     public PositionsCache saveAll() {
-        if (null == topicSet) {
+        if ((null==topicSet) || (topicSet.size()==0)) {
             return this;
         }
         for(String topic: topicSet) {

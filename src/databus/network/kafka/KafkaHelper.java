@@ -1,11 +1,16 @@
 package databus.network.kafka;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 
 import databus.util.Helper;
 
@@ -40,6 +45,27 @@ public class KafkaHelper {
         return Helper.normalizeSocketAddress(remoteTopic.substring(0, index));
     }
     
+    public static void seekRightPositions(KafkaConsumer<Long, String> consumer, 
+                                          Collection<TopicPartition> partitions) {
+        PositionsCache cache = new PositionsCache();
+        HashSet<TopicPartition> partitionsFromBeginning = null;
+        for(TopicPartition p : partitions) {
+            long offset = cache.get(p.topic(), p.partition());
+            if (offset < 0) {
+                if (null == partitionsFromBeginning) {
+                    partitionsFromBeginning = new HashSet<TopicPartition>();
+                }
+                partitionsFromBeginning.add(p);
+            } else {
+                //if the position is out of partition range, 
+                //the offset depends on the topic and the value of auto.offset.reset.
+                consumer.seek(p, offset+1); 
+            }             
+        }
+        if (null != partitionsFromBeginning) {
+            consumer.seekToBeginning(partitionsFromBeginning);
+        }
+    }
+    
     private static final int DEFAULT_TASK_CAPACITY = 1000;
-
 }

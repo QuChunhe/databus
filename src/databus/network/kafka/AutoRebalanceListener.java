@@ -3,6 +3,8 @@ package databus.network.kafka;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -10,42 +12,33 @@ import org.apache.kafka.common.TopicPartition;
 
 public class AutoRebalanceListener implements ConsumerRebalanceListener{
     
-    public AutoRebalanceListener(KafkaConsumer<Long, String> consumer, 
-                                      boolean doesSeekFromBeginning) {;
+    public AutoRebalanceListener(KafkaConsumer<Long, String> consumer) {;
         this.consumer = consumer;
-        this.doesSeekFromBeginning = doesSeekFromBeginning;
     }
 
     @Override
     public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-        PositionsCache cache = new PositionsCache(new HashSet<String>());
-        HashSet<TopicPartition> partitionsFromBeginning = null;
-        for(TopicPartition p : partitions) {
-            String topic = p.topic();
-            long offset = cache.get(topic, p.partition());
-            if (offset >= 0) {
-                consumer.seek(p, offset+1);
-            } else if (doesSeekFromBeginning) {
-                if (null == partitionsFromBeginning) {
-                    partitionsFromBeginning = new HashSet<TopicPartition>();
-                }
-                partitionsFromBeginning.add(p);
-            }            
-        }
-        if (partitionsFromBeginning != null) {
-            consumer.seekToBeginning(partitionsFromBeginning);
-        }        
+        KafkaHelper.seekRightPositions(consumer, partitions);       
     }
 
     @Override
     public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
         PositionsCache cache = new PositionsCache(new HashSet<String>());
         for(TopicPartition p : partitions) {
-            cache.set(p.topic(), p.partition(), consumer.position(p)-1);
+            long nextPosition = -1;
+            try {
+                nextPosition = consumer.position(p);
+            } catch(Exception e) {
+                log.error("Can't record the position of "+p.topic()+" partition "+p.partition());
+            }
+            if (nextPosition > 0) {
+                cache.set(p.topic(), p.partition(), nextPosition-1);
+            }            
         }
         cache.saveAll();
     }
     
+    private static Log log = LogFactory.getLog(AutoRebalanceListener.class);
+    
     private KafkaConsumer<Long, String> consumer;
-    private boolean doesSeekFromBeginning;
 }

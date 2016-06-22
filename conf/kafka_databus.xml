@@ -35,7 +35,6 @@
         </pollingThread>
         <recordSaveThreshold>1</recordSaveThreshold>
         <taskCapacity>1000</taskCapacity>
-        <fromBeginning>true</fromBeginning>
     </kafka> 
   
     <receiver>

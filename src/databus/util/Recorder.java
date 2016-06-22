@@ -98,6 +98,21 @@ public class Recorder {
         }       
     }
     
+    public void close() {
+        if (null != recordFileChannel) {
+            synchronized (this) {
+                if (null != recordFileChannel) {
+                    try {
+                        recordFileChannel.close();
+                        recordFileChannel = null;
+                    } catch (IOException e) {
+                        log.error("Can't close "+recordFileName, e);
+                    }
+                }
+            }
+        }
+    }
+    
     private FileChannel openFileChannel(String fileName) {
         File file = new File(fileName);       
         if (file.exists() && !file.isFile()) {        
