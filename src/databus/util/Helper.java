@@ -1,12 +1,28 @@
 package databus.util;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
 
 import io.netty.util.internal.ThreadLocalRandom;
 
 public class Helper {
     
+    public static long ipToInt(String ipAddr) throws UnknownHostException, DataFormatException {
+        InetAddress inetAddress = InetAddress.getByName(ipAddr);
+        byte[] parts = inetAddress.getAddress();
+        if (parts.length != 4) {
+            throw new DataFormatException(ipAddr+" length does't equal to 4");
+        }
+        long ip = 0;
+        ip |= Byte.toUnsignedLong(parts[0]) << 24;
+        ip |= Byte.toUnsignedLong(parts[1]) << 16;
+        ip |= Byte.toUnsignedLong(parts[2]) << 8;
+        ip |= Byte.toUnsignedLong(parts[3]);
+     
+        return ip;
+    }
     
     public static long id(long unixTime, int serviceId) {
         return (unixTime << 32) | ((serviceId & serviceIdMask) << 22) | rand();

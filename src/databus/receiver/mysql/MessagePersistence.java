@@ -48,7 +48,26 @@ public class MessagePersistence extends MysqlReceiver{
                 Class<?> beanClass =  Class.forName(className);                
                 classesMap.put(key.trim(), beanClass);
             } catch (ClassNotFoundException e) {
-                log.error("Can't instantiate "+className+" for "+keys[i], e);
+                log.error("Can't find "+className+" for "+keys[i], e);
+            }
+        }
+        
+        String beanContextClassName = properties.getProperty("beanContext");
+        if (null != beanContextClassName) {
+            try {                
+                Class<?> beanContextClass =  Class.forName(beanContextClassName);                
+                beanContext = (BeanContext) beanContextClass.newInstance();
+                Properties prop = new Properties();
+                final String PREFIX = "beanContext";
+                for(String key : properties.stringPropertyNames()) {
+                    if (key.startsWith(PREFIX)) {
+                        String newKey = key.substring(PREFIX.length());
+                        prop.setProperty(newKey, properties.getProperty(key));
+                    }
+                }
+                beanContext.initialize(prop);
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                log.error("Can't instantiate "+beanContextClassName, e);
             }
         }
     }
@@ -69,7 +88,7 @@ public class MessagePersistence extends MysqlReceiver{
         String message = e.message();
         Object bean = gson.fromJson(message, beanClass);
         if ((null!=bean) && (bean instanceof ExecutableBean)) {
-            ((ExecutableBean) bean).execute(conn);;
+            ((ExecutableBean) bean).execute(conn, beanContext);;
         } else {
             log.error(message + " can't convert to "+beanClass.getName());
         }        
@@ -83,4 +102,5 @@ public class MessagePersistence extends MysqlReceiver{
     
     private Gson gson;
     private Map<String,Class<?>> classesMap;
+    private BeanContext beanContext = null;
 }

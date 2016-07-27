@@ -6,6 +6,6 @@ import databus.receiver.Bean;
 
 public interface ExecutableBean extends Bean {
     
-    public void execute(Connection connection);
+    public void execute(Connection connection, BeanContext beanContext);
 
 }

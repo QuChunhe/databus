@@ -37,7 +37,6 @@ public class KafkaBatchSubscribers implements Subscriber {
         for(int i=0; i<hosts.length; i++) {
             pollingThreadNumberMap.put(hosts[i].trim(), new Integer(numbers[i]));
         }
-        log.info(pollingThreadNumberMap.toString());
     }
 
     @Override
