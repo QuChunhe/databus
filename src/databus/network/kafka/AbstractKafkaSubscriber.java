@@ -40,12 +40,13 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     @Override
     public void stop() {
         super.stop();
-        for(KafkaConsumer<Long, String> c : consumers.values()) {
-            c.close();
-        }
+        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
+        if (null != consumer) {
+            consumer.wakeup();;
+        }  
         if ((null!=executor) && (!executor.isTerminated())) {
             try {
-                executor.awaitTermination(30, TimeUnit.SECONDS);
+                executor.awaitTermination(5, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Can't wait the terimination of ExecutorService", e);
             }
@@ -88,7 +89,7 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     protected void run0() {
         KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
         try {
-            ConsumerRecords<Long, String> records = consumer.poll(3600);
+            ConsumerRecords<Long, String> records = consumer.poll(1000);
             if ((null != records) && (!records.isEmpty())) {                   
                 for(ConsumerRecord<Long, String> r : records) {
                     Event event = eventParser.toEvent(r.value());
@@ -158,12 +159,21 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
         consumer.subscribe(topicList, new AutoRebalanceListener(consumer));
         log.info(clientId + " : " + topicList.toString());
         consumers.put(currentThreadId, consumer);
-    }
+    }    
     
+    @Override
+    protected void destroyPerThread() {
+        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
+        if (null != consumer) {
+            consumer.close();
+        }        
+    }
+
     private void receive0(String topic, int partition, long position, Event event) {
         receive(topic, event);
         cachePosition(topic, partition, position);
     }
+    
     
     protected ConcurrentHashMap<Long, KafkaConsumer<Long, String>> consumers;
     

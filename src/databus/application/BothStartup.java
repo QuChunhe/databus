@@ -1,12 +1,13 @@
 package databus.application;
 
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.core.Listener;
 import databus.core.Publisher;
 import databus.core.Subscriber;
-import databus.listener.BatchListeners;
 
 public class BothStartup extends Startup {
 
@@ -21,25 +22,19 @@ public class BothStartup extends Startup {
         }        
         DatabusBuilder builder = new DatabusBuilder(configFileName);
         Subscriber subscriber = builder.createSubscriber() ;
-        Publisher publisher = builder.createPublisher();       
-        BatchListeners listeners = builder.createListeners();
- 
         subscriber.start();
-        listeners.setPublisher(publisher);         
-        listeners.start();   
-        
-        try {
-            subscriber.join();
-            listeners.join();
-        } catch (InterruptedException e) {
-            log.info("Has been interrupted!");
-        } finally {
-            subscriber.stop();
-            listeners.stop();
+        addShutdownHook(subscriber);
+        Publisher publisher = builder.createPublisher(); 
+        addShutdownHook(publisher);
+        List<Listener> listeners = builder.createListeners(publisher);
+
+        for(Listener l : listeners) {
+           addShutdownHook(l); 
         }
+        waitUntilSIGTERM(); 
         
         log.info("BothStartup has finished!");
-        System.exit(0);
+        log.info("******************************************************************************");
     }
     
     private static Log log = LogFactory.getLog(BothStartup.class);

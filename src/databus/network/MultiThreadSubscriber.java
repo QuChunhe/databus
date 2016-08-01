@@ -30,20 +30,18 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
             log.warn("Has't thread");
             return;
         }
-        int interruptedThreadNumber = 0;
+
         for(Thread t : threads) {
             try {
                 t.join();
             } catch (InterruptedException e) {
-                log.error(t.getName()+" is interrupted", e);
-                interruptedThreadNumber++;
-            }            
+                log.warn(t.getName()+" is interrupted", e);
+            }
+            if (!doesRun) {
+                break;
+            }
         }
-        if (interruptedThreadNumber > 0) {
-            throw new InterruptedException(interruptedThreadNumber +
-                                           " threads has been interrupted in " +
-                                           threadNumber);
-        }                
+                
     }
 
     @Override
@@ -72,7 +70,8 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
                                         initializePerThread();
                                         while (doesRun) {
                                             run0();
-                                        }                                                       
+                                        }
+                                        destroyPerThread();
                                     }                
                                  }, name+"-"+i);
                 threads[i].start();
@@ -96,6 +95,8 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
     protected abstract void initializeOnce();
     
     protected abstract void initializePerThread();
+    
+    protected abstract void destroyPerThread();
     
     private static Log log = LogFactory.getLog(MultiThreadSubscriber.class);
     

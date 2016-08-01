@@ -1,5 +1,6 @@
 package databus.application;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -20,7 +21,7 @@ import databus.core.Listener;
 import databus.core.Publisher;
 import databus.core.Receiver;
 import databus.core.Subscriber;
-import databus.listener.BatchListeners;
+import databus.listener.AbstractListener;
 
 
 public class DatabusBuilder {
@@ -82,19 +83,22 @@ public class DatabusBuilder {
         return subscriber;
     }
     
-    public BatchListeners createListeners() {
-        BatchListeners batchListener = new BatchListeners();
+    public List<Listener> createListeners(Publisher publisher) {
+        List<Listener> listeners = new LinkedList<Listener>();
         List<HierarchicalConfiguration<ImmutableNode>> 
              listenersConfig = config.configurationsAt("publisher.listener");
         for(HierarchicalConfiguration<ImmutableNode> c : listenersConfig) {
             Object object = loadInitialiableObject(c);
-            if ((null!=object) && (object instanceof Listener)) {
-                batchListener.add((Listener) object);
+            if ((null!=object) && (object instanceof AbstractListener)) {
+                AbstractListener l = (AbstractListener) object;
+                l.setPublisher(publisher);
+                l.start();
+                listeners.add(l);
             } else {
                 log.error("Can't instance Listener Object for "+c.toString());
             }
         }
-        return batchListener;
+        return listeners;
     }
     
     public void loadReceivers(Subscriber subscriber) {

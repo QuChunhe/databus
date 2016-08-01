@@ -1,6 +1,5 @@
 package databus.application;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -19,19 +18,12 @@ public class SubscriberStartup extends Startup {
             configFileName = args[0];
         }         
         DatabusBuilder builder = new DatabusBuilder(configFileName);
-
         Subscriber subscriber = builder.createSubscriber();
         subscriber.start();
-
-        try {
-            subscriber.join();
-        } catch (InterruptedException e) {
-            log.info("Has been interrupted!");
-        } finally {
-            subscriber.stop();
-        }
+        addShutdownHook(subscriber);        
+        waitUntilSIGTERM(); 
         log.info("SubscriberStartup has finished!");
-        System.exit(0);
+        log.info("******************************************************************************");
     }
     
     private static Log log = LogFactory.getLog(SubscriberStartup.class);

@@ -7,9 +7,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import databus.core.Joinable;
+import databus.core.Stoppable;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 public class Startup {
     
@@ -56,6 +63,45 @@ public class Startup {
         }
     }
     
-    private static Log log = LogFactory.getLog(Startup.class);
+    public static void addShutdownHook(Stoppable hook) {
+        hooks.add(hook);
+    }
 
+    public static void waitUntilSIGTERM() {
+        while (isRunning) {
+            try {
+                for(Stoppable s : hooks) {
+                    if(s instanceof Joinable) {
+                        ((Joinable) s).join();
+                    }
+                }
+            } catch (InterruptedException e) {
+                log.warn(Thread.currentThread().getName()+" is interrupted!");
+            }
+        }
+    }        
+    
+    static {
+        mainThread = Thread.currentThread();
+        Signal.handle(new Signal("TERM"), new SignalHandler() {
+            @Override
+            public void handle(Signal arg0) {
+                log.info("Receiving SIGTERM");
+                for(Stoppable s : hooks) {
+                    s.stop();
+                    log.info("Has stopped "+s.getClass().getName());
+                }
+                log.info("All hooks has been stopped!");
+                isRunning = false;
+                mainThread.interrupt();
+            }            
+        });
+    }    
+    
+    
+    private static Log log = LogFactory.getLog(Startup.class);
+    
+    private static Set<Stoppable> hooks = new CopyOnWriteArraySet<Stoppable>();
+    private static volatile boolean isRunning = true;
+    private static Thread mainThread;
 }
