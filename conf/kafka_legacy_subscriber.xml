@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+<subscriber>
+    <class>databus.network.kafka.KafkaBatchSubscribers</class>
+    <kafka>
+        <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
+         <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
+        <pollingThread>
+           <host>127.0.0.1:9092</host>
+           <number>4</number>
+        </pollingThread>
+        <taskCapacity>1000</taskCapacity>
+    </kafka>
+    <receiver>
+        <class>databus.receiver.mysql.MessagePersistence</class>
+        <remoteTopic>208.101.1.202:9092/REDIS/LIST_MESSAGING/adm:mq:userInfo</remoteTopic>
+        <mysql>
+            <url>jdbc:mysql://127.0.0.1:3307/adm</url>
+            <username>root</username>
+            <password></password>
+            <driverClassName>com.mysql.jdbc.Driver</driverClassName>
+            <initialSize>5</initialSize>
+            <maxActive>25</maxActive>
+            <maxIdle>5</maxIdle>
+            <minIdle>5</minIdle>
+            <maxWait>50000</maxWait>
+            <defaultAutoCommit>true</defaultAutoCommit>
+            <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
+        </mysql>
+        <bean>
+            <key>adm:mq:userInfo</key>
+            <class>adm.stats.AccessInfoBean</class>
+        </bean>
+        <beanContext>
+            <class>adm.stats.AccessInfoBean</class>
+        </beanContext>   
+    </receiver>
+</subscriber>
+</configuration>
+

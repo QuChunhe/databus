@@ -12,9 +12,9 @@
            <number>2</number>
         </pollingThread>
         <taskCapacity>1000</taskCapacity>
-        <recordSaveThreshold>1</recordSaveThreshold>
+        <writePerFlush>1</writePerFlush>
     </kafka> 
-  
+ <!--
     <receiver>
         <class>databus.receiver.redis.RedisSlave4Mysql</class>
         <remoteTopic>127.0.0.1:9092/MYSQL/1/test</remoteTopic>
@@ -31,6 +31,29 @@
          <user>age, position, salary</user>
          <book>name, isdn, author</book>
        </replicatedTables>
+    </receiver>
+-->
+
+    <receiver>
+        <class>databus.receiver.mysql.MessagePersistence</class>
+        <remoteTopic>127.0.0.1:9092/REDIS/LIST-MESSAGING/adm-mq-userInfo</remoteTopic>
+        <mysql>
+            <url>jdbc:mysql://127.0.0.1:3306/adm</url>
+            <username>root</username>
+            <password>quchunhe</password>
+            <driverClassName>com.mysql.jdbc.Driver</driverClassName>
+            <initialSize>1</initialSize>
+            <maxActive>10</maxActive>
+            <maxIdle>5</maxIdle>
+            <minIdle>0</minIdle>
+            <maxWait>50000</maxWait>
+            <defaultAutoCommit>true</defaultAutoCommit>
+            <connectionProperties>allowMultiQueries=true;useUnicode=true;characterEncoding=UTF-8</connectionProperties>
+        </mysql>
+        <bean>
+            <key>adm:mq:userInfo</key>
+            <class>adm.stats.LegacyStatsBean</class>
+        </bean>
     </receiver>
 </subscriber>
 

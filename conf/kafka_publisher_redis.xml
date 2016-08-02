@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+<publisher> 
+    <class>databus.network.kafka.KafkaPublisher</class>
+    <kafka>
+        <server>127.0.0.1:9092</server>
+        <acks>1</acks>
+    </kafka>
+
+    <listener>
+        <class>databus.listener.redis.RedisMessagingListener</class>
+        <redis>
+            <host>127.0.0.1</host>
+            <port>6379</port>
+            <keys>adm:mq:userInfo</keys>
+        </redis>
+    </listener>
+</publisher>
+
+</configuration>

@@ -30,18 +30,19 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
             log.warn("Has't thread");
             return;
         }
-
+        long ONE_SECOND = 1000;
         for(Thread t : threads) {
             try {
-                t.join();
+                if (t.isAlive()) {
+                    t.join();
+                } else if (doesRun){
+                    log.error(t.getName()+" is "+t.getState());
+                    Thread.sleep(ONE_SECOND);
+                }                
             } catch (InterruptedException e) {
                 log.warn(t.getName()+" is interrupted", e);
             }
-            if (!doesRun) {
-                break;
-            }
-        }
-                
+        }                
     }
 
     @Override
@@ -60,20 +61,11 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
     @Override
     public void start() {
         if (null == threads) { 
-            initializeOnce();
+            initialize();
             threads = new Thread[threadNumber];
             doesRun = true;
             for (int i=0; i<threadNumber; i++) {
-                threads[i] = new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        initializePerThread();
-                                        while (doesRun) {
-                                            run0();
-                                        }
-                                        destroyPerThread();
-                                    }                
-                                 }, name+"-"+i);
+                threads[i] = new Thread(createWorker(), name+"-"+i);
                 threads[i].start();
             }
         }         
@@ -90,13 +82,11 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
                 t.interrupt();
             } 
         }                
-    } 
+    }
     
-    protected abstract void initializeOnce();
+    protected abstract Worker createWorker();
     
-    protected abstract void initializePerThread();
-    
-    protected abstract void destroyPerThread();
+    protected abstract void initialize();
     
     private static Log log = LogFactory.getLog(MultiThreadSubscriber.class);
     
@@ -104,4 +94,23 @@ public abstract class MultiThreadSubscriber extends AbstractSubscriber {
     private final int threadNumber;
     private final String name;
     protected volatile boolean doesRun;
+    
+    protected abstract class Worker implements Runnable {
+        
+        public abstract void initialize();
+        
+        public abstract void destroy();
+        
+        public abstract void run0();
+
+        @Override
+        public void run() {
+            initialize();
+            while (doesRun) {
+               run0();
+            }
+            destroy();            
+        }   
+        
+    }
 }

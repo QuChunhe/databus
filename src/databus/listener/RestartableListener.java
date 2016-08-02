@@ -3,6 +3,9 @@ package databus.listener;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import databus.core.Publisher;
 import databus.core.Restartable;
 
@@ -39,11 +42,17 @@ public abstract class RestartableListener extends AbstractListener implements Re
                     monitor.interrupt();
                 }
             }
+            try {
+                log.info("Waiting RestartableListener.RunningMonitor");
+                monitor.join();
+            } catch (InterruptedException e) {
+            }
         }
     }
     
     final private static long TEN_SECONDS = 10000L;
     
+    private static Log log = LogFactory.getLog(RestartableListener.class);
     private static Deque<Restartable> listeners = new ConcurrentLinkedDeque<Restartable>();
     private static Thread monitor = null;
     private static Object lock = new Object();
@@ -64,7 +73,6 @@ public abstract class RestartableListener extends AbstractListener implements Re
                     }
                 }
             }
-            Thread.currentThread().interrupt();
         }
         
     }

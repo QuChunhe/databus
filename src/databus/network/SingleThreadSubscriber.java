@@ -39,5 +39,7 @@ public abstract class SingleThreadSubscriber extends AbstractSubscriber {
         }        
     }
     
+    protected abstract void run0(); 
+    
     private Thread thread = null;
 }

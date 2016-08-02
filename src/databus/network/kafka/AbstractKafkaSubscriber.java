@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -34,19 +35,20 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     public AbstractKafkaSubscriber(ExecutorService executor, int pollingThreadNumber, String name) {
         super(pollingThreadNumber, name);
         this.executor = executor;
-        consumers = new ConcurrentHashMap<Long, KafkaConsumer<Long, String>>(pollingThreadNumber);
+        consumerSet = new CopyOnWriteArraySet<KafkaConsumer<Long, String>>();;
     }    
 
     @Override
     public void stop() {
         super.stop();
-        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
-        if (null != consumer) {
-            consumer.wakeup();;
-        }  
+        log.info("Waiting waking up consumers!");
+        for(KafkaConsumer<Long, String> consumer : consumerSet) {
+            consumer.wakeup();
+        }
+        log.info("Waiting ExecutorService termination!");
         if ((null!=executor) && (!executor.isTerminated())) {
             try {
-                executor.awaitTermination(5, TimeUnit.SECONDS);
+                executor.awaitTermination(30, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Can't wait the terimination of ExecutorService", e);
             }
@@ -84,43 +86,13 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
             executor = KafkaHelper.loadExecutor(properties, 0);        
         }
     }
-
-    @Override
-    protected void run0() {
-        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
-        try {
-            ConsumerRecords<Long, String> records = consumer.poll(1000);
-            if ((null != records) && (!records.isEmpty())) {                   
-                for(ConsumerRecord<Long, String> r : records) {
-                    Event event = eventParser.toEvent(r.value());
-                    log.info(r.key() + " " + r.topic() + " (" + r.partition() + "," + 
-                             r.offset() + ") : " + event.toString());
-                    if (!isLegal(r)) {
-                        log.warn( r.topic() + " (" + r.partition() + "," + r.offset() +
-                                  ") is illegal");
-                    }else if (null != executor) {
-                        executor.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                receive0(r.topic(), r.partition(), r.offset(), event);
-                            }
-                        });
-                    } else {
-                        receive0(r.topic(), r.partition(), r.offset(), event);
-                    }
-                }
-            }
-        } catch(Exception e) {
-            log.error("Exception Throwsn when polling Kafka", e);
-        }
-    }
     
     protected abstract void cachePosition(String topic, int partition, long position); 
     
     protected abstract boolean isLegal(ConsumerRecord<Long, String> record);
     
     @Override
-    protected void initializeOnce() {
+    protected void initialize() {
         HashSet<String> serverSet = new HashSet<String>();
         Map<String, Set<Receiver>> newMap = new ConcurrentHashMap<String, Set<Receiver>>();
         for(String t : receiversMap.keySet()) {;
@@ -143,30 +115,10 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
             }
             serversBuilder.append(s);
         }
-        kafkaProperties.put("bootstrap.servers", serversBuilder.toString());       
-    }
-
-    @Override
-    protected void initializePerThread() {
-        Properties properties = new Properties();
-        properties.putAll(kafkaProperties);
-        long currentThreadId = Thread.currentThread().getId();
-        String clientId = properties.getProperty("group.id")+"-"+currentThreadId;
-        properties.setProperty("client.id", clientId);
-        KafkaConsumer<Long, String> consumer = new KafkaConsumer<Long, String>(properties);
-        List<String> topicList = new ArrayList<String>(receiversMap.size());
-        topicList.addAll(receiversMap.keySet());
-        consumer.subscribe(topicList, new AutoRebalanceListener(consumer));
-        log.info(clientId + " : " + topicList.toString());
-        consumers.put(currentThreadId, consumer);
-    }    
-    
-    @Override
-    protected void destroyPerThread() {
-        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
-        if (null != consumer) {
-            consumer.close();
-        }        
+        kafkaProperties.put("bootstrap.servers", serversBuilder.toString()); 
+        
+        topics = new ArrayList<String>(receiversMap.size());
+        topics.addAll(receiversMap.keySet());
     }
 
     private void receive0(String topic, int partition, long position, Event event) {
@@ -175,11 +127,68 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     }
     
     
-    protected ConcurrentHashMap<Long, KafkaConsumer<Long, String>> consumers;
+    protected Set<KafkaConsumer<Long, String>> consumerSet;
     
     private static Log log = LogFactory.getLog(AbstractKafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser(); 
 
     private ExecutorService executor = null;
-    private Properties kafkaProperties;   
+    private Properties kafkaProperties;
+    private List<String> topics;
+    
+    protected abstract class AbstractKafkaConsumerWorker extends Worker {        
+
+        public AbstractKafkaConsumerWorker() {
+            super();
+        }
+
+        @Override
+        public void initialize() {
+            Long threadId = Thread.currentThread().getId();
+            Properties properties = new Properties();
+            properties.putAll(kafkaProperties);
+            String clientId = properties.getProperty("group.id") + "-" + threadId;
+            properties.setProperty("client.id", clientId);
+            consumer = new KafkaConsumer<Long, String>(properties); 
+            consumer.subscribe(topics, new AutoRebalanceListener(consumer));
+            consumerSet.add(consumer);
+            log.info(clientId + " : " + topics.toString());            
+        }
+
+        @Override
+        public void destroy() {
+            consumer.close();            
+        }
+
+        @Override
+        public void run0() {
+            try {
+                ConsumerRecords<Long, String> records = consumer.poll(1000);
+                if ((null != records) && (!records.isEmpty())) {                   
+                    for(ConsumerRecord<Long, String> r : records) {
+                        Event event = eventParser.toEvent(r.value());
+                        log.info(r.key() + " " + r.topic() + " (" + r.partition() + "," + 
+                                 r.offset() + ") : " + event.toString());
+                        if (!isLegal(r)) {
+                            log.warn( r.topic() + " (" + r.partition() + "," + r.offset() +
+                                      ") is illegal");
+                        }else if (null != executor) {
+                            executor.execute(new Runnable() {
+                                @Override
+                                public void run() {
+                                    receive0(r.topic(), r.partition(), r.offset(), event);
+                                }
+                            });
+                        } else {
+                            receive0(r.topic(), r.partition(), r.offset(), event);
+                        }
+                    }
+                }
+            } catch(Exception e) {
+                log.error("Exception Throwsn when polling Kafka", e);
+            }            
+        }
+        
+        protected KafkaConsumer<Long, String> consumer; 
+    }
 }

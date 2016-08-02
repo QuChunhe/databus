@@ -18,8 +18,8 @@
             <password>quchunhe</password>
             <serverId>3</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000087</binlogFileName>
-            <position>582</position>
+            <binlogFileName>master-bin.000057</binlogFileName>
+            <position>328</position>
         </mysql>
     </listener> 
 </publisher>
@@ -33,7 +33,7 @@
            <host>127.0.0.1:9092</host>
            <number>4</number>
         </pollingThread>
-        <recordSaveThreshold>1</recordSaveThreshold>
+        <writePerFlush>1</writePerFlush>
         <taskCapacity>1000</taskCapacity>
     </kafka> 
   
@@ -50,7 +50,7 @@
         </redis>
        <system>adm</system>
        <replicatedTables>
-         <user>age, position, salary, time1, time2</user>
+         <user>id3,id1,id2, age, position, salary, time1, time2</user>
          <book>name, isdn, author</book>
        </replicatedTables>
     </receiver>

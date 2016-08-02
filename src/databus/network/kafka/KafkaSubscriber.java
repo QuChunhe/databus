@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 
 public class KafkaSubscriber extends AbstractKafkaSubscriber {    
@@ -23,7 +22,7 @@ public class KafkaSubscriber extends AbstractKafkaSubscriber {
     @Override
     public void initialize(Properties properties) {
         super.initialize(properties);
-        String saveThresholdValue = properties.getProperty("kafka.recordSaveThreshold");
+        String saveThresholdValue = properties.getProperty("kafka.writePerFlush");
         if (null != saveThresholdValue) {
             saveThreshold = Integer.parseUnsignedInt(saveThresholdValue);
         }
@@ -33,13 +32,6 @@ public class KafkaSubscriber extends AbstractKafkaSubscriber {
         cacheCounters = new ConcurrentHashMap<String, AtomicInteger>();
         positionCache = new PositionsCache();
     }    
-
-    @Override
-    protected void initializePerThread() {
-        super.initializePerThread();
-        KafkaConsumer<Long, String> consumer = consumers.get(Thread.currentThread().getId());
-        KafkaHelper.seekRightPositions(consumer, consumer.assignment());  
-    }
 
     /**
      * thread-safe method
@@ -66,11 +58,30 @@ public class KafkaSubscriber extends AbstractKafkaSubscriber {
     }
     
     @Override
+    protected Worker createWorker() {
+        return new KafkaConsumerWorker();
+    }
+    
+    @Override
     protected boolean isLegal(ConsumerRecord<Long, String> record) {
         return record.offset() > positionCache.get(record.topic(), record.partition());
     }
 
     private Map<String,AtomicInteger> cacheCounters;
     private PositionsCache positionCache;    
-    private int saveThreshold = 1;   
+    private int saveThreshold = 1; 
+    
+    
+    protected class KafkaConsumerWorker extends AbstractKafkaConsumerWorker {
+
+        public KafkaConsumerWorker() {
+            super();
+        }
+
+        @Override
+        public void initialize() {
+            super.initialize();
+            KafkaHelper.seekRightPositions(consumer, consumer.assignment());  
+        }
+    }
 }

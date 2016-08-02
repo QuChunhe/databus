@@ -55,9 +55,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
                 log.error(className+" can't receive "+ event.toString(), e);
             }
         }
-    }
-
-    protected abstract void run0(); 
+    }    
     
     protected Map<String, Set<Receiver>> receiversMap;
     

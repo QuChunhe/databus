@@ -18,8 +18,8 @@
             <password>quchunhe</password>
             <serverId>1</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000087</binlogFileName>
-            <position>582</position>
+            <binlogFileName>master-bin.000057</binlogFileName>
+            <position>328</position>
         </mysql>
     </listener> 
 </publisher>
