@@ -31,9 +31,8 @@ public class RedisMessagingListener extends RedisListener {
 
     @Override
     protected RedisEvent listen() {
-        List<String> result = jedis.blpop(0, keys);
+        List<String> result = jedis.blpop(2, keys);
         if ((null==result) || (result.size()==0))  {
-            log.error("Has received null result");
             return null;
         }
         String key = result.get(0);

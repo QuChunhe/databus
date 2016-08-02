@@ -9,7 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Properties;
 import java.util.Set;
-
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -105,17 +105,28 @@ public class NettySubscriber extends SingleThreadSubscriber {
                         }                         
                      });
             
-            Channel channel = bootstrap.bind().sync().channel();
-            channel.closeFuture().sync();
+            allChannels = bootstrap.bind().sync().channel();
+            allChannels.closeFuture().sync();
         } catch (Exception e) {
             log.error("Server Thread is interrupted", e);
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            
         }
         
-    }
+    }   
   
+    @Override
+    public void stop() {
+        try {
+            log.info("Waiting all channels close");
+            allChannels.close().await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            
+        }
+    }
+
     protected void remove(String topic) {
         Set<Receiver> receivers = receiversMap.get(topic);
         if (null != receivers) {
@@ -133,5 +144,6 @@ public class NettySubscriber extends SingleThreadSubscriber {
     private SocketAddress localAddress;
     private StringEncoder stringEncoder = new StringEncoder(CharsetUtil.UTF_8);
     private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);
+    private Channel allChannels;
 
 }

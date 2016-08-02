@@ -48,7 +48,7 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
         log.info("Waiting ExecutorService termination!");
         if ((null!=executor) && (!executor.isTerminated())) {
             try {
-                executor.awaitTermination(30, TimeUnit.SECONDS);
+                executor.awaitTermination(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Can't wait the terimination of ExecutorService", e);
             }

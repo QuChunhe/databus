@@ -37,9 +37,15 @@ public abstract class RunnableListener extends AbstractListener implements Runna
     @Override
     public void stop() {
         if (doesRun) {
-           doesRun = false;
-           runner.interrupt(); 
-        }        
+            doesRun = false;
+            runner.interrupt();
+            log.info("Waiting " + this.getClass().getName());
+            try {
+                runner.join();
+            } catch (InterruptedException e) {
+
+            }
+        }       
     }   
    
     @Override
