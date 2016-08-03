@@ -54,6 +54,24 @@
          <book>name, isdn, author</book>
        </replicatedTables>
     </receiver>
+
+    <receiver>
+        <class>databus.receiver.mysql.MysqlReplication</class>
+        <remoteTopic>127.0.0.1:9092/MYSQL/1/test</remoteTopic>
+        <mysql>
+            <url>jdbc:mysql://127.0.0.1:3306/test2</url>
+            <username>root</username>
+            <password>quchunhe</password>
+            <driverClassName>com.mysql.jdbc.Driver</driverClassName>
+            <initialSize>1</initialSize>
+            <maxActive>10</maxActive>
+            <maxIdle>5</maxIdle>
+            <minIdle>0</minIdle>
+            <maxWait>50000</maxWait>
+            <defaultAutoCommit>true</defaultAutoCommit>
+            <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
+        </mysql>
+    </receiver> 
 </subscriber>
 
 </configuration>

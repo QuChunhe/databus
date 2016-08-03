@@ -62,7 +62,8 @@ public class Table {
         LinkedHashMap<String, String> columns = new LinkedHashMap<String, String>();
         for(Column c : row) {
             if (replicatedColumns.isEmpty() || replicatedColumns.contains(c.name())) {
-                columns.put(c.name(), c.value());
+                String value = null!=c.value() ? c.value() : "";
+                columns.put(c.name(), value);
             }
         }
         

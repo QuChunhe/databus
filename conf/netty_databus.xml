@@ -23,8 +23,8 @@
             <password>quchunhe</password>
             <serverId>1</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000073</binlogFileName>
-            <position>808</position>
+            <binlogFileName>master-bin.000058</binlogFileName>
+            <position>1540</position>
         </mysql>
     </listener> 
 </publisher>
@@ -49,7 +49,7 @@
         </redis>
        <system>adm</system>
        <replicatedTables>
-         <user>age, position, salary</user>
+         <user>id3,id1,id2, age, position, salary, time1, time2</user>
          <book>name, isdn, author</book>
        </replicatedTables>
     </receiver>
