@@ -36,7 +36,7 @@ public abstract class RestartableListener extends AbstractListener implements Re
     @Override
     public void stop() {
         listeners.remove(this);
-        if (((null==listeners) || listeners.isEmpty()) && (monitor.getState()!=Thread.State.TERMINATED)) {
+        if (listeners.isEmpty() && (null!=monitor ) && monitor.isAlive()) {
             synchronized (lock) {
                 if (listeners.isEmpty() && (monitor.getState()!=Thread.State.TERMINATED)) {
                     monitor.interrupt();
