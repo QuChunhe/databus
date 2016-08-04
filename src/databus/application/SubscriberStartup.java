@@ -11,17 +11,18 @@ public class SubscriberStartup extends Startup {
         log.info("******************************************************************************");
         log.info("SubscriberStartup will begin!");
         
-        savePid("data/pid");
-        
+        savePid("data/pid");        
         String configFileName = "conf/subscriber.xml";
         if (args.length > 0) {
             configFileName = args[0];
-        }         
+        }        
         DatabusBuilder builder = new DatabusBuilder(configFileName);
+        
         Subscriber subscriber = builder.createSubscriber();
         subscriber.start();
         addShutdownHook(subscriber);        
         waitUntilSIGTERM(); 
+        
         log.info("SubscriberStartup has finished!");
         log.info("******************************************************************************");
     }

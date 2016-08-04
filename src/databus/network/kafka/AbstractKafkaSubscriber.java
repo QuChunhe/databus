@@ -52,6 +52,7 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
             } catch (InterruptedException e) {
                 log.error("Can't wait the terimination of ExecutorService", e);
             }
+            
         }
     }    
 

@@ -40,26 +40,17 @@ public class Startup {
             log.error("Can't get pid");
             return;
         }
-        BufferedWriter writer = null;
         
-        try {
-            writer = Files.newBufferedWriter(Paths.get(fileName), 
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                                             Paths.get(fileName), 
                                              StandardCharsets.UTF_8,
                                              StandardOpenOption.CREATE,
                                              StandardOpenOption.TRUNCATE_EXISTING,
-                                             StandardOpenOption.WRITE);
+                                             StandardOpenOption.WRITE);) {           
             writer.write(pid);
             writer.flush();
         } catch (IOException e) {
             log.error("Can't write "+fileName, e);
-        } finally {
-            if (null != writer) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    log.error("Can't close "+fileName, e);
-                }
-            }
         }
     }
     
@@ -73,6 +64,9 @@ public class Startup {
                 for(Stoppable s : hooks) {
                     if(s instanceof Joinable) {
                         ((Joinable) s).join();
+                    } else {
+                        long TEN_SECONDS =  10000;
+                        Thread.sleep(TEN_SECONDS);
                     }
                 }
             } catch (InterruptedException e) {

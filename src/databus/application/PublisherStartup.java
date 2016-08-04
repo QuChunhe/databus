@@ -14,8 +14,7 @@ public class PublisherStartup extends Startup {
         log.info("******************************************************************************");
         log.info("PublisherStartup will begin!");
         
-        savePid("data/pid");
-        
+        savePid("data/pid");        
         String configFileName = "conf/publisher.xml";
         if (args.length > 0) {
             configFileName = args[0];
