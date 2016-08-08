@@ -12,6 +12,7 @@
            <number>2</number>
         </pollingThread>
         <taskCapacity>1000</taskCapacity>
+        <pollingTimeout>2000</pollingTimeout>
         <writePerFlush>1</writePerFlush>
     </kafka> 
  <!--

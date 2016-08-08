@@ -33,8 +33,9 @@
            <host>127.0.0.1:9092</host>
            <number>4</number>
         </pollingThread>
+        <pollingTimeout>2000</pollingTimeout>
         <writePerFlush>1</writePerFlush>
-        <taskCapacity>1000</taskCapacity>
+        <taskCapacity>100</taskCapacity>
     </kafka> 
   
     <receiver>

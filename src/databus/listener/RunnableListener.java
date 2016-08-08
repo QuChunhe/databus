@@ -74,9 +74,12 @@ public abstract class RunnableListener extends AbstractListener implements Runna
                 }
             }
         }
+        close();
     } 
     
     abstract protected void runOnce(boolean hasException) throws Exception;
+    
+    abstract protected void close();
     
     private void sleep(long duration) {
         try {

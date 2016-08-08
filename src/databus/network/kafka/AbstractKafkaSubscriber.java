@@ -48,16 +48,20 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
         log.info("Waiting ExecutorService termination!");
         if ((null!=executor) && (!executor.isTerminated())) {
             try {
+                executor.shutdown();
                 executor.awaitTermination(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 log.error("Can't wait the terimination of ExecutorService", e);
-            }
-            
+            }            
         }
     }    
 
     @Override
     public void initialize(Properties properties) {
+        if (null != properties.getProperty("kafka.pollingTimeout")) {
+            pollingTimeout = Long.parseLong(properties.getProperty("kafka.pollingTimeout"));
+        }
+        
         String kafkaPropertieFile = properties.getProperty("kafka.consumerConfig");
         if (null == kafkaPropertieFile) {
             log.error("Must configure 'consumerConfig' for 'kafka'");
@@ -85,7 +89,7 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
 
         if (null == executor) {
             executor = KafkaHelper.loadExecutor(properties, 0);        
-        }
+        }        
     }
     
     protected abstract void cachePosition(String topic, int partition, long position); 
@@ -136,6 +140,7 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
     private ExecutorService executor = null;
     private Properties kafkaProperties;
     private List<String> topics;
+    private long pollingTimeout = 1000;
     
     protected abstract class AbstractKafkaConsumerWorker extends Worker {        
 
@@ -164,7 +169,7 @@ public abstract class AbstractKafkaSubscriber extends MultiThreadSubscriber {
         @Override
         public void run0() {
             try {
-                ConsumerRecords<Long, String> records = consumer.poll(1000);
+                ConsumerRecords<Long, String> records = consumer.poll(pollingTimeout);
                 if ((null != records) && (!records.isEmpty())) {                   
                     for(ConsumerRecord<Long, String> r : records) {
                         Event event = eventParser.toEvent(r.value());

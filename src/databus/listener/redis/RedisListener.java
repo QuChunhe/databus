@@ -36,6 +36,11 @@ public abstract class RedisListener extends RunnableListener {
         }        
     }
 
+    @Override
+    protected void close() {
+        jedis.close();        
+    }
+
     protected abstract RedisEvent listen();
 
     protected Jedis jedis;
