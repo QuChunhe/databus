@@ -27,11 +27,15 @@ public class RedisMessagingListener extends RedisListener {
         for(int i=0; i<keys.length; i++) {
             keys[i] = keys[i].trim();
         }
+        String rawListeningTimeout = properties.getProperty("redis.listeningTimeout").trim();
+        if ((null!=rawListeningTimeout) && (rawListeningTimeout.length()>0)) {
+            listeningTimeout = Integer.parseInt(rawListeningTimeout);
+        }
     }
 
     @Override
     protected RedisEvent listen() {
-        List<String> result = jedis.blpop(2, keys);
+        List<String> result = jedis.blpop(listeningTimeout, keys);
         if ((null==result) || (result.size()==0))  {
             return null;
         }
@@ -45,4 +49,5 @@ public class RedisMessagingListener extends RedisListener {
     private static Log log = LogFactory.getLog(RedisMessagingListener.class);
     
     private String[] keys;
+    private int listeningTimeout = 2;
 }

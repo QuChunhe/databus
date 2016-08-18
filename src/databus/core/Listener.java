@@ -1,5 +1,5 @@
 package databus.core;
 
-public interface Listener extends Initializable, Startable, Stoppable {
+public interface Listener extends Initializable, Startable, Stoppable, Joinable {
 
 }

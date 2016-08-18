@@ -14,7 +14,7 @@ import databus.core.Subscriber;
 public class KafkaBatchSubscribers implements Subscriber {    
 
     public KafkaBatchSubscribers() {
-        subscribers = new HashMap<String, AbstractKafkaSubscriber>();
+        subscribers = new HashMap<String, KafkaSubscriber>();
         pollingThreadNumberMap = new HashMap<String, Integer>();
     }
 
@@ -41,7 +41,7 @@ public class KafkaBatchSubscribers implements Subscriber {
 
     @Override
     public void join() throws InterruptedException {
-        for(AbstractKafkaSubscriber s : subscribers.values()) {
+        for(KafkaSubscriber s : subscribers.values()) {
             s.join();
         }        
     }
@@ -49,7 +49,7 @@ public class KafkaBatchSubscribers implements Subscriber {
     @Override
     public boolean isRunning() {
         boolean doesHaltAll = true;
-        for(AbstractKafkaSubscriber s : subscribers.values()) {
+        for(KafkaSubscriber s : subscribers.values()) {
             if (s.isRunning()) {
                 doesHaltAll = false;
                 break;
@@ -60,14 +60,14 @@ public class KafkaBatchSubscribers implements Subscriber {
 
     @Override
     public void start() {
-        for(AbstractKafkaSubscriber s : subscribers.values()) {
+        for(KafkaSubscriber s : subscribers.values()) {
             s.start();
         }        
     }
 
     @Override
     public void stop() {
-        for(AbstractKafkaSubscriber s : subscribers.values()) {
+        for(KafkaSubscriber s : subscribers.values()) {
             s.stop();
         }        
     }
@@ -79,13 +79,13 @@ public class KafkaBatchSubscribers implements Subscriber {
             log.error("remoteTopic " + topic + " is illegal");
             System.exit(1);
         }
-        AbstractKafkaSubscriber target = subscribers.get(address);
+        KafkaSubscriber target = subscribers.get(address);
         if (null == target) {
             Integer number = pollingThreadNumberMap.get(address);
             if (null == number) {
                 number = 1;
             }
-            target = new KafkaSubscriber(executor, number, "KafkaSubscriber"+'-'+address);
+            target = new KafkaSubscriber(executor, number);
             subscribers.put(address, target);
             target.initialize(properties);
         }
@@ -96,7 +96,7 @@ public class KafkaBatchSubscribers implements Subscriber {
     private static Log log = LogFactory.getLog(KafkaBatchSubscribers.class);
     
     private Properties properties;
-    private Map<String, AbstractKafkaSubscriber> subscribers;
+    private Map<String, KafkaSubscriber> subscribers;
     private ExecutorService executor;
     private Map<String, Integer> pollingThreadNumberMap;
 

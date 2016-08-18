@@ -64,7 +64,9 @@ public class Startup {
                 for(Stoppable s : hooks) {
                     if(s instanceof Joinable) {
                         ((Joinable) s).join();
+                        log.info(s.getClass().getName() +" has finished!");
                     } else {
+                        log.info(s.getClass().getName()+" isn't Joinable");
                         long TEN_SECONDS =  10000;
                         Thread.sleep(TEN_SECONDS);
                     }

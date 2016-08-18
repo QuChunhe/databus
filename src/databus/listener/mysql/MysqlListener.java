@@ -45,9 +45,9 @@ public class MysqlListener extends RestartableListener{
     @Override
     public void stop() {
         try {
-            openRelicator.stop(5, TimeUnit.SECONDS);
+            openRelicator.stop(1, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("cannot stop sucessfully", e);
+            log.error("Can't stop sucessfully", e);
             openRelicator.stopQuietly(1, TimeUnit.SECONDS);
         }
         super.stop();

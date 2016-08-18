@@ -1,6 +1,9 @@
 package databus.network.kafka;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import databus.util.Backup;
 
@@ -8,6 +11,15 @@ public class PositionsCache {
     
     public PositionsCache() {
         this(null);
+    }
+    
+    public PositionsCache(int writePerFlush) {
+        this(null);
+        if (writePerFlush < 1) {
+            throw new IllegalArgumentException("writePerFlush must be great than 0!");
+        }
+        this.writePerFlush = writePerFlush;
+        cacheCounters = new ConcurrentHashMap<String, AtomicInteger>();
     }
     
     public PositionsCache(Set<String> topicSet) {
@@ -33,6 +45,26 @@ public class PositionsCache {
         while (get(topic, partition) < position) {
             Backup.instance().getRecordCache(topic).cache(key, value);
         }
+        if (null == cacheCounters) {
+            return this;
+        }
+        
+        AtomicInteger counter = cacheCounters.get(topic);
+        if (null == counter) {
+            synchronized(this) {
+                if (null == counter) {
+                    counter = new AtomicInteger(0);
+                    cacheCounters.put(topic, counter);
+                }
+            }            
+        }        
+        int currentCount = counter.incrementAndGet();
+        do {
+           if (counter.compareAndSet(currentCount, 0)) {
+                save(topic);
+                break;
+            } 
+        } while ((currentCount=counter.get()) >= writePerFlush);
 
         return this;
     }
@@ -56,4 +88,6 @@ public class PositionsCache {
 
     private Set<String> topicSet;
     
+    private Map<String,AtomicInteger> cacheCounters = null;
+    private int writePerFlush = 1;
 }

@@ -8,15 +8,14 @@ import static databus.network.netty.NettyConstants.MAX_FRAME_LENGTH;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.core.Receiver;
-import databus.network.SingleThreadSubscriber;
+import databus.core.Runner;
+import databus.network.AbstractSubscriber;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -33,7 +32,7 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.CharsetUtil;
 
-public class NettySubscriber extends SingleThreadSubscriber {
+public class NettySubscriber extends AbstractSubscriber {
 
     public NettySubscriber() {
         super();
@@ -51,20 +50,6 @@ public class NettySubscriber extends SingleThreadSubscriber {
             workerPoolSize = Integer.parseInt(threadPoolSize);
         }      
     }
-
-    public void withdraw(String topic, Receiver receiver) {
-        Set<Receiver> receiversSet = receiversMap.get(topic);
-        if (null == receiversSet) {
-            log.error(
-                    "Don't contain the RemoteTopic " + topic.toString());
-        } else {
-            if (!receiversSet.remove(receiver)) {
-                log.error("Don't contain the receiver " + receiver.toString());
-            } else if (receiversSet.size() == 0) {
-                remove(topic);
-            }
-        }
-    }
     
     @Override
     public boolean receive(Event event) {
@@ -75,7 +60,7 @@ public class NettySubscriber extends SingleThreadSubscriber {
          return hasReceived;
     }
 
-    @Override
+
     protected void run0() {
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup(workerPoolSize);
@@ -105,8 +90,8 @@ public class NettySubscriber extends SingleThreadSubscriber {
                         }                         
                      });
             
-            allChannels = bootstrap.bind().sync().channel();
-            allChannels.closeFuture().sync();
+            listeningChannel = bootstrap.bind().sync().channel();
+            listeningChannel.closeFuture().sync();
         } catch (Exception e) {
             log.error("Server Thread is interrupted", e);
         } finally {
@@ -115,25 +100,24 @@ public class NettySubscriber extends SingleThreadSubscriber {
             
         }
         
-    }   
-  
+    } 
+    
+    @Override
+    protected Runner createBackgroundRunner() {
+        return new ListeningRunner();
+    } 
+    
     @Override
     public void stop() {
+        super.stop();
         try {
             log.info("Waiting all channels close");
-            allChannels.close().await(5, TimeUnit.SECONDS);
+            listeningChannel.close().await(1, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             
         }
     }
 
-    protected void remove(String topic) {
-        Set<Receiver> receivers = receiversMap.get(topic);
-        if (null != receivers) {
-            receivers.clear();
-        }
-        receiversMap.remove(topic);
-    }
 
     private static Log log = LogFactory.getLog(NettySubscriber.class);
     
@@ -144,6 +128,36 @@ public class NettySubscriber extends SingleThreadSubscriber {
     private SocketAddress localAddress;
     private StringEncoder stringEncoder = new StringEncoder(CharsetUtil.UTF_8);
     private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);
-    private Channel allChannels;
+    private Channel listeningChannel;
+    
+    private class ListeningRunner implements Runner {
+
+        @Override
+        public void initialize() {
+            
+        }
+
+        @Override
+        public void runOnce() {
+            run0();            
+        }
+
+        @Override
+        public void processException(Exception e) {
+            
+        }
+
+        @Override
+        public void stop(Thread owner) {
+            
+        }
+
+        @Override
+        public void close() {
+            
+        }
+        
+    }
+
 
 }

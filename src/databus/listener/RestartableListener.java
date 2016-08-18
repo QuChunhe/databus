@@ -38,7 +38,7 @@ public abstract class RestartableListener extends AbstractListener implements Re
         listeners.remove(this);
         if (listeners.isEmpty() && (null!=monitor) && monitor.isAlive()) {
             synchronized (lock) {
-                if (listeners.isEmpty() && (monitor.getState()!=Thread.State.TERMINATED)) {
+                if (listeners.isEmpty() && (null!=monitor) && monitor.isAlive()) {
                     monitor.interrupt();
                 }
             }
@@ -50,6 +50,13 @@ public abstract class RestartableListener extends AbstractListener implements Re
         }
     }
     
+    @Override
+    public void join() throws InterruptedException {
+        if (null != monitor) {
+            monitor.join();
+        }
+    }
+
     final private static long TEN_SECONDS = 10000L;
     
     private static Log log = LogFactory.getLog(RestartableListener.class);

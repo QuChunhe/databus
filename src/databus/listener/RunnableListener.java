@@ -4,13 +4,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Publisher;
+import databus.core.Runner;
+import databus.core.ThreadHolder;
 
-public abstract class RunnableListener extends AbstractListener implements Runnable {    
+public abstract class RunnableListener extends AbstractListener {    
         
     public RunnableListener(Publisher publisher, String name) {
         setPublisher(publisher);
-        runner = new Thread(this, name);
-        doesRun = false;
+        holder = new ThreadHolder();
     }
     
     public RunnableListener(String name) {
@@ -23,75 +24,68 @@ public abstract class RunnableListener extends AbstractListener implements Runna
     
     @Override
     public void start() {
-        if (!doesRun) {
-            doesRun = true;
-            runner.start();
+        if (!isRunning()) {
+            holder.add(createListeningRunner());
+            holder.start();
         }
     }
 
     @Override
     public boolean isRunning() {
-        return doesRun;
+        return holder.isRunning();
     }
 
     @Override
     public void stop() {
-        if (doesRun) {
-            doesRun = false;
-            runner.interrupt();
-            log.info("Waiting " + this.getClass().getName());
-            try {
-                runner.join();
-            } catch (InterruptedException e) {
-
-            }
-        }       
-    }   
-   
+        holder.stop();      
+    }    
+    
     @Override
-    public void run() {
-        int exceptionCount = 0;
-        while (doesRun) {
+    public void join() throws InterruptedException {
+        holder.join();        
+    }
+
+    protected abstract ListeningRunner createListeningRunner();
+
+    
+    protected static abstract class ListeningRunner implements Runner {        
+        
+        @Override
+        public void runOnce() {
+            exceptionCount = 0;            
+        }
+
+        @Override
+        public void processException(Exception e) {
+            exceptionCount++;
+            log.error("An exception happens!", e);
+            if (exceptionCount <= 10) {
+                //try again immediately
+            } else if  (exceptionCount <= 600) {// 10 Minutes
+                sleep(1);
+            } else if (exceptionCount < 960){ // 1 hour
+                sleep(10);
+            } else if (exceptionCount < 2400){ // 1 day
+                sleep(60);
+            } else {
+                //avoid overflow
+                exceptionCount = 960;
+            }            
+        }
+        
+        private void sleep(long duration) {
             try {
-                runOnce(exceptionCount > 0);
-                exceptionCount = 0;
-            } catch(InterruptedException e) {
-                log.error(runner.getName() + " is interrupted!", e);
-            } catch (Exception e) {
-                exceptionCount++;
-                log.error("Some exceptions happen", e);
-                if (exceptionCount <= 10) {
-                    //try again immediately
-                } else if  (exceptionCount <= 600) {// 10 Minutes
-                    sleep(1);
-                } else if (exceptionCount < 960){ // 1 hour
-                    sleep(10);
-                } else if (exceptionCount < 2400){ // 1 day
-                    sleep(60);
-                } else {
-                    //avoid overflow
-                    exceptionCount = 960;
-                }
+                Thread.sleep(duration * 1000);
+            } catch (InterruptedException e) {
+                log.warn("Sleep has been interrupted", e);
             }
         }
-        close();
-    } 
-    
-    abstract protected void runOnce(boolean hasException) throws Exception;
-    
-    abstract protected void close();
-    
-    private void sleep(long duration) {
-        try {
-            Thread.sleep(duration * 1000);
-        } catch(InterruptedException e) {
-            log.warn("Sleep has been interrupted",e);
-        }        
+        
+        private int exceptionCount = 0;
     }
     
     private static Log log = LogFactory.getLog(RunnableListener.class);
     
-    private Thread runner;
-    //only one thread modify doesRun
-    private volatile boolean doesRun;
+    private ThreadHolder holder;    
+    
 }
