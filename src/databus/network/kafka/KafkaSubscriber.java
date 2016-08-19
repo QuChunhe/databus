@@ -83,12 +83,10 @@ public class KafkaSubscriber extends AbstractSubscriber {
             kafkaProperties.setProperty("group.id", 
                                         "default-" + Math.round(Math.random()*1000000));
         }
-
         kafkaProperties.setProperty("key.deserializer", 
                                     "org.apache.kafka.common.serialization.LongDeserializer");
         kafkaProperties.setProperty("value.deserializer", 
                                     "org.apache.kafka.common.serialization.StringDeserializer");
-
         if (null == executor) {
             executor = KafkaHelper.loadExecutor(properties, 0);        
         }
@@ -165,7 +163,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     private ExecutorService executor = null;
     private Properties kafkaProperties;
     private List<String> topics;
-    private long pollingTimeout = 1000;
+    private long pollingTimeout = 2000;
     private PositionsCache positionsCache;  
     
    
@@ -215,19 +213,18 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 try {
                     owner.join(1000);
                 } catch (InterruptedException e) {
-
-                }
-                try {
-                    KafkaSubscriber.this.close();
-                } catch (IOException e) {
-                    log.error("Can't close", e);
-                }
+                }                
             }
         }
 
         @Override
         public void close() {
-            consumer.close();            
+            consumer.close();   
+            try {
+                KafkaSubscriber.this.close();
+            } catch (IOException e) {
+                log.error("Can't close", e);
+            }
         }
         
         private Properties properties;

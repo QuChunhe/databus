@@ -13,6 +13,8 @@ import com.google.code.or.common.glossary.column.Int24Column;
 import com.google.code.or.common.glossary.column.LongColumn;
 import com.google.code.or.common.glossary.column.LongLongColumn;
 import com.google.code.or.common.glossary.column.ShortColumn;
+import com.google.code.or.common.glossary.column.Timestamp2Column;
+import com.google.code.or.common.glossary.column.TimestampColumn;
 import com.google.code.or.common.glossary.column.TinyColumn;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
@@ -48,7 +50,8 @@ public abstract class MysqlWriteEventFactory {
               
             return i.toString();
         }
-        if ((column instanceof DatetimeColumn) || (column instanceof Datetime2Column)) {
+        if ((column instanceof DatetimeColumn) || (column instanceof Datetime2Column) ||
+            (column instanceof Timestamp2Column) || (column instanceof TimestampColumn)) {
             Date date = (Date) column.getValue();
             return DATE_FORMAT.format(date);
         }
@@ -83,6 +86,6 @@ public abstract class MysqlWriteEventFactory {
     private static final BigInteger TINYINT_MASK = ONE.shiftLeft(1*8).subtract(ONE);
     
     private static final SimpleDateFormat DATE_FORMAT = 
-                                              new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+                                              new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 }

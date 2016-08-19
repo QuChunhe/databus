@@ -3,7 +3,7 @@
 <configuration>
 
 <subscriber>
-    <class>databus.network.kafka.KafkaBatchSubscribers</class>
+    <class>databus.network.kafka.KafkaSubscriber</class>
     <kafka>
         <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
         <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>

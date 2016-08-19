@@ -125,8 +125,7 @@ public class NettySubscriber extends AbstractSubscriber {
             try {
                 log.info("Waiting all channels close");
                 listeningChannel.close().await(1, TimeUnit.SECONDS);
-                bossGroup.shutdownGracefully();
-                workerGroup.shutdownGracefully();
+
             } catch (InterruptedException e) {
                 log.error("Can't close listening", e);
             }
@@ -134,6 +133,8 @@ public class NettySubscriber extends AbstractSubscriber {
 
         @Override
         public void processFinally() {
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
 
         @Override

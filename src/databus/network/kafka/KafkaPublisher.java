@@ -7,8 +7,10 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 
 import databus.core.Event;
 import databus.core.Publisher;
@@ -48,7 +50,7 @@ public class KafkaPublisher implements Publisher {
         String value = eventParser.toString(event);
         log.info(time + " " + topic + " : " +value);
         ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(topic, time, value);
-        producer.send(record);         
+        producer.send(record, new LogCallback(topic, time, value));         
     }
     
     @Override
@@ -63,5 +65,28 @@ public class KafkaPublisher implements Publisher {
     
     private KafkaProducer<Long, String> producer;
     private String kafkaAddress;
+    
+    private static class LogCallback implements Callback {        
+        
+        public LogCallback(String topic, long key, String value) {
+            this.key = key;
+            this.topic = topic;
+            this.value = value;
+        }
+        
+        @Override
+        public void onCompletion(RecordMetadata metadata, Exception exception) {
+            if (null != metadata) {
+                log.info(key + " " + topic + " (" + metadata.partition() + "," + 
+                         metadata.offset() + ") : " + value);
+            } else {
+                log.error(key + " " + topic + " : " +value, exception);
+            }
+        }
+        
+        private String topic;
+        private long key;        
+        private String value;        
+    }
     
 }

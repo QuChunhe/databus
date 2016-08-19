@@ -67,7 +67,7 @@ public class Startup {
                         log.info(s.getClass().getName() +" has finished!");
                     } else {
                         log.info(s.getClass().getName()+" isn't Joinable");
-                        long TEN_SECONDS =  10000;
+                        long TEN_SECONDS = 10000;
                         Thread.sleep(TEN_SECONDS);
                     }
                 }

@@ -26,7 +26,7 @@ public abstract class RestartableListener extends AbstractListener implements Re
         if ((null==monitor) || (monitor.getState()==Thread.State.TERMINATED)) {
             synchronized (lock) {
                 if ((null==monitor) || (monitor.getState()==Thread.State.TERMINATED)) {
-                    monitor = new Thread(new RunningMonitor(), "Running Monitor");
+                    monitor = new Thread(new RunningMonitor(), "RestartableListener Monitor");
                     monitor.start();
                 }
             }
