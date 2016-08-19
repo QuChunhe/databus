@@ -27,9 +27,13 @@ public class RedisMessagingListener extends RedisListener {
         for(int i=0; i<keys.length; i++) {
             keys[i] = keys[i].trim();
         }
-        String rawListeningTimeout = properties.getProperty("redis.listeningTimeout").trim();
-        if ((null!=rawListeningTimeout) && (rawListeningTimeout.length()>0)) {
-            listeningTimeout = Integer.parseInt(rawListeningTimeout);
+        String rawListeningTimeout = properties.getProperty("redis.listeningTimeout");
+        if (null != rawListeningTimeout) {
+            rawListeningTimeout = rawListeningTimeout.trim();
+            if (rawListeningTimeout.length()>0) {
+                listeningTimeout = Integer.parseInt(rawListeningTimeout);
+                listeningTimeout = (listeningTimeout<1) ? 2 : listeningTimeout;
+            }            
         }
     }
 

@@ -28,7 +28,7 @@ public abstract class RedisListener extends RunnableListener {
 
     @Override
     protected ListeningRunner createListeningRunner() {
-        return new RedisRunner();
+        return new RedisListeningRunner();
     }
 
     protected abstract RedisEvent listen();
@@ -45,7 +45,7 @@ public abstract class RedisListener extends RunnableListener {
     private int port;
     private int timeout;
     
-    private class RedisRunner extends ListeningRunner {        
+    private class RedisListeningRunner extends ListeningRunner {        
 
         @Override
         public void runOnce() throws Exception {
@@ -65,7 +65,7 @@ public abstract class RedisListener extends RunnableListener {
 
         @Override
         public void initialize() {
-            
+            newJedis();
         }
 
         @Override

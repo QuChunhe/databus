@@ -24,7 +24,7 @@ public abstract class RunnableListener extends AbstractListener {
     
     @Override
     public void start() {
-        if (holder.isRunning()) {
+        if (!holder.isRunning()) {
             holder.start();
         }
     }

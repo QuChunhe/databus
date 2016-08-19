@@ -93,12 +93,13 @@ public class DatabusBuilder {
         List<HierarchicalConfiguration<ImmutableNode>> 
              listenersConfig = config.configurationsAt("publisher.listener");
         for(HierarchicalConfiguration<ImmutableNode> c : listenersConfig) {
-            Object object = loadInitialiableObject(c);
-            if ((null!=object) && (object instanceof AbstractListener)) {
-                AbstractListener l = (AbstractListener) object;
-                l.setPublisher(publisher);
-                l.start();
-                listeners.add(l);
+            Listener object =(Listener) loadInitialiableObject(c);
+            if (null != object) {
+                if (object instanceof AbstractListener) {
+                    ((AbstractListener) object).setPublisher(publisher);
+                }
+                object.start();
+                listeners.add(object);
             } else {
                 log.error("Can't instance Listener Object for "+c.toString());
             }
