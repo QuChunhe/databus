@@ -1,5 +1,7 @@
 package databus.receiver.redis;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -11,7 +13,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-public abstract class RedisReceiver implements Receiver {
+public abstract class RedisReceiver implements Receiver, Closeable {
     
     public RedisReceiver() {
     }
@@ -44,6 +46,11 @@ public abstract class RedisReceiver implements Receiver {
         }
     }
     
+    @Override
+    public void close() throws IOException {
+        jedisPool.close();        
+    }
+
     abstract protected void receive(Jedis jedis, Event event);
     
     private static Log log = LogFactory.getLog(RedisReceiver.class);

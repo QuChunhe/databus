@@ -15,7 +15,7 @@ import databus.core.Publisher;
 import databus.network.JsonEventParser;
 import databus.util.Helper;
 
-public class KafkaPublisher implements Publisher{    
+public class KafkaPublisher implements Publisher {    
 
     public KafkaPublisher() {
         super();        

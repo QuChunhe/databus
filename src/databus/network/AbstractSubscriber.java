@@ -1,5 +1,7 @@
 package databus.network;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,11 +22,12 @@ public abstract class AbstractSubscriber  implements Subscriber {
         receiversMap = new ConcurrentHashMap<String, Set<Receiver>>();
         if (runnerNumber < 1) {
             throw new IllegalArgumentException(runnerNumber + " thread is illegal");
-        }  
-        for (int i=0; i<runnerNumber; i++) {
-            Runner runner = createBackgroundRunner();
-            holder.add(runner, runner.getClass().getName()+"-"+i);
         }
+        Runner[] runners = new Runner[runnerNumber];
+        for (int i=0; i<runnerNumber; i++) {
+            runners[i] = createBackgroundRunner();            
+        }
+        holder = new ThreadHolder(runners);
     }   
     
     public AbstractSubscriber() {
@@ -44,6 +47,17 @@ public abstract class AbstractSubscriber  implements Subscriber {
     @Override
     public void stop() {
         holder.stop();                
+    }
+
+    @Override
+    public void close() throws IOException {
+        for(Set<Receiver> receivers : receiversMap.values()) {
+            for(Receiver r : receivers) {
+                if (r instanceof Closeable) {
+                    ((Closeable) r).close();
+                }
+            }
+        }
     }
 
     @Override
@@ -91,6 +105,6 @@ public abstract class AbstractSubscriber  implements Subscriber {
     
     private static Log log = LogFactory.getLog(AbstractSubscriber.class);  
     
-    private ThreadHolder holder = new ThreadHolder();
+    private ThreadHolder holder;
 
 }

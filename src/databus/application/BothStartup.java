@@ -24,13 +24,12 @@ public class BothStartup extends Startup {
         Subscriber subscriber = builder.createSubscriber() ;
         subscriber.start();
         addShutdownHook(subscriber);
-        Publisher publisher = builder.createPublisher(); 
-        addShutdownHook(publisher);
+        Publisher publisher = builder.createPublisher();         
         List<Listener> listeners = builder.createListeners(publisher);
-
         for(Listener l : listeners) {
            addShutdownHook(l); 
         }
+        addShutdownHook(publisher);
         waitUntilSIGTERM(); 
         
         log.info("BothStartup has finished!");

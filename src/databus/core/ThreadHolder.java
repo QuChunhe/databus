@@ -1,6 +1,6 @@
 package databus.core;
 
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -8,20 +8,15 @@ import org.apache.commons.logging.LogFactory;
 
 public final class ThreadHolder implements Startable, Stoppable, Joinable{    
     
-    public ThreadHolder() {
-        super();
-    }
-
-    public void add(Runner runner) {
-        add(runner, runner.getClass().getName());
+    public ThreadHolder(Runner... runners) {
+        threads = new RunnerThread[runners.length];
+        for(int i=0; i<threads.length; i++) {
+            threads[i] = new RunnerThread(runners[i], runners[i].getClass().getName()+"-"+i);
+        }
     }
     
-    public void add(Runner runner, String name) {
-        RunnerThread t = new RunnerThread(runner, name);
-        if (doesRun.get()) {
-            t.start();
-        }
-        threads.add(t);
+    public ThreadHolder(Collection<Runner> runners) {
+        this(runners.toArray(new Runner[runners.size()]));
     }
 
     @Override
@@ -31,7 +26,11 @@ public final class ThreadHolder implements Startable, Stoppable, Joinable{
             try {
                 t.join();
             } catch (InterruptedException e) {
-                builder.append(e.getMessage()+"\n");
+                String message = e.getMessage();
+                if (builder.length() > 0) {
+                    message += "\n";
+                }
+                builder.append(message);
             }
         }
         if (builder.length() > 0) {
@@ -51,7 +50,7 @@ public final class ThreadHolder implements Startable, Stoppable, Joinable{
             if (t.isAlive()) {
                 log.info(t.getRunner().getClass().getName()+" hasn't stopped!");                
             } else {
-                log.info(t.getRunner().getClass().getName()+" finished!");
+                log.info(t.getRunner().getClass().getName()+" has finished!");
             }
         }
     }
@@ -74,7 +73,7 @@ public final class ThreadHolder implements Startable, Stoppable, Joinable{
     private static Log log = LogFactory.getLog(ThreadHolder.class);
     
     private AtomicBoolean doesRun = new AtomicBoolean(false);
-    private CopyOnWriteArraySet<RunnerThread> threads = new CopyOnWriteArraySet<RunnerThread>();
+    private RunnerThread[] threads;
     
     private class RunnerThread extends Thread {
         
@@ -98,6 +97,8 @@ public final class ThreadHolder implements Startable, Stoppable, Joinable{
                     runner.runOnce();
                 } catch (Exception e) {
                     runner.processException(e);
+                } finally {
+                    runner.processFinally();
                 }
             }
             log.info(runner.getClass().getName()+" will close");

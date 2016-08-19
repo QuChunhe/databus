@@ -37,7 +37,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
         this.executor = executor;
     }
     
-
     @Override
     public void start() {
         initialize0();
@@ -158,8 +157,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
         } else {
             receive0(record.topic(), record.partition(), record.offset(), event);
         }
-    }
-    
+    }    
        
     private static Log log = LogFactory.getLog(KafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser(); 
@@ -190,13 +188,17 @@ public class KafkaSubscriber extends AbstractSubscriber {
         }
 
         @Override
-        public void runOnce() {
+        public void runOnce() throws Exception {
             ConsumerRecords<Long, String> records = consumer.poll(pollingTimeout);
             if ((null!=records) && (!records.isEmpty())) {                   
                 for(ConsumerRecord<Long, String> r : records) {
                     receive(r);
                 }
             }            
+        }
+
+        @Override
+        public void processFinally() {            
         }
 
         @Override
@@ -215,6 +217,11 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 } catch (InterruptedException e) {
 
                 }
+                try {
+                    KafkaSubscriber.this.close();
+                } catch (IOException e) {
+                    log.error("Can't close", e);
+                }
             }
         }
 
@@ -226,5 +233,4 @@ public class KafkaSubscriber extends AbstractSubscriber {
         private Properties properties;
         private KafkaConsumer<Long, String> consumer;
     }
-
 }

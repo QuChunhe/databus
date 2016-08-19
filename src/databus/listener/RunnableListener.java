@@ -11,7 +11,7 @@ public abstract class RunnableListener extends AbstractListener {
         
     public RunnableListener(Publisher publisher, String name) {
         setPublisher(publisher);
-        holder = new ThreadHolder();
+        holder = new ThreadHolder(createListeningRunner());
     }
     
     public RunnableListener(String name) {
@@ -25,7 +25,6 @@ public abstract class RunnableListener extends AbstractListener {
     @Override
     public void start() {
         if (holder.isRunning()) {
-            holder.add(createListeningRunner());
             holder.start();
         }
     }
@@ -46,26 +45,14 @@ public abstract class RunnableListener extends AbstractListener {
     protected static abstract class ListeningRunner implements Runner {        
         
         @Override
-        public void runOnce() {
-            exceptionCount = 0;            
+        public void runOnce() throws Exception {
+            sleepingSeconds = 0;            
         }
 
         @Override
         public void processException(Exception e) {
-            exceptionCount++;
-            log.error("An exception happens!", e);
-            if (exceptionCount <= 10) {
-                //try again immediately
-            } else if  (exceptionCount <= 600) {// 10 Minutes
-                sleep(1);
-            } else if (exceptionCount < 960){ // 1 hour
-                sleep(10);
-            } else if (exceptionCount < 2400){ // 1 day
-                sleep(60);
-            } else {
-                //avoid overflow
-                exceptionCount = 960;
-            }            
+            sleepingSeconds++;
+            sleep(sleepingSeconds);          
         }
         
         private void sleep(long duration) {
@@ -76,7 +63,7 @@ public abstract class RunnableListener extends AbstractListener {
             }
         }
         
-        private int exceptionCount = 0;
+        private int sleepingSeconds = 1;
     }
     
     private static Log log = LogFactory.getLog(RunnableListener.class);

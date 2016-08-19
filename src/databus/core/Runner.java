@@ -4,9 +4,11 @@ public interface Runner {
     
     public void initialize();
     
-    public void runOnce();
+    public void runOnce() throws Exception;
     
     public void processException(Exception e);
+    
+    public void processFinally();
     
     public void stop(Thread owner);
     

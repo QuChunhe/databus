@@ -5,6 +5,7 @@ import static databus.network.netty.NettyConstants.DEFAULT_ZIP;
 import static databus.network.netty.NettyConstants.DELIMITER_BUFFER;
 import static databus.network.netty.NettyConstants.MAX_FRAME_LENGTH;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Properties;
@@ -59,13 +60,33 @@ public class NettySubscriber extends AbstractSubscriber {
         }
          return hasReceived;
     }
+    
+    @Override
+    protected Runner createBackgroundRunner() {
+        return new ListeningRunner();
+    } 
 
+    private static Log log = LogFactory.getLog(NettySubscriber.class);
+    
+    private int workerPoolSize = 1;
+    
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
+    private SocketAddress localAddress;
+    private StringEncoder stringEncoder = new StringEncoder(CharsetUtil.UTF_8);
+    private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);
+    private Channel listeningChannel;
+    
+    private class ListeningRunner implements Runner {
 
-    protected void run0() {
-        bossGroup = new NioEventLoopGroup(1);
-        workerGroup = new NioEventLoopGroup(workerPoolSize);
-        NettySubscriber subscriber = this;
-        try {
+        @Override
+        public void initialize() {
+            bossGroup = new NioEventLoopGroup(1);
+            workerGroup = new NioEventLoopGroup(workerPoolSize);
+        }
+
+        @Override
+        public void runOnce() throws Exception {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)
                      .option(ChannelOption.TCP_NODELAY, true)
@@ -86,78 +107,43 @@ public class NettySubscriber extends AbstractSubscriber {
                                      )
                              .addLast(stringEncoder)
                              .addLast(stringDecoder)
-                             .addLast(new NettyServerHandler(subscriber));
+                             .addLast(new NettyServerHandler(NettySubscriber.this));
                         }                         
                      });
             
             listeningChannel = bootstrap.bind().sync().channel();
-            listeningChannel.closeFuture().sync();
-        } catch (Exception e) {
-            log.error("Server Thread is interrupted", e);
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
-            
-        }
-        
-    } 
-    
-    @Override
-    protected Runner createBackgroundRunner() {
-        return new ListeningRunner();
-    } 
-    
-    @Override
-    public void stop() {
-        super.stop();
-        try {
-            log.info("Waiting all channels close");
-            listeningChannel.close().await(1, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            
-        }
-    }
-
-
-    private static Log log = LogFactory.getLog(NettySubscriber.class);
-    
-    private int workerPoolSize = 1;
-    
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
-    private SocketAddress localAddress;
-    private StringEncoder stringEncoder = new StringEncoder(CharsetUtil.UTF_8);
-    private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);
-    private Channel listeningChannel;
-    
-    private class ListeningRunner implements Runner {
-
-        @Override
-        public void initialize() {
-            
-        }
-
-        @Override
-        public void runOnce() {
-            run0();            
+            listeningChannel.closeFuture().sync();           
         }
 
         @Override
         public void processException(Exception e) {
-            
+            log.error("Server Thread is interrupted", e);
         }
 
         @Override
         public void stop(Thread owner) {
-            
+            try {
+                log.info("Waiting all channels close");
+                listeningChannel.close().await(1, TimeUnit.SECONDS);
+                bossGroup.shutdownGracefully();
+                workerGroup.shutdownGracefully();
+            } catch (InterruptedException e) {
+                log.error("Can't close listening", e);
+            }
+        }        
+
+        @Override
+        public void processFinally() {
         }
 
         @Override
         public void close() {
-            
-        }
-        
+            try {
+                NettySubscriber.this.close();
+            } catch (IOException e) {
+                log.error("Can't close", e);
+            }
+        }        
     }
-
 
 }

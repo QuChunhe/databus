@@ -48,7 +48,7 @@ public abstract class RedisListener extends RunnableListener {
     private class RedisRunner extends ListeningRunner {        
 
         @Override
-        public void runOnce() {
+        public void runOnce() throws Exception {
             RedisEvent event = listen();
             if (null != event) {
                onEvent(event); 
@@ -65,6 +65,11 @@ public abstract class RedisListener extends RunnableListener {
 
         @Override
         public void initialize() {
+            
+        }
+
+        @Override
+        public void processFinally() {
             
         }
 

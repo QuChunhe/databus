@@ -1,5 +1,6 @@
 package databus.network.kafka;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -58,6 +59,11 @@ public class KafkaBatchSubscribers implements Subscriber {
         for(KafkaSubscriber s : subscribers.values()) {
             s.stop();
         }        
+    }
+
+    @Override
+    public void close() throws IOException {
+        
     }
 
     @Override

@@ -7,8 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -97,7 +97,7 @@ public class Startup {
     
     private static Log log = LogFactory.getLog(Startup.class);
     
-    private static Set<Stoppable> hooks = new CopyOnWriteArraySet<Stoppable>();
+    private static List<Stoppable> hooks = new CopyOnWriteArrayList<Stoppable>();
     private static volatile boolean isRunning = true;
     private static Thread mainThread;
 }

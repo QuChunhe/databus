@@ -22,11 +22,12 @@ public class PublisherStartup extends Startup {
         DatabusBuilder builder = new DatabusBuilder(configFileName);  
      
         Publisher publisher = builder.createPublisher();
-        addShutdownHook(publisher);
+      
         List<Listener> listeners = builder.createListeners(publisher);     
         for(Listener l : listeners) {
            addShutdownHook(l); 
         }
+        addShutdownHook(publisher); //add publisher after listeners
         waitUntilSIGTERM();        
         
         log.info("PublisherStartup has finished!");
