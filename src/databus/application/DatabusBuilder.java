@@ -32,17 +32,18 @@ public class DatabusBuilder {
 
     public DatabusBuilder(String configFile) {
         try {
-            Parameters params = new Parameters();
             FileBasedConfigurationBuilder<XMLConfiguration> builder =
                     new FileBasedConfigurationBuilder<XMLConfiguration>(XMLConfiguration.class)
-                        .configure(params.xml()
-                        .setFileName(configFile));
-
+                        .configure(new Parameters().xml().setFileName(configFile));
             config = builder.getConfiguration();
         } catch (ConfigurationException e) {
             log.error("Can't load "+configFile, e);
             System.exit(1);
         }
+    }
+    
+    public boolean hasPublisher() {
+        return config.containsKey("publisher.class");
     }
     
     public Publisher createPublisher() {
@@ -62,6 +63,10 @@ public class DatabusBuilder {
         Configuration pubConfig = config.configurationAt("publisher");
         publisher.initialize(ConfigurationConverter.getProperties(pubConfig));
         return publisher;
+    }
+    
+    public boolean hasSubscriber() {
+        return config.containsKey("subscriber.class");
     }
     
     public Subscriber createSubscriber() { 

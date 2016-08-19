@@ -29,10 +29,6 @@
     <kafka>
         <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
         <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
-        <pollingThread>
-           <host>127.0.0.1:9092</host>
-           <number>4</number>
-        </pollingThread>
         <pollingTimeout>2000</pollingTimeout>
         <writePerFlush>1</writePerFlush>
         <taskCapacity>100</taskCapacity>

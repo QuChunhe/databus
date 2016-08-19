@@ -59,6 +59,10 @@ public class Startup {
     }
 
     public static void waitUntilSIGTERM() {
+        if (hooks.size() == 0) {
+            log.error("Hasn't hook to wait!");
+            return;
+        }
         while (isRunning) {
             try {
                 for(Stoppable s : hooks) {

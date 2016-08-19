@@ -9,32 +9,37 @@ import databus.core.Listener;
 import databus.core.Publisher;
 import databus.core.Subscriber;
 
-public class BothStartup extends Startup {
+public class DatabusStartup extends Startup {
 
     public static void main(String[] args) throws InterruptedException {                
         log.info("******************************************************************************");
-        log.info("BothStartup will begin!");
+        log.info("Databus will begin!");
         
         savePid("data/pid");
         String configFileName = "conf/databus.xml";
         if (args.length > 0) {
             configFileName = args[0];
-        }        
+        }      
         DatabusBuilder builder = new DatabusBuilder(configFileName);
-        Subscriber subscriber = builder.createSubscriber() ;
-        subscriber.start();
-        addShutdownHook(subscriber);
-        Publisher publisher = builder.createPublisher();         
-        List<Listener> listeners = builder.createListeners(publisher);
-        for(Listener l : listeners) {
-           addShutdownHook(l); 
+        if (builder.hasSubscriber()) {
+            Subscriber subscriber = builder.createSubscriber() ;
+            subscriber.start();
+            addShutdownHook(subscriber);
         }
-        addShutdownHook(publisher);
+        if (builder.hasPublisher()) {
+            Publisher publisher = builder.createPublisher();
+            List<Listener> listeners = builder.createListeners(publisher);
+            for (Listener l : listeners) {
+                addShutdownHook(l);
+            }
+            addShutdownHook(publisher);
+        }      
+        
         waitUntilSIGTERM(); 
         
-        log.info("BothStartup has finished!");
+        log.info("Databus has finished!");
         log.info("******************************************************************************");
     }
     
-    private static Log log = LogFactory.getLog(BothStartup.class);
+    private static Log log = LogFactory.getLog(DatabusStartup.class);
 }
