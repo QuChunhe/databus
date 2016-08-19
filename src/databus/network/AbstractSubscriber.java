@@ -37,11 +37,6 @@ public abstract class AbstractSubscriber  implements Subscriber {
     }
 
     @Override
-    public boolean isRunning() {
-        return holder.isRunning();
-    }
-
-    @Override
     public void start() {      
         holder.start();   
     }

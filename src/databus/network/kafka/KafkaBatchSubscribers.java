@@ -47,18 +47,6 @@ public class KafkaBatchSubscribers implements Subscriber {
     }
 
     @Override
-    public boolean isRunning() {
-        boolean doesHaltAll = true;
-        for(KafkaSubscriber s : subscribers.values()) {
-            if (s.isRunning()) {
-                doesHaltAll = false;
-                break;
-            }
-        }
-        return !doesHaltAll;
-    }
-
-    @Override
     public void start() {
         for(KafkaSubscriber s : subscribers.values()) {
             s.start();

@@ -38,11 +38,6 @@ public class NettyServer implements Startable{
     }
     
     @Override
-    public boolean isRunning() {
-        return (null!=thread) && (thread.getState()!=Thread.State.TERMINATED);
-    }
-    
-    @Override
     public void start() {
         if (null == thread) {
             thread = new Thread(new Runnable() {

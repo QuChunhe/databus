@@ -1,8 +1,6 @@
 package databus.core;
 
-public interface Startable {
-    
-    public boolean isRunning();
+public interface Startable { 
     
     public void start();
 }

@@ -56,7 +56,6 @@ public final class ThreadHolder implements Startable, Stoppable, Joinable{
         }
     }
 
-    @Override
     public boolean isRunning() {
         return doesRun.get();
     }
