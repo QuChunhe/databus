@@ -17,21 +17,9 @@ import databus.core.ThreadHolder;
 import databus.core.Runner;
 
 public abstract class AbstractSubscriber  implements Subscriber {
-
-    public AbstractSubscriber(int runnerNumber) {
-        receiversMap = new ConcurrentHashMap<String, Set<Receiver>>();
-        if (runnerNumber < 1) {
-            throw new IllegalArgumentException(runnerNumber + " thread is illegal");
-        }
-        Runner[] runners = new Runner[runnerNumber];
-        for (int i=0; i<runnerNumber; i++) {
-            runners[i] = createBackgroundRunner();            
-        }
-        holder = new ThreadHolder(runners);
-    }   
     
     public AbstractSubscriber() {
-        this(1);
+        receiversMap = new ConcurrentHashMap<String, Set<Receiver>>();
     }
 
     @Override
@@ -40,13 +28,18 @@ public abstract class AbstractSubscriber  implements Subscriber {
     }
 
     @Override
-    public void start() {      
+    public void start() {
+        holder = new ThreadHolder(createBackgroundRunners());
         holder.start();   
     }
 
     @Override
     public void stop() {
-        holder.stop();                
+        if (null != holder) {
+            holder.stop();
+        } else {
+            log.warn("Hasn't started!");
+        }                      
     }
 
     @Override
@@ -85,7 +78,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
         return true;
     }
     
-    protected abstract Runner createBackgroundRunner();
+    protected abstract Runner[] createBackgroundRunners();
     
     private void receive(Set<Receiver> receiversSet, Event event) {
         if (null == receiversSet) {
@@ -105,6 +98,6 @@ public abstract class AbstractSubscriber  implements Subscriber {
     
     private static Log log = LogFactory.getLog(AbstractSubscriber.class);  
     
-    private ThreadHolder holder;
+    private ThreadHolder holder = null;
 
 }

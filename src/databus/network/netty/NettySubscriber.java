@@ -62,8 +62,8 @@ public class NettySubscriber extends AbstractSubscriber {
     }
     
     @Override
-    protected Runner createBackgroundRunner() {
-        return new ListeningRunner();
+    protected Runner[] createBackgroundRunners() {
+        return new Runner[] {new ListeningRunner()};
     } 
 
     private static Log log = LogFactory.getLog(NettySubscriber.class);

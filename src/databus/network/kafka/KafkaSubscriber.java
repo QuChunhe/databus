@@ -3,13 +3,11 @@ package databus.network.kafka;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -25,22 +23,11 @@ import databus.core.Runner;
 import databus.network.AbstractSubscriber;
 import databus.network.JsonEventParser;
 
-
 public class KafkaSubscriber extends AbstractSubscriber {
     
     public KafkaSubscriber() {
-        this(null, 1);
-    }
-    
-    public KafkaSubscriber(ExecutorService executor, int pollingThreadNumber) {
-        super(pollingThreadNumber);
-        this.executor = executor;
-    }
-    
-    @Override
-    public void start() {
-        initialize0();
-        super.start();
+        super();
+        serverTopicsMap = new HashMap<String, List<String>>();
     }
 
     @Override
@@ -56,7 +43,23 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 log.error("Can't wait the terimination of ExecutorService", e);
             }            
         }
-    }    
+    }
+
+    @Override
+    public void register(String topic, Receiver receiver) {
+        String server = KafkaHelper.splitSocketAddress(topic);
+        topic = topic.replace('/', '-')
+                     .replace(':', '-')
+                     .replace('_', '-');
+        super.register(topic, receiver);  
+        
+        List<String> topicsList = serverTopicsMap.get(server);
+        if (null == topicsList) {
+            topicsList = new LinkedList<String>();
+            serverTopicsMap.put(server, topicsList);
+        }
+        topicsList.add(topic);
+    }
 
     @Override
     public void initialize(Properties properties) {
@@ -86,10 +89,8 @@ public class KafkaSubscriber extends AbstractSubscriber {
         kafkaProperties.setProperty("key.deserializer", 
                                     "org.apache.kafka.common.serialization.LongDeserializer");
         kafkaProperties.setProperty("value.deserializer", 
-                                    "org.apache.kafka.common.serialization.StringDeserializer");
-        if (null == executor) {
-            executor = KafkaHelper.loadExecutor(properties, 0);        
-        }
+                                    "org.apache.kafka.common.serialization.StringDeserializer");        
+        executor = KafkaHelper.loadExecutor(properties, 0);
         
         String writePerFlushValue = properties.getProperty("kafka.writePerFlush");
         int writePerFlush = null==writePerFlushValue ? 1 : Integer.parseInt(writePerFlushValue);
@@ -99,37 +100,15 @@ public class KafkaSubscriber extends AbstractSubscriber {
     }
 
     @Override
-    protected Runner createBackgroundRunner() {
-        return new PollingRunner();
-    }
-
-    private void initialize0() {
-        HashSet<String> serverSet = new HashSet<String>();
-        Map<String, Set<Receiver>> newMap = new ConcurrentHashMap<String, Set<Receiver>>();
-        for(String t : receiversMap.keySet()) {;
-            newMap.put(t.replace('/', '-')
-                        .replace(':', '-')
-                        .replace('_', '-'),
-                       receiversMap.get(t));  
-            String address = KafkaHelper.splitSocketAddress(t);
-            if (null == address) {
-                log.error("remoteTopic " + t + " is illegal");
-                System.exit(1);
-            }
-            serverSet.add(address);            
+    protected Runner[] createBackgroundRunners() {
+        Runner[] runners = new Runner[serverTopicsMap.size()];
+        int i = 0;
+        for(String server : serverTopicsMap.keySet()) {
+            runners[i++] = new PollingRunner(kafkaProperties, server, serverTopicsMap.get(server));
         }
-        receiversMap = newMap;
-        StringBuilder serversBuilder = new StringBuilder(64);
-        for(String s : serverSet) {
-            if (serversBuilder.length() > 0) {
-                serversBuilder.append(',');
-            }
-            serversBuilder.append(s);
-        }
-        kafkaProperties.put("bootstrap.servers", serversBuilder.toString()); 
-        
-        topics = new ArrayList<String>(receiversMap.size());
-        topics.addAll(receiversMap.keySet());
+        kafkaProperties = null;
+        serverTopicsMap = null;
+        return runners;
     }
 
     private void receive0(String topic, int partition, long position, Event event) {
@@ -162,27 +141,31 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
     private ExecutorService executor = null;
     private Properties kafkaProperties;
-    private List<String> topics;
+    private Map<String, List<String>> serverTopicsMap;
     private long pollingTimeout = 2000;
     private PositionsCache positionsCache;  
     
    
     private class PollingRunner implements Runner {        
 
-        public PollingRunner() {
-            properties = new Properties();
+        public PollingRunner(Properties properties, String server, List<String> topics) {
+            this.properties = new Properties();
+            this.properties.putAll(properties);
+            String groupId = this.properties.getProperty("group.id");
+            this.properties.put("client.id", groupId+"-"+server.replaceAll(":", "-"));
+            this.properties.put("bootstrap.servers", server);
+            
+            this.topics = topics;
         }
 
         @Override
         public void initialize() {
-            properties.putAll(kafkaProperties);
-            Long threadId = Thread.currentThread().getId();
-            String clientId = properties.getProperty("group.id") + "-" + threadId;
-            properties.setProperty("client.id", clientId);
             consumer = new KafkaConsumer<Long, String>(properties); 
             consumer.subscribe(topics, new AutoRebalanceListener(consumer)); 
-            log.info(clientId + " : " + topics.toString());
             KafkaHelper.seekRightPositions(consumer, consumer.assignment());
+            
+            topics = null;
+            properties = null;
         }
 
         @Override
@@ -228,6 +211,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
         }
         
         private Properties properties;
+        List<String> topics;
         private KafkaConsumer<Long, String> consumer;
     }
 }
