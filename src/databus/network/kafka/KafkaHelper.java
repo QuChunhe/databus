@@ -45,6 +45,14 @@ public class KafkaHelper {
         return Helper.normalizeSocketAddress(remoteTopic.substring(0, index));
     }
     
+    public static String splitTopic(String remoteTopic) {
+        int index = remoteTopic.indexOf('/');
+        if (index < 1) {
+            return null;
+        }
+        return remoteTopic.substring(index);
+    }
+    
     public static void seekRightPositions(KafkaConsumer<Long, String> consumer, 
                                           Collection<TopicPartition> partitions) {
         PositionsCache cache = new PositionsCache();

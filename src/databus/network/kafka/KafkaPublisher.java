@@ -26,7 +26,7 @@ public class KafkaPublisher implements Publisher {
     @Override
     public void initialize(Properties properties) {
         String kafkaAddressValue = properties.getProperty("kafka.server").trim();
-        kafkaAddress = Helper.normalizeSocketAddress(kafkaAddressValue);
+        String kafkaAddress = Helper.normalizeSocketAddress(kafkaAddressValue);
         if (null == kafkaAddress) {
             log.error("kafka.server has illegal value "+kafkaAddressValue);
         }
@@ -45,8 +45,9 @@ public class KafkaPublisher implements Publisher {
     @Override
     public void publish(Event event) {
         Long time = System.currentTimeMillis();
-        String topic = SPECIAL_CHARACTER.matcher(kafkaAddress+event.topic())
+        String topic = SPECIAL_CHARACTER.matcher(event.topic())
                                         .replaceAll("-");
+        log.info(topic);
         String value = eventParser.toString(event);
         log.info(time + " " + topic + " : " +value);
         ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(topic, time, value);
@@ -64,7 +65,6 @@ public class KafkaPublisher implements Publisher {
     private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaProducer<Long, String> producer;
-    private String kafkaAddress;
     
     private static class LogCallback implements Callback {        
         

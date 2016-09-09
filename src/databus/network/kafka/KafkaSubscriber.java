@@ -46,12 +46,17 @@ public class KafkaSubscriber extends AbstractSubscriber {
     }
 
     @Override
-    public void register(String topic, Receiver receiver) {
-        String server = KafkaHelper.splitSocketAddress(topic);
-        topic = topic.replace('/', '-')
-                     .replace(':', '-')
-                     .replace('_', '-');
-        super.register(topic, receiver);  
+    public void register(String remoteTopic, Receiver receiver) {
+        String server = KafkaHelper.splitSocketAddress(remoteTopic);
+        String topic = KafkaHelper.splitTopic(remoteTopic)
+                                  .replace('/', '-')
+                                  .replace(':', '-')
+                                  .replace('_', '-');
+        remoteTopic = remoteTopic.replace('/', '-')
+                                 .replace(':', '-')
+                                 .replace('_', '-');
+        super.register(remoteTopic, receiver); 
+        log.info(remoteTopic);
         
         List<String> topicsList = serverTopicsMap.get(server);
         if (null == topicsList) {
@@ -116,7 +121,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
         positionsCache.set(topic, partition, position);
     }
     
-    private void receive(ConsumerRecord<Long, String> record) {
+    private void receive(String server, ConsumerRecord<Long, String> record) {
         Event event = eventParser.toEvent(record.value());
         log.info(record.key() + " " + record.topic() + " (" + record.partition() + "," + 
                  record.offset() + ") : " + event.toString());
@@ -127,12 +132,12 @@ public class KafkaSubscriber extends AbstractSubscriber {
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
-                    receive0(record.topic(), record.partition(), record.offset(), event);
+                    receive0(server + record.topic(), record.partition(), record.offset(), event);
                     
                 }
             });
         } else {
-            receive0(record.topic(), record.partition(), record.offset(), event);
+            receive0(server + record.topic(), record.partition(), record.offset(), event);
         }
     }    
        
@@ -156,6 +161,9 @@ public class KafkaSubscriber extends AbstractSubscriber {
             this.properties.put("bootstrap.servers", server);
             
             this.topics = topics;
+            this.server = server.replace('/', '-')
+                                .replace(':', '-')
+                                .replace('_', '-');
         }
 
         @Override
@@ -173,7 +181,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
             ConsumerRecords<Long, String> records = consumer.poll(pollingTimeout);
             if ((null!=records) && (!records.isEmpty())) {                   
                 for(ConsumerRecord<Long, String> r : records) {
-                    receive(r);
+                    receive(server, r);
                 }
             }            
         }
@@ -213,5 +221,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
         private Properties properties;
         List<String> topics;
         private KafkaConsumer<Long, String> consumer;
+        private String server;
     }
 }
