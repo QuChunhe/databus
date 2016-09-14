@@ -4,11 +4,13 @@ import java.net.InetAddress;
 
 public interface Event{
     
-    public static enum Source {REDIS, MYSQL, MANAGEMENT, CONFIRMATION}
+    public static enum Source {REDIS, MYSQL}
 
     public Source source();
     
     public String topic();
+    
+    public Event topic(String topic);
     
     public String fullTopic();
     

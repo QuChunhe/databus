@@ -31,7 +31,19 @@ public abstract class AbstractEvent implements Event{
     public String fullTopic() {
         return null==ipAddress ? null : ipAddress.getHostAddress() + topic();
     }
+    
+    public Event topic(String topic) {
+        this.topic = topic;
+        return this;
+    }
+    
+    public String topic() {
+        return null==topic ? defaultTopic() : topic;
+    }
+    
+    protected abstract String defaultTopic();
 
     private InetAddress ipAddress;
     private long time;
+    private String topic = null;;
 }

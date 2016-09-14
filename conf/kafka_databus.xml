@@ -6,7 +6,7 @@
     <class>databus.network.kafka.KafkaPublisher</class>
     <kafka>
         <server>127.0.0.1:9092</server>
-        <acks>1</acks>
+        <acks>1</acks>        
     </kafka>
 
     <listener>
@@ -21,6 +21,7 @@
             <binlogFileName>master-bin.000067</binlogFileName>
             <position>753</position>
         </mysql>
+        <topic>test</topic>
     </listener> 
 </publisher>
 
@@ -36,7 +37,7 @@
   
     <receiver>
         <class>databus.receiver.redis.RedisSlave4Mysql</class>
-        <remoteTopic>127.0.0.1:9092/MYSQL/1/test</remoteTopic>
+        <remoteTopic>127.0.0.1:9092/test</remoteTopic>
         <redis>
             <host>127.0.0.1</host>
             <port>6379</port>
@@ -54,7 +55,7 @@
 
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
-        <remoteTopic>127.0.0.1:9092/MYSQL/1/test</remoteTopic>
+        <remoteTopic>127.0.0.1:9092/test</remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/test2</url>
             <username>root</username>

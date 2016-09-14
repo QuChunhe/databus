@@ -3,11 +3,13 @@ package databus.network.kafka;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -27,7 +29,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
     
     public KafkaSubscriber() {
         super();
-        serverTopicsMap = new HashMap<String, List<String>>();
     }
 
     @Override
@@ -47,23 +48,20 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
     @Override
     public void register(String remoteTopic, Receiver receiver) {
-        String server = KafkaHelper.splitSocketAddress(remoteTopic);
-        String topic = KafkaHelper.splitTopic(remoteTopic)
-                                  .replace('/', '-')
-                                  .replace(':', '-')
-                                  .replace('_', '-');
-        remoteTopic = remoteTopic.replace('/', '-')
-                                 .replace(':', '-')
-                                 .replace('_', '-');
-        super.register(remoteTopic, receiver); 
-        log.info(remoteTopic);
-        
-        List<String> topicsList = serverTopicsMap.get(server);
-        if (null == topicsList) {
-            topicsList = new LinkedList<String>();
-            serverTopicsMap.put(server, topicsList);
+        String server = KafkaHelper.splitSocketAddress(remoteTopic); 
+        String topic = KafkaHelper.splitTopic(remoteTopic);
+        if ((null==server) || (null==topic)) {
+            log.error("remoteTopic is illegal : "+remoteTopic);
+            System.exit(1);
         }
-        topicsList.add(topic);
+        super.register(topic, receiver); 
+        
+        Set<String> topicSet = serverTopicsMap.get(server);
+        if (null == topicSet) {
+            topicSet = new HashSet<String>();
+            serverTopicsMap.put(server, topicSet);
+        }
+        topicSet.add(topic);
     }
 
     @Override
@@ -109,70 +107,55 @@ public class KafkaSubscriber extends AbstractSubscriber {
         Runner[] runners = new Runner[serverTopicsMap.size()];
         int i = 0;
         for(String server : serverTopicsMap.keySet()) {
-            runners[i++] = new PollingRunner(kafkaProperties, server, serverTopicsMap.get(server));
+            runners[i++] = new PollingRunner(kafkaProperties, server,serverTopicsMap.get(server));
         }
+        //help GC
         kafkaProperties = null;
         serverTopicsMap = null;
         return runners;
-    }
-
-    private void receive0(String topic, int partition, long position, Event event) {
-        receive(topic, event);
-        positionsCache.set(topic, partition, position);
-    }
+    } 
     
-    private void receive(String server, ConsumerRecord<Long, String> record) {
-        Event event = eventParser.toEvent(record.value());
-        log.info(record.key() + " " + record.topic() + " (" + record.partition() + "," + 
-                 record.offset() + ") : " + event.toString());
-        if (record.offset() <= positionsCache.get(record.topic(), record.partition())) {
-            log.warn(record.topic() + " (" + record.partition() + "," + record.offset() +
-                     ") is illegal");
-        } else if (null != executor) {
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    receive0(server + record.topic(), record.partition(), record.offset(), event);
-                    
-                }
-            });
-        } else {
-            receive0(server + record.topic(), record.partition(), record.offset(), event);
+    private void receive0(ConsumerRecord<Long, String> record, Event event) {
+        String topic = event.topic();
+        if (record.offset() <= positionsCache.get(topic, record.partition())) {
+            log.error(record.topic() + " (" + record.partition() + "," + record.offset() +
+                      ") is illegal : " + event.toString());
+            return;
         }
-    }    
+        log.info(record.key() + " " + record.topic() + " (" + record.partition() + ", " + 
+                 record.offset() + ") : " + event.toString());
+        receive(topic, event);
+        positionsCache.set(topic, record.partition(), record.offset());
+    }
        
     private static Log log = LogFactory.getLog(KafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser(); 
 
     private ExecutorService executor = null;
     private Properties kafkaProperties;
-    private Map<String, List<String>> serverTopicsMap;
+    private Map<String, Set<String>> serverTopicsMap = new HashMap<String, Set<String>>();
     private long pollingTimeout = 2000;
     private PositionsCache positionsCache;  
     
    
     private class PollingRunner implements Runner {        
 
-        public PollingRunner(Properties properties, String server, List<String> topics) {
+        public PollingRunner(Properties properties, String server, Set<String> kafkaTopics) {
             this.properties = new Properties();
             this.properties.putAll(properties);
             String groupId = this.properties.getProperty("group.id");
             this.properties.put("client.id", groupId+"-"+server.replaceAll(":", "-"));
-            this.properties.put("bootstrap.servers", server);
-            
-            this.topics = topics;
-            this.server = server.replace('/', '-')
-                                .replace(':', '-')
-                                .replace('_', '-');
+            this.properties.put("bootstrap.servers", server);            
+            this.kafkaTopics = new ArrayList<String>(kafkaTopics);
         }
 
         @Override
         public void initialize() {
             consumer = new KafkaConsumer<Long, String>(properties); 
-            consumer.subscribe(topics, new AutoRebalanceListener(consumer)); 
+            consumer.subscribe(kafkaTopics, new AutoRebalanceListener(consumer)); 
             KafkaHelper.seekRightPositions(consumer, consumer.assignment());
-            
-            topics = null;
+            //help GC
+            kafkaTopics = null;
             properties = null;
         }
 
@@ -181,7 +164,23 @@ public class KafkaSubscriber extends AbstractSubscriber {
             ConsumerRecords<Long, String> records = consumer.poll(pollingTimeout);
             if ((null!=records) && (!records.isEmpty())) {                   
                 for(ConsumerRecord<Long, String> r : records) {
-                    receive(server, r);
+                    Event event = eventParser.toEvent(r.value()); 
+                    if (null == event) {
+                        log.error("message can not be parser as an event " + r.key() + " " +
+                                  r.topic() + " (" + r.partition() + "," + r.offset() + ") : " + 
+                                  r.value());
+                        continue;
+                    }                    
+                    if (null != executor) {
+                        executor.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                receive0(r, event);                                
+                            }
+                        });
+                    } else {
+                        receive0(r, event);
+                    }
                 }
             }            
         }
@@ -219,8 +218,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
         }
         
         private Properties properties;
-        List<String> topics;
+        List<String> kafkaTopics;
         private KafkaConsumer<Long, String> consumer;
-        private String server;
     }
 }

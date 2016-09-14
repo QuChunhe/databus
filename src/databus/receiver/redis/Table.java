@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import databus.event.mysql.Column;
 import redis.clients.jedis.Jedis;
 
@@ -27,12 +30,14 @@ public class Table {
         Map<String, String> columns = getRelicatedColumns(row);
         if (columns.size() > 0) {
             jedis.hmset(redisKey, columns);
+            log.info("HMSET "+redisKey+" "+columns.toString());
         }        
     }
     
     public void delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
         String redisKey = getRedisKey(primaryKeys);
         jedis.del(redisKey);
+        log.info("DEL "+redisKey);
     }
     
     public void update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
@@ -74,7 +79,8 @@ public class Table {
     protected String system;
     
     private static final ColumnComparator COLUMN_COMPARATOR = new ColumnComparator();
-    private static final Column[] COLUMN_ARRAY = new Column[1];    
+    private static final Column[] COLUMN_ARRAY = new Column[1]; 
+    private static Log log = LogFactory.getLog(Table.class);
     
     private Set<String> replicatedColumns = new HashSet<String>();
     

@@ -3,9 +3,8 @@ package databus.event.mysql;
 import java.util.List;
 
 import databus.event.MysqlEvent;
-import databus.event.WriteEvent;
 
-public interface MysqlWriteRow extends WriteEvent, MysqlEvent{
+public interface MysqlWriteRow extends MysqlEvent{
 
     public List<Column> row();
     

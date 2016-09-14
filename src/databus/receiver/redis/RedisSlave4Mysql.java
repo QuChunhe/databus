@@ -26,7 +26,7 @@ public class RedisSlave4Mysql extends RedisReceiver {
     @Override
     protected void receive(Jedis jedis, Event event) {
         if (event instanceof AbstractMysqlWriteRow) {
-            log.info("Have received : "+event.toString());
+            log.info(event.toString());
             AbstractMysqlWriteRow e = (AbstractMysqlWriteRow) event;
             String tableName = e.table().toLowerCase();
             Table table = tableMap.get(tableName);

@@ -21,6 +21,8 @@ public abstract class RedisListener extends RunnableListener {
 
     @Override
     public void initialize(Properties properties) {
+        super.initialize(properties);
+        
         host = properties.getProperty("redis.host", "127.0.0.1");
         port = Integer.parseInt(properties.getProperty("redis.port", "6379"));
         timeout = Integer.parseInt(properties.getProperty("redis.timeout", "60"));        

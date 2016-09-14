@@ -38,7 +38,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
         if (null != holder) {
             holder.stop();
         } else {
-            log.warn("Hasn't started!");
+            log.warn(getClass().getName() + " hasn't started!");
         }                      
     }
 
@@ -88,8 +88,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
             try {
                 receiver.receive(event);
             } catch (Exception e) {
-                String className = receiver.getClass().getName();
-                log.error(className+" can't receive "+ event.toString(), e);
+                log.error(receiver.getClass().getName() + " can't receive "+ event.toString(), e);
             }
         }
     }  

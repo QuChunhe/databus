@@ -21,6 +21,7 @@
             <binlogFileName>master-bin.000061</binlogFileName>
             <position>328</position>
         </mysql>
+        <topic>test</topic>
     </listener> 
 </publisher>
 

@@ -26,11 +26,6 @@ public abstract class AbstractMysqlEvent extends AbstractEvent
     public Source source() {
         return Source.MYSQL;
     }
-
-    @Override
-    public String topic() {
-        return "/"+source()+"/"+serverId()+"/"+database();
-    }
     
     public AbstractMysqlEvent serverId(long serverId) {
         this.serverId = serverId;
@@ -46,6 +41,11 @@ public abstract class AbstractMysqlEvent extends AbstractEvent
         this.table = table.toLowerCase();
         return this;
     }
+    
+    @Override
+    protected String defaultTopic() {
+        return "/"+source()+"/"+serverId()+"/"+database();
+    } 
     
     private long serverId;
     private String database;

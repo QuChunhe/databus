@@ -17,6 +17,7 @@
             <keys>adm:mq:userInfo</keys>
             <listeningTimeout>3</listeningTimeout>
         </redis>
+        <topic>test</topic>
     </listener>
 </publisher>
 

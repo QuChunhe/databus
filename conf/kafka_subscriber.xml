@@ -37,7 +37,7 @@
 
     <receiver>
         <class>databus.receiver.mysql.MessagePersistence</class>
-        <remoteTopic>127.0.0.1:9092/REDIS/LIST-MESSAGING/adm-mq-userInfo</remoteTopic>
+        <remoteTopic>127.0.0.1:9092/adm-mq-userInfo</remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/adm</url>
             <username>root</username>

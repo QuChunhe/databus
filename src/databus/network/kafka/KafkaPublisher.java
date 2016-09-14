@@ -20,13 +20,13 @@ import databus.util.Helper;
 public class KafkaPublisher implements Publisher {    
 
     public KafkaPublisher() {
-        super();        
+        super();
     }
 
     @Override
     public void initialize(Properties properties) {
         String kafkaAddressValue = properties.getProperty("kafka.server").trim();
-        String kafkaAddress = Helper.normalizeSocketAddress(kafkaAddressValue);
+        kafkaAddress = Helper.normalizeSocketAddress(kafkaAddressValue);
         if (null == kafkaAddress) {
             log.error("kafka.server has illegal value "+kafkaAddressValue);
         }
@@ -39,17 +39,15 @@ public class KafkaPublisher implements Publisher {
         config.put("compression.type", "gzip");
         config.put("acks", acks);
         config.put("max.block.ms", 60000);
-        producer = new KafkaProducer<Long, String>(config);        
+        producer = new KafkaProducer<Long, String>(config);
     }
 
     @Override
     public void publish(Event event) {
         Long time = System.currentTimeMillis();
-        String topic = SPECIAL_CHARACTER.matcher(event.topic())
-                                        .replaceAll("-");
-        log.info(topic);
+        String topic =  SPECIAL_CHARACTER.matcher(event.topic()).replaceAll("-");        
         String value = eventParser.toString(event);
-        log.info(time + " " + topic + " : " +value);
+        log.info(time + " " + topic +" : " +value);
         ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(topic, time, value);
         producer.send(record, new LogCallback(topic, time, value));         
     }
@@ -65,6 +63,7 @@ public class KafkaPublisher implements Publisher {
     private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaProducer<Long, String> producer;
+    private String kafkaAddress;
     
     private static class LogCallback implements Callback {        
         
@@ -82,11 +81,10 @@ public class KafkaPublisher implements Publisher {
             } else {
                 log.error(key + " " + topic + " : " +value, exception);
             }
-        }
-        
-        private String topic;
+        }        
+
         private long key;        
-        private String value;        
-    }
-    
+        private String value;
+        private String topic;
+    }    
 }

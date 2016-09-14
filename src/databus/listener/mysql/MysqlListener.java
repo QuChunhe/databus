@@ -67,7 +67,9 @@ public class MysqlListener extends RestartableListener{
     }
     
     @Override
-    public void initialize(Properties properties){        
+    public void initialize(Properties properties){  
+        super.initialize(properties);
+        
         String user = properties.getProperty("mysql.user", "root");
         String password = properties.getProperty("mysql.password", "");
         String host = properties.getProperty("mysql.host", "127.0.0.1");

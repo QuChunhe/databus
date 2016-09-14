@@ -50,30 +50,38 @@ public class KafkaHelper {
         if (index < 1) {
             return null;
         }
-        return remoteTopic.substring(index);
+        if (index == remoteTopic.length()) {
+            return null;
+        }
+        return remoteTopic.substring(index+1);
     }
     
     public static void seekRightPositions(KafkaConsumer<Long, String> consumer, 
                                           Collection<TopicPartition> partitions) {
         PositionsCache cache = new PositionsCache();
-        HashSet<TopicPartition> partitionsFromBeginning = null;
+        HashSet<TopicPartition> topicPartitions = null;
         for(TopicPartition p : partitions) {
             long offset = cache.get(p.topic(), p.partition());
             if (offset < 0) {
-                if (null == partitionsFromBeginning) {
-                    partitionsFromBeginning = new HashSet<TopicPartition>();
+                if (null == topicPartitions) {
+                    topicPartitions = new HashSet<TopicPartition>();
                 }
-                partitionsFromBeginning.add(p);
+                topicPartitions.add(p);
             } else {
                 //if the position is out of partition range, 
                 //the offset depends on the topic and the value of auto.offset.reset.
                 consumer.seek(p, offset+1); 
             }             
         }
-        if (null != partitionsFromBeginning) {
-            consumer.seekToBeginning(partitionsFromBeginning);
+        if (null != topicPartitions) {
+            consumer.seekToEnd(topicPartitions);
         }
     }
     
-    private static final int DEFAULT_TASK_CAPACITY = 1000;
+    public static String getAliasKafkaTopic(String aliasServer, String kafkaTopic) {
+        return kafkaTopic.startsWith("-") ? aliasServer + kafkaTopic 
+                                          : aliasServer + "-" + kafkaTopic;
+    }
+    
+    private static final int DEFAULT_TASK_CAPACITY = 10;
 }
