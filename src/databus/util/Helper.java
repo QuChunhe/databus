@@ -52,8 +52,13 @@ public class Helper {
             normalizedAddress = inetAddress.getHostAddress() + ":" + port;
         } catch(Exception e) {                
         }
-        return normalizedAddress;
-        
+        return normalizedAddress;        
+    }
+    
+    public static String toAlias(String name) {
+        return name.replace('.', '_')
+                   .replace('/', '-')
+                   .replace(':', '-');
     }
     
     private static int rand() {

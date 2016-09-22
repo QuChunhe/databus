@@ -12,13 +12,14 @@ import org.apache.kafka.common.TopicPartition;
 
 public class AutoRebalanceListener implements ConsumerRebalanceListener{
     
-    public AutoRebalanceListener(KafkaConsumer<Long, String> consumer) {;
+    public AutoRebalanceListener(String server, KafkaConsumer<Long, String> consumer) {;
         this.consumer = consumer;
+        this.server = server;
     }
 
     @Override
     public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-        KafkaHelper.seekRightPositions(consumer, partitions);       
+        KafkaHelper.seekRightPositions(server, consumer, partitions);       
     }
 
     @Override
@@ -32,7 +33,7 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
                 log.error("Can't record the position of "+p.topic()+" partition "+p.partition());
             }
             if (nextPosition > 0) {
-                cache.set(p.topic(), p.partition(), nextPosition-1);
+                cache.set(server+"/"+p.topic(), p.partition(), nextPosition-1);
             }            
         }
         cache.saveAll();
@@ -41,4 +42,5 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
     private static Log log = LogFactory.getLog(AutoRebalanceListener.class);
     
     private KafkaConsumer<Long, String> consumer;
+    private String server;
 }

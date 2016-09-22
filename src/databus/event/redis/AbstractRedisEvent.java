@@ -33,7 +33,7 @@ public abstract class AbstractRedisEvent extends AbstractEvent
     
     @Override
     protected String defaultTopic() {
-        return "/"+source()+"/"+type()+"/"+key();
+        return source()+"/"+type()+"/"+key();
     }
     
     private String key;

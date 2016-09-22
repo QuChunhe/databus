@@ -44,7 +44,7 @@ public abstract class AbstractMysqlEvent extends AbstractEvent
     
     @Override
     protected String defaultTopic() {
-        return "/"+source()+"/"+serverId()+"/"+database();
+        return source()+"/"+serverId()+"/"+database();
     } 
     
     private long serverId;

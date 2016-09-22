@@ -21,7 +21,12 @@
             <binlogFileName>master-bin.000067</binlogFileName>
             <position>753</position>
         </mysql>
-        <topic>test</topic>
+        <topic>test/mysql</topic>
+        <filter>
+            <class>databus.event.mysql.IdModulusMysqlRowFilter</class>
+            <id>1/3</id>
+            <ignore>test.user</ignore>            
+        </filter>
     </listener> 
 </publisher>
 
@@ -37,7 +42,7 @@
   
     <receiver>
         <class>databus.receiver.redis.RedisSlave4Mysql</class>
-        <remoteTopic>127.0.0.1:9092/test</remoteTopic>
+        <remoteTopic>127.0.0.1:9092/test/mysql</remoteTopic>
         <redis>
             <host>127.0.0.1</host>
             <port>6379</port>
@@ -55,7 +60,7 @@
 
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
-        <remoteTopic>127.0.0.1:9092/test</remoteTopic>
+        <remoteTopic>127.0.0.1:9092/test.mysql</remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/test2</url>
             <username>root</username>

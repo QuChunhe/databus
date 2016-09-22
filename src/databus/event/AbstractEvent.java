@@ -29,7 +29,7 @@ public abstract class AbstractEvent implements Event{
     }
     
     public String fullTopic() {
-        return null==ipAddress ? null : ipAddress.getHostAddress() + topic();
+        return null==ipAddress ? null : ipAddress.getHostAddress() + "/" + topic();
     }
     
     public Event topic(String topic) {

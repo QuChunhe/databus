@@ -1,5 +1,6 @@
 package databus.network.kafka;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -25,15 +26,15 @@ public class KafkaPublisher implements Publisher {
 
     @Override
     public void initialize(Properties properties) {
-        String kafkaAddressValue = properties.getProperty("kafka.server").trim();
-        kafkaAddress = Helper.normalizeSocketAddress(kafkaAddressValue);
-        if (null == kafkaAddress) {
-            log.error("kafka.server has illegal value "+kafkaAddressValue);
+        String kafkaServerValue = properties.getProperty("kafka.server").trim();
+        String kafkaServer = Helper.normalizeSocketAddress(kafkaServerValue);
+        if (null == kafkaServer) {
+            log.error("kafka.server has illegal value "+kafkaServerValue);
+            System.exit(1);
         }
-        String acks = properties.getProperty("kafka.acks", "1");
-               
+        String acks = properties.getProperty("kafka.acks", "1");               
         Map<String, Object> config = new HashMap<String, Object>(6);
-        config.put("bootstrap.servers", kafkaAddress);
+        config.put("bootstrap.servers", kafkaServer);
         config.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         config.put("compression.type", "gzip");
@@ -44,8 +45,10 @@ public class KafkaPublisher implements Publisher {
 
     @Override
     public void publish(Event event) {
+        event.ipAddress(kafkaInetAddress);
         Long time = System.currentTimeMillis();
-        String topic =  SPECIAL_CHARACTER.matcher(event.topic()).replaceAll("-");        
+        String topic =  SPECIAL_CHARACTER.matcher(event.topic()).replaceAll("-");
+        event.topic(null);
         String value = eventParser.toString(event);
         log.info(time + " " + topic +" : " +value);
         ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(topic, time, value);
@@ -57,13 +60,13 @@ public class KafkaPublisher implements Publisher {
         producer.close();        
     }
     
-    private static final Pattern SPECIAL_CHARACTER = Pattern.compile("_|:|/");
+    private static final Pattern SPECIAL_CHARACTER = Pattern.compile("_|:|/|\\.");
     
     private static Log log = LogFactory.getLog(KafkaPublisher.class);
     private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaProducer<Long, String> producer;
-    private String kafkaAddress;
+    private InetAddress kafkaInetAddress;
     
     private static class LogCallback implements Callback {        
         

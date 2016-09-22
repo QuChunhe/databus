@@ -54,13 +54,14 @@ public class Backup {
     }
     
     private String getFileName(String id) {
-        id = id.replace('.', '_');
-        id = id.replace('/', '-');
-        return BACKUP_DIR_NAME + id+"_backup.data";
+        id = id.replace('.', '_')
+               .replace('/', '-')
+               .replace(':', '-');
+        return BACKUP_DIR_NAME + Helper.toAlias(id) + "_backup.data";
     }
     
     private static final String BACKUP_DIR_NAME = "data/";
-    
+            
     private static Log log = LogFactory.getLog(Backup.class);    
     private static Backup instance = null;    
     

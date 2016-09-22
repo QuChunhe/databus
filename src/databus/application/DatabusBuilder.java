@@ -16,6 +16,7 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.core.EventFilter;
 import databus.core.Initializable;
 import databus.core.Listener;
 import databus.core.Publisher;
@@ -98,8 +99,9 @@ public class DatabusBuilder {
                 if (object instanceof AbstractListener) {
                     ((AbstractListener) object).setPublisher(publisher);
                 }
-                object.start();
+                loadEventFilters(object, c);
                 listeners.add(object);
+                object.start();                
             } else {
                 log.error("Can't instance Listener Object for "+c.toString());
             }
@@ -124,6 +126,17 @@ public class DatabusBuilder {
         }
     }
 
+    private void loadEventFilters(Listener listener, 
+                                         HierarchicalConfiguration<ImmutableNode> listenerConfig) {
+        List<HierarchicalConfiguration<ImmutableNode>> 
+                            filtersConfig = listenerConfig.configurationsAt("filter");
+        for(HierarchicalConfiguration<ImmutableNode> c : filtersConfig) {
+            Object object = loadInitialiableObject(c);
+            if ((null!=object) && (object instanceof EventFilter)) {
+                listener.setFilter((EventFilter) object);
+            }
+        }
+    }
     
     private Object loadInitialiableObject(Configuration c) {
         String className = c.getString("class");

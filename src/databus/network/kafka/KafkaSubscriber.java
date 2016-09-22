@@ -54,14 +54,18 @@ public class KafkaSubscriber extends AbstractSubscriber {
             log.error("remoteTopic is illegal : "+remoteTopic);
             System.exit(1);
         }
-        super.register(topic, receiver); 
+        String normalizedTopic = topic.replace('/', '-')
+                                      .replace('.', '-')
+                                      .replace(':', '-')
+                                      .replace('_', '-');
+        super.register(server+"/"+normalizedTopic, receiver);
         
         Set<String> topicSet = serverTopicsMap.get(server);
         if (null == topicSet) {
             topicSet = new HashSet<String>();
             serverTopicsMap.put(server, topicSet);
         }
-        topicSet.add(topic);
+        topicSet.add(normalizedTopic);
     }
 
     @Override
@@ -115,22 +119,20 @@ public class KafkaSubscriber extends AbstractSubscriber {
         return runners;
     } 
     
-    private void receive0(ConsumerRecord<Long, String> record, Event event) {
-        String topic = event.topic();
-        if (record.offset() <= positionsCache.get(topic, record.partition())) {
-            log.error(record.topic() + " (" + record.partition() + "," + record.offset() +
-                      ") is illegal : " + event.toString());
+    private void receive0(String fullTopic, long key, int partition, long offset, Event event) {
+        String logPrefix = key + " " + fullTopic + " (" + partition + ", " + offset + ")"; 
+        if (offset <= positionsCache.get(fullTopic, partition)) {
+            log.error(logPrefix + " is illegal : " + event.toString());
             return;
         }
-        log.info(record.key() + " " + record.topic() + " (" + record.partition() + ", " + 
-                 record.offset() + ") : " + event.toString());
-        receive(topic, event);
-        positionsCache.set(topic, record.partition(), record.offset());
+        log.info(logPrefix + " : " + event.toString());
+        receive(fullTopic, event);
+        positionsCache.set(fullTopic, partition, offset);
     }
        
     private static Log log = LogFactory.getLog(KafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser(); 
-
+    
     private ExecutorService executor = null;
     private Properties kafkaProperties;
     private Map<String, Set<String>> serverTopicsMap = new HashMap<String, Set<String>>();
@@ -147,13 +149,14 @@ public class KafkaSubscriber extends AbstractSubscriber {
             this.properties.put("client.id", groupId+"-"+server.replaceAll(":", "-"));
             this.properties.put("bootstrap.servers", server);            
             this.kafkaTopics = new ArrayList<String>(kafkaTopics);
+            this.server = server;
         }
 
         @Override
         public void initialize() {
             consumer = new KafkaConsumer<Long, String>(properties); 
-            consumer.subscribe(kafkaTopics, new AutoRebalanceListener(consumer)); 
-            KafkaHelper.seekRightPositions(consumer, consumer.assignment());
+            consumer.subscribe(kafkaTopics, new AutoRebalanceListener(server, consumer)); 
+            KafkaHelper.seekRightPositions(server, consumer, consumer.assignment());
             //help GC
             kafkaTopics = null;
             properties = null;
@@ -164,22 +167,24 @@ public class KafkaSubscriber extends AbstractSubscriber {
             ConsumerRecords<Long, String> records = consumer.poll(pollingTimeout);
             if ((null!=records) && (!records.isEmpty())) {                   
                 for(ConsumerRecord<Long, String> r : records) {
+                    String fullTopic = server+"/"+r.topic();
                     Event event = eventParser.toEvent(r.value()); 
                     if (null == event) {
                         log.error("message can not be parser as an event " + r.key() + " " +
-                                  r.topic() + " (" + r.partition() + "," + r.offset() + ") : " + 
+                                  fullTopic + " (" + r.partition() + ", " + r.offset() + ") : " +
                                   r.value());
                         continue;
-                    }                    
+                    } 
+                    event.topic(r.topic());
                     if (null != executor) {
                         executor.execute(new Runnable() {
                             @Override
                             public void run() {
-                                receive0(r, event);                                
+                                receive0(fullTopic, r.key(), r.partition(), r.offset(), event);                                
                             }
                         });
                     } else {
-                        receive0(r, event);
+                        receive0(fullTopic, r.key(), r.partition(), r.offset(), event);
                     }
                 }
             }            
@@ -218,7 +223,8 @@ public class KafkaSubscriber extends AbstractSubscriber {
         }
         
         private Properties properties;
-        List<String> kafkaTopics;
+        private List<String> kafkaTopics;
         private KafkaConsumer<Long, String> consumer;
+        private String server;
     }
 }

@@ -3,9 +3,10 @@ package databus.network.kafka;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -28,11 +29,14 @@ public class KafkaHelper {
             int taskCapacity = null==taskCapacityValue ? 
                                DEFAULT_TASK_CAPACITY  : 
                                Integer.parseInt(taskCapacityValue);
+            if (taskCapacity < 1) {
+                taskCapacity = DEFAULT_TASK_CAPACITY;
+            }
             executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 
                                               30, TimeUnit.SECONDS, 
-                                              new LinkedBlockingQueue<Runnable>(taskCapacity),
+                                              new ArrayBlockingQueue<Runnable>(taskCapacity),
                                               Executors.defaultThreadFactory(),
-                                              new ThreadPoolExecutor.CallerRunsPolicy());
+                                              new CallerWaitsPolicy());
         }
         return executor;
     }
@@ -56,12 +60,12 @@ public class KafkaHelper {
         return remoteTopic.substring(index+1);
     }
     
-    public static void seekRightPositions(KafkaConsumer<Long, String> consumer, 
+    public static void seekRightPositions(String server, KafkaConsumer<Long, String> consumer, 
                                           Collection<TopicPartition> partitions) {
         PositionsCache cache = new PositionsCache();
         HashSet<TopicPartition> topicPartitions = null;
         for(TopicPartition p : partitions) {
-            long offset = cache.get(p.topic(), p.partition());
+            long offset = cache.get(server+"/"+p.topic(), p.partition());
             if (offset < 0) {
                 if (null == topicPartitions) {
                     topicPartitions = new HashSet<TopicPartition>();
@@ -77,11 +81,21 @@ public class KafkaHelper {
             consumer.seekToEnd(topicPartitions);
         }
     }
-    
-    public static String getAliasKafkaTopic(String aliasServer, String kafkaTopic) {
-        return kafkaTopic.startsWith("-") ? aliasServer + kafkaTopic 
-                                          : aliasServer + "-" + kafkaTopic;
-    }
-    
+     
     private static final int DEFAULT_TASK_CAPACITY = 10;
+    
+    private static class CallerWaitsPolicy implements RejectedExecutionHandler {
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            for (;;) {
+                try {
+                    executor.getQueue().put(r);
+                    return;
+                } catch (InterruptedException e) {
+
+                }
+            }
+        }
+        
+    }
 }

@@ -25,8 +25,7 @@ public class RedisSlave4Mysql extends RedisReceiver {
 
     @Override
     protected void receive(Jedis jedis, Event event) {
-        if (event instanceof AbstractMysqlWriteRow) {
-            log.info(event.toString());
+        if (event instanceof AbstractMysqlWriteRow) {            
             AbstractMysqlWriteRow e = (AbstractMysqlWriteRow) event;
             String tableName = e.table().toLowerCase();
             Table table = tableMap.get(tableName);
@@ -42,7 +41,9 @@ public class RedisSlave4Mysql extends RedisReceiver {
                 table.insert(jedis, primaryKeyColumns, row);
             } else if (e instanceof MysqlDeleteRow) {
                 table.delete(jedis, primaryKeyColumns, row);
-            }            
+            } else {
+                log.info(event.toString());
+            }
         } else {
             log.warn(event.getClass().getName()+" isn't AbstractMysqlWriteRow : " + 
                      event.toString());

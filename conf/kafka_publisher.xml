@@ -22,6 +22,11 @@
             <position>328</position>
         </mysql>
         <topic>test</topic>
+        <filter>
+            <class>databus.event.mysql.IdModulusMysqlRowFilter</class>
+            <id>1/3</id>
+            <ignore>test.user</ignore>            
+        </filter>
     </listener> 
 </publisher>
 
