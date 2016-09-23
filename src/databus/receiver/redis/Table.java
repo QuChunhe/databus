@@ -1,7 +1,6 @@
 package databus.receiver.redis;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -12,6 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.event.mysql.Column;
+import databus.event.mysql.ColumnComparator;
 import redis.clients.jedis.Jedis;
 
 public class Table {
@@ -45,7 +45,7 @@ public class Table {
     }
     
     public String getRedisKey(List<Column> primaryKeys) {
-        Column[] orderedPrimaryKeys = primaryKeys.toArray(COLUMN_ARRAY);
+        Column[] orderedPrimaryKeys = primaryKeys.toArray(new Column[primaryKeys.size()]);
         Arrays.sort(orderedPrimaryKeys, COLUMN_COMPARATOR);
         
         StringBuilder builder = new StringBuilder(128);
@@ -79,16 +79,7 @@ public class Table {
     protected String system;
     
     private static final ColumnComparator COLUMN_COMPARATOR = new ColumnComparator();
-    private static final Column[] COLUMN_ARRAY = new Column[1]; 
     private static Log log = LogFactory.getLog(Table.class);
     
     private Set<String> replicatedColumns = new HashSet<String>();
-    
-    private static class ColumnComparator implements Comparator<Column> {
-
-        @Override
-        public int compare(Column c1, Column c2) {
-            return c1.name().compareTo(c2.name());
-        }        
-    }
 }
