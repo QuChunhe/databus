@@ -150,6 +150,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
             this.properties.put("bootstrap.servers", server);            
             this.kafkaTopics = new ArrayList<String>(kafkaTopics);
             this.server = server;
+            log.info(server+" "+kafkaTopics.toString());
         }
 
         @Override

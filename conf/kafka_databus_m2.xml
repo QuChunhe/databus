@@ -13,15 +13,15 @@
         <class>databus.listener.mysql.MysqlListener</class>
         <mysql>
             <host>127.0.0.1</host>
-            <port>3306</port>
+            <port>3307</port>
             <user>root</user>
             <password>quchunhe</password>
-            <serverId>3</serverId>
+            <serverId>7</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000067</binlogFileName>
-            <position>753</position>
+            <binlogFileName>master-bin.000001</binlogFileName>
+            <position>120</position>
         </mysql>
-        <topic>test/mysql</topic>
+        <topic>test/mysql2</topic>
 <!--
         <filter>
             <class>databus.listener.mysql.IdModulusMysqlRowFilter</class>
@@ -40,36 +40,18 @@
 <subscriber>
     <class>databus.network.kafka.KafkaSubscriber</class>
     <kafka>
-        <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
+        <consumerConfig>conf/kafka_consumer2.properties</consumerConfig>
         <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
         <pollingTimeout>2000</pollingTimeout>
         <writePerFlush>1</writePerFlush>
         <taskCapacity>100</taskCapacity>
     </kafka> 
-  
-    <receiver>
-        <class>databus.receiver.redis.RedisSlave4Mysql</class>
-        <remoteTopic>127.0.0.1:9092/test/mysql</remoteTopic>
-        <redis>
-            <host>127.0.0.1</host>
-            <port>6379</port>
-            <timeout>40</timeout>
-            <maxTotal>10</maxTotal>
-            <maxIdle>3</maxIdle>
-            <minIdle>1</minIdle>
-        </redis>
-       <system>adm</system>
-       <replicatedTables>
-         <user>id3,id1,id2, age, position, salary, time1, time2</user>
-         <book>name, isdn, author</book>
-       </replicatedTables>
-    </receiver>
 
     <receiver>
-        <class>databus.receiver.mysql.MysqlReplication</class>
+        <class>databus.receiver.mysql.Master2MasterReplication</class>
         <remoteTopic>127.0.0.1:9092/test.mysql</remoteTopic>
         <mysql>
-            <url>jdbc:mysql://127.0.0.1:3306/test2</url>
+            <url>jdbc:mysql://127.0.0.1:3307/test</url>
             <username>root</username>
             <password>quchunhe</password>
             <driverClassName>com.mysql.jdbc.Driver</driverClassName>

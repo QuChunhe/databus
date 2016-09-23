@@ -44,7 +44,7 @@ public class IdModulusMysqlRowFilter implements EventFilter {
             System.exit(1);
         }
 
-        String ignoreTableValue = properties.getProperty("ignore");
+        String ignoreTableValue = properties.getProperty("ignoredTables");
         if (null == ignoreTableValue) {
             return;
         }

@@ -17,7 +17,7 @@
             <user>root</user>
             <password>quchunhe</password>
             <serverId>1</serverId>
-            <permittedTables>test.user</permittedTables>
+            <permit>test.user</permit>
             <binlogFileName>master-bin.000061</binlogFileName>
             <position>328</position>
         </mysql>
@@ -25,7 +25,7 @@
         <filter>
             <class>databus.event.mysql.IdModulusMysqlRowFilter</class>
             <id>1/3</id>
-            <ignore>test.user</ignore>            
+            <ignoredTables>test.user</ignoredTables>            
         </filter>
     </listener> 
 </publisher>
