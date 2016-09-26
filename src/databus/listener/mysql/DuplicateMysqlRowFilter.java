@@ -27,7 +27,6 @@ public class DuplicateMysqlRowFilter implements EventFilter {
 
     @Override
     public void initialize(Properties properties) {
-        log.info(properties);
         String accessExpireTimeValue = properties.getProperty("expireAfterAccess");
         long accessExpireTime = 1;
         if (null != accessExpireTimeValue) {
@@ -40,12 +39,12 @@ public class DuplicateMysqlRowFilter implements EventFilter {
             writeExpireTime = Long.parseUnsignedLong(writeExpireTimeValue);
         }
         Cache<String, Long> 
-                   proxy = CacheBuilder.newBuilder()
+                 factory = CacheBuilder.newBuilder()
                                        .softValues()       
                                        .expireAfterWrite(writeExpireTime, TimeUnit.SECONDS)
                                        .expireAfterAccess(accessExpireTime, TimeUnit.SECONDS)
                                        .build();
-        cache = proxy.asMap();
+        cache = factory.asMap();
     }
     
     @Override
@@ -92,7 +91,7 @@ public class DuplicateMysqlRowFilter implements EventFilter {
         if (MysqlEvent.Type.UPDATE.toString().equals(event.type())) {
             List<Column> row = event.row();
             Column[] orderedColumns = row.toArray(new Column[row.size()]);
-            Arrays.sort(orderedColumns);
+            Arrays.sort(orderedColumns, COLUMN_COMPARATOR);
             for(Column c : orderedColumns) {
                 builder.append(c.name())
                        .append("=")
