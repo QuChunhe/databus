@@ -122,8 +122,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     private void receive0(String fullTopic, long key, int partition, long offset, Event event) {
         String logPrefix = key + " " + fullTopic + " (" + partition + ", " + offset + ")"; 
         if (offset <= positionsCache.get(fullTopic, partition)) {
-            log.error(logPrefix + " is illegal : " + event.toString());
-            return;
+            log.warn(logPrefix + " is processed ahead : " + event.toString());
         }
         log.info(logPrefix + " : " + event.toString());
         receive(fullTopic, event);

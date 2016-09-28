@@ -33,6 +33,7 @@ public class Column {
             flag = true;
             break;
             
+        case Types.DATE:
         case Types.TIME:
         case Types.TIMESTAMP:
         case Types.TIME_WITH_TIMEZONE:
