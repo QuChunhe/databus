@@ -18,8 +18,8 @@
             <password>quchunhe</password>
             <serverId>3</serverId>
             <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000067</binlogFileName>
-            <position>753</position>
+            <binlogFileName>master-bin.000096</binlogFileName>
+            <position>2134</position>
         </mysql>
         <topic>test/mysql</topic>
 <!--
@@ -28,23 +28,24 @@
             <id>1/3</id>
             <ignoredTables>test.user</ignoredTables>            
         </filter>
--->
+
         <filter>
             <class>databus.listener.mysql.DuplicateMysqlRowFilter</class>
             <expireAfterWrite>600</expireAfterWrite>
             <expireAfterAccess>1</expireAfterAccess>            
         </filter>
+-->
     </listener> 
 </publisher>
 
 <subscriber>
     <class>databus.network.kafka.KafkaSubscriber</class>
+    <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
+    <taskCapacity>100</taskCapacity>
     <kafka>
         <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
-        <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
         <pollingTimeout>2000</pollingTimeout>
-        <writePerFlush>1</writePerFlush>
-        <taskCapacity>100</taskCapacity>
+        <writePerFlush>1</writePerFlush>        
     </kafka> 
   
     <receiver>
@@ -67,7 +68,7 @@
 
     <receiver>
         <class>databus.receiver.mysql.MysqlReplication</class>
-        <remoteTopic>127.0.0.1:9092/test.mysql</remoteTopic>
+        <remoteTopic>127.0.0.1:9092/test/mysql</remoteTopic>
         <mysql>
             <url>jdbc:mysql://127.0.0.1:3306/test2</url>
             <username>root</username>

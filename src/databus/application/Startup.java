@@ -87,17 +87,16 @@ public class Startup {
             @Override
             public void handle(Signal arg0) {
                 log.info("Receiving SIGTERM");
+                isRunning = false;
                 for(Stoppable s : hooks) {
                     s.stop();
                     log.info("Has stopped "+s.getClass().getName());
                 }
-                log.info("All hooks has been stopped!");
-                isRunning = false;
+                log.info("All hooks has been stopped!");                
                 mainThread.interrupt();
             }            
         });
-    }    
-    
+    } 
     
     private static Log log = LogFactory.getLog(Startup.class);
     

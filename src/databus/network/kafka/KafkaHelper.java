@@ -2,13 +2,6 @@ package databus.network.kafka;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Properties;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -16,30 +9,6 @@ import org.apache.kafka.common.TopicPartition;
 import databus.util.Helper;
 
 public class KafkaHelper {
-    
-    public static ExecutorService loadExecutor(Properties properties, 
-                                               int defaultMaxThreadPoolSize) {
-        String maxThreadPoolSizeValue = properties.getProperty("kafka.maxWorkerThreadPoolSize");
-        int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
-                                defaultMaxThreadPoolSize : 
-                                Integer.parseInt(maxThreadPoolSizeValue);
-        ExecutorService executor = null;
-        if (maxThreadPoolSize > 0) {
-            String taskCapacityValue = properties.getProperty("kafka.taskCapacity");
-            int taskCapacity = null==taskCapacityValue ? 
-                               DEFAULT_TASK_CAPACITY  : 
-                               Integer.parseInt(taskCapacityValue);
-            if (taskCapacity < 1) {
-                taskCapacity = DEFAULT_TASK_CAPACITY;
-            }
-            executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 
-                                              30, TimeUnit.SECONDS, 
-                                              new ArrayBlockingQueue<Runnable>(taskCapacity),
-                                              Executors.defaultThreadFactory(),
-                                              new CallerWaitsPolicy());
-        }
-        return executor;
-    }
     
     public static String splitSocketAddress(String remoteTopic) {
         int index = remoteTopic.indexOf('/');
@@ -80,22 +49,5 @@ public class KafkaHelper {
         if (null != topicPartitions) {
             consumer.seekToEnd(topicPartitions);
         }
-    }
-     
-    private static final int DEFAULT_TASK_CAPACITY = 10;
-    
-    private static class CallerWaitsPolicy implements RejectedExecutionHandler {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            for (;;) {
-                try {
-                    executor.getQueue().put(r);
-                    return;
-                } catch (InterruptedException e) {
-
-                }
-            }
-        }
-        
-    }
+    }  
 }

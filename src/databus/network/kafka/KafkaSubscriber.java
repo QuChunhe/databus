@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,21 +27,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
     
     public KafkaSubscriber() {
         super();
-    }
-
-    @Override
-    public void stop() {
-        super.stop();
-        
-        log.info("Waiting ExecutorService termination!");
-        if ((null!=executor) && (!executor.isTerminated())) {
-            try {
-                executor.shutdown();
-                executor.awaitTermination(10, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("Can't wait the terimination of ExecutorService", e);
-            }            
-        }
     }
 
     @Override
@@ -70,6 +53,8 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
     @Override
     public void initialize(Properties properties) {
+        super.initialize(properties);
+        
         if (null != properties.getProperty("kafka.pollingTimeout")) {
             pollingTimeout = Long.parseLong(properties.getProperty("kafka.pollingTimeout"));
         }
@@ -96,13 +81,10 @@ public class KafkaSubscriber extends AbstractSubscriber {
         kafkaProperties.setProperty("key.deserializer", 
                                     "org.apache.kafka.common.serialization.LongDeserializer");
         kafkaProperties.setProperty("value.deserializer", 
-                                    "org.apache.kafka.common.serialization.StringDeserializer");        
-        executor = KafkaHelper.loadExecutor(properties, 0);
-        
+                                    "org.apache.kafka.common.serialization.StringDeserializer");
         String writePerFlushValue = properties.getProperty("kafka.writePerFlush");
         int writePerFlush = null==writePerFlushValue ? 1 : Integer.parseInt(writePerFlushValue);
-        writePerFlush = (writePerFlush<1) ? 1 : writePerFlush;
-  
+        writePerFlush = (writePerFlush<1) ? 1 : writePerFlush;  
         positionsCache = new PositionsCache(writePerFlush);
     }
 
@@ -118,21 +100,10 @@ public class KafkaSubscriber extends AbstractSubscriber {
         serverTopicsMap = null;
         return runners;
     } 
-    
-    private void receive0(String fullTopic, long key, int partition, long offset, Event event) {
-        String logPrefix = key + " " + fullTopic + " (" + partition + ", " + offset + ")"; 
-        if (offset <= positionsCache.get(fullTopic, partition)) {
-            log.warn(logPrefix + " is processed ahead : " + event.toString());
-        }
-        log.info(logPrefix + " : " + event.toString());
-        receive(fullTopic, event);
-        positionsCache.set(fullTopic, partition, offset);
-    }
        
     private static Log log = LogFactory.getLog(KafkaSubscriber.class);
     private static JsonEventParser eventParser = new JsonEventParser(); 
     
-    private ExecutorService executor = null;
     private Properties kafkaProperties;
     private Map<String, Set<String>> serverTopicsMap = new HashMap<String, Set<String>>();
     private long pollingTimeout = 2000;
@@ -165,27 +136,29 @@ public class KafkaSubscriber extends AbstractSubscriber {
         @Override
         public void runOnce() throws Exception {
             ConsumerRecords<Long, String> records = consumer.poll(pollingTimeout);
-            if ((null!=records) && (!records.isEmpty())) {                   
-                for(ConsumerRecord<Long, String> r : records) {
-                    String fullTopic = server+"/"+r.topic();
+            if ((null!=records) && (!records.isEmpty())) {               
+                for (ConsumerRecord<Long, String> r : records) {
+                    String topic = r.topic();
+                    int partition = r.partition();
+                    long offset = r.offset();
+                    long key = r.key();
+                    String fullTopic = server + "/" + topic;  
+                    String logPrefix = key + " " + fullTopic + " (" + partition + ", " + offset + ")";                    
+                    if (offset <= positionsCache.get(fullTopic, partition)) {
+                        log.warn(logPrefix + " is processed ahead : " + r.value());
+                    } else {
+                        positionsCache.set(fullTopic, partition, offset);
+                    }
+                    
                     Event event = eventParser.toEvent(r.value()); 
                     if (null == event) {
-                        log.error("message can not be parser as an event " + r.key() + " " +
-                                  fullTopic + " (" + r.partition() + ", " + r.offset() + ") : " +
+                        log.error("message can not be parser as an event " + logPrefix+ " : " +
                                   r.value());
                         continue;
                     } 
-                    event.topic(r.topic());
-                    if (null != executor) {
-                        executor.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                receive0(fullTopic, r.key(), r.partition(), r.offset(), event);                                
-                            }
-                        });
-                    } else {
-                        receive0(fullTopic, r.key(), r.partition(), r.offset(), event);
-                    }
+                    log.info(logPrefix + " : " + event.toString());
+                    event.topic(topic);                    
+                    receive(fullTopic, event);                    
                 }
             }            
         }

@@ -2,10 +2,16 @@ package databus.util;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
-
-import io.netty.util.internal.ThreadLocalRandom;
 
 public class Helper {
     
@@ -61,6 +67,30 @@ public class Helper {
                    .replace(':', '-');
     }
     
+    public static ExecutorService loadExecutor(Properties properties, 
+                                               int defaultMaxThreadPoolSize) {
+        String maxThreadPoolSizeValue = properties.getProperty("maxWorkerThreadPoolSize");
+        int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
+                                defaultMaxThreadPoolSize : 
+                                Integer.parseInt(maxThreadPoolSizeValue);
+        ExecutorService executor = null;
+        if (maxThreadPoolSize > 0) {
+            String taskCapacityValue = properties.getProperty("taskCapacity");
+            int taskCapacity = null==taskCapacityValue ? 
+                               DEFAULT_TASK_CAPACITY  : 
+                               Integer.parseInt(taskCapacityValue);
+            if (taskCapacity < 1) {
+                taskCapacity = DEFAULT_TASK_CAPACITY;
+            }
+            executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 
+                                              30, TimeUnit.SECONDS, 
+                                              new ArrayBlockingQueue<Runnable>(taskCapacity),
+                                              Executors.defaultThreadFactory(),
+                                              new CallerWaitsPolicy());
+        }
+        return executor;
+}
+    
     private static int rand() {
         return ThreadLocalRandom.current().nextInt(randomBound);
     }
@@ -68,6 +98,23 @@ public class Helper {
     private static int randomBound = 1 << 22;
     private static int serviceIdMask = (1 << 10) - 1;
     
-    protected final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
-    protected final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
+    private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
+    private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
+
+    private static final int DEFAULT_TASK_CAPACITY = 10;
+
+    private static class CallerWaitsPolicy implements RejectedExecutionHandler {
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            for (;;) {
+                try {
+                    executor.getQueue().put(r);
+                    return;
+                } catch (InterruptedException e) {
+
+                }
+            }
+        }
+
+    }
 }
