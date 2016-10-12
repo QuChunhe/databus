@@ -103,7 +103,7 @@ public class Helper {
 
     private static final int DEFAULT_TASK_CAPACITY = 10;
 
-    private static class CallerWaitsPolicy implements RejectedExecutionHandler {
+    public static class CallerWaitsPolicy implements RejectedExecutionHandler {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
             for (;;) {

@@ -56,7 +56,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
                 executor.shutdown();
                 executor.awaitTermination(10, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                log.error("Can't wait the terimination of ExecutorService", e);
+                log.error("Can't wait the termination of ExecutorService", e);
             }            
         }
     }

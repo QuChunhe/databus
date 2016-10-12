@@ -146,6 +146,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     String logPrefix = key + " " + fullTopic + " (" + partition + ", " + offset + ")";                    
                     if (offset <= positionsCache.get(fullTopic, partition)) {
                         log.warn(logPrefix + " is processed ahead : " + r.value());
+                        continue;
                     } else {
                         positionsCache.set(fullTopic, partition, offset);
                     }
