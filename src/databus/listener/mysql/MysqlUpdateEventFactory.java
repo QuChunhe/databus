@@ -46,7 +46,7 @@ public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
                 event.addColumn(column);
             }
             if (primaryKeysSet.contains(name)) {
-                Column column = new Column(name, after, type);
+                Column column = new Column(name, before, type);
                 event.addPrimaryKey(column);
             }       
         }
