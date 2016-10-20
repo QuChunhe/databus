@@ -10,3 +10,5 @@ data/
 databus.iml
 .gitignore
 .idea/
+/target/
+out/

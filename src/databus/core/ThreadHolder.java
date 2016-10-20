@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public final class ThreadHolder implements Startable, Stoppable, Joinable{    
+public final class ThreadHolder implements Startable, Stoppable, Joinable {    
     
     public ThreadHolder(Runner... runners) {
         threads = new RunnerThread[runners.length];
