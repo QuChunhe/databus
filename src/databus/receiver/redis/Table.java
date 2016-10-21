@@ -1,11 +1,6 @@
 package databus.receiver.redis;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,19 +36,49 @@ public class Table {
     }
     
     public void update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        insert(jedis, primaryKeys, row);
+        List<Column> updatedPrimaryKeys = new ArrayList<>(primaryKeys.size());
+        boolean doesContainPK = false;
+        for (Column k :  primaryKeys) {
+            Column column = null;
+            for (Column c : row) {
+                if (k.name().equals(c.name())) {
+                    column = c;
+                    doesContainPK = true;
+                    break;
+                }
+            }
+            if (null == column) {
+                updatedPrimaryKeys.add(k);
+            } else {
+                updatedPrimaryKeys.add(column);
+            }
+        }
+
+        List<Column> updatedRow = row;
+        if (doesContainPK) {
+            Map<String, String> fields = jedis.hgetAll(getRedisKey(primaryKeys));
+            for (Column c : row) {
+                fields.put(c.name(), c.value());
+            }
+            updatedRow = new LinkedList<>();
+            for(String name : fields.keySet()) {
+                updatedRow.add(new Column(name, fields.get(name), -1));
+            }
+            delete(jedis, primaryKeys, row);
+        }
+        insert(jedis, updatedPrimaryKeys, updatedRow);
     }
     
     public String getRedisKey(List<Column> primaryKeys) {
-        Column[] orderedPrimaryKeys = primaryKeys.toArray(new Column[primaryKeys.size()]);
-        Arrays.sort(orderedPrimaryKeys, COLUMN_COMPARATOR);
+        Column[] sortedPrimaryKeys = primaryKeys.toArray(new Column[primaryKeys.size()]);
+        Arrays.sort(sortedPrimaryKeys, COLUMN_COMPARATOR);
         
         StringBuilder builder = new StringBuilder(128);
         builder.append(system)
                .append(":")
                .append(name)
                .append(":");
-        for(Column c : orderedPrimaryKeys) {
+        for(Column c : sortedPrimaryKeys) {
             builder.append(c.name())
                    .append("=")
                    .append(c.value())
