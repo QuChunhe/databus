@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import databus.network.AbstractPublisher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.producer.Callback;
@@ -14,11 +15,10 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
 import databus.core.Event;
-import databus.core.Publisher;
 import databus.network.JsonEventParser;
 import databus.util.Helper;
 
-public class KafkaPublisher implements Publisher {    
+public class KafkaPublisher extends AbstractPublisher {
 
     public KafkaPublisher() {
         super();
@@ -57,6 +57,7 @@ public class KafkaPublisher implements Publisher {
     
     @Override
     public void stop() {
+        super.stop();
         producer.close();        
     }
     

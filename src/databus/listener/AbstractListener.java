@@ -1,19 +1,12 @@
 package databus.listener;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import databus.core.Event;
-import databus.core.EventFilter;
-import databus.core.Listener;
-import databus.core.Publisher;
+import databus.core.*;
 
 public abstract class AbstractListener implements Listener {
-    
+
+    @Override
     public void setPublisher(Publisher publisher) {
         this.publisher = publisher;
     }
@@ -26,27 +19,10 @@ public abstract class AbstractListener implements Listener {
     public void onEvent(Event event) {
         if (null != topic) {
             event.topic(topic);
-        }        
-        for(EventFilter f : filters) {
-            if (f.reject(event)) {
-                log.info(f.toString()+" reject : "+event.toString());
-                return;
-            }
-        } 
-        publisher.publish(event);
-    }    
-    
-    @Override
-    public void setFilter(EventFilter filter) {
-        if (null == filter) {
-            return;
         }
-        filters.add(filter);        
+        publisher.publish(event);
     }
 
-    private static Log log = LogFactory.getLog(AbstractListener.class);
-
     private Publisher publisher;
-    private String topic;
-    private List<EventFilter> filters = new LinkedList<EventFilter>();
+    private String topic = null;
 }
