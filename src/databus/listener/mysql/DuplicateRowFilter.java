@@ -51,7 +51,7 @@ public class DuplicateRowFilter implements EventFilter {
     public boolean doesReject(Event event) {
         log.info(cache.toString());
         if (event instanceof MysqlWriteRow) {
-            return existAndRemove((MysqlWriteRow) event);
+            return removeIfExist((MysqlWriteRow) event);
         }
         return false;
     }
@@ -106,7 +106,7 @@ public class DuplicateRowFilter implements EventFilter {
         return getClass().getName();
     }
     
-    private boolean existAndRemove(MysqlWriteRow event) {
+    private boolean removeIfExist(MysqlWriteRow event) {
         String key = toKey(event);
         Long time = cache.get(key);
         if (null != time) {

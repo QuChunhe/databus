@@ -5,7 +5,6 @@ import static databus.network.netty.NettyConstants.DEFAULT_ZIP;
 import static databus.network.netty.NettyConstants.DELIMITER_BUFFER;
 import static databus.network.netty.NettyConstants.MAX_FRAME_LENGTH;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Properties;

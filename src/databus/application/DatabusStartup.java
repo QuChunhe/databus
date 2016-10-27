@@ -2,12 +2,10 @@ package databus.application;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Listener;
 import databus.core.Publisher;
 import databus.core.Subscriber;
 
@@ -42,9 +40,9 @@ public class DatabusStartup extends Startup {
         //gracefully close log
         LogFactory.releaseAll();
         try {
-            Class clazz = Class.forName("org.apache.logging.log4j.LogManager",
-                                        false,
-                                        Thread.currentThread().getContextClassLoader());
+            Class<?> clazz = Class.forName("org.apache.logging.log4j.LogManager",
+                                           false,
+                                           Thread.currentThread().getContextClassLoader());
             Method method = clazz.getMethod("shutdown", new Class[]{});
             if (Modifier.isStatic(method.getModifiers())) {
                 org.apache.logging.log4j.LogManager.shutdown();

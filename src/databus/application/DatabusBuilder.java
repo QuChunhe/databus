@@ -1,7 +1,6 @@
 package databus.application;
 
 import databus.core.*;
-import databus.listener.AbstractListener;
 import org.apache.commons.configuration2.ConfigurationConverter;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.XMLConfiguration;
@@ -14,8 +13,6 @@ import org.apache.commons.logging.LogFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.LinkedList;
 import java.util.Properties;
 import java.util.HashMap;
 import java.util.Map;
@@ -170,7 +167,7 @@ public class DatabusBuilder {
                 log.error("Can not global parameter for "+id);
                 System.exit(1);
             }
-            Class clazz = parameter.getClass();
+            Class<? extends Initializable> clazz = parameter.getClass();
             Method method = object.getClass().getMethod(methodName, new Class[]{clazz});
             method.invoke(object, parameter);
         } catch (NoSuchMethodException |InvocationTargetException | IllegalAccessException  e) {
