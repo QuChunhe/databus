@@ -10,7 +10,6 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Listener;
 import databus.core.Publisher;
 import databus.core.Subscriber;
-import org.apache.logging.log4j.LogManager;
 
 public class DatabusStartup extends Startup {
 
@@ -22,34 +21,35 @@ public class DatabusStartup extends Startup {
         String configFileName = "conf/databus.xml";
         if (args.length > 0) {
             configFileName = args[0];
-        }      
+        }
+
         DatabusBuilder builder = new DatabusBuilder(configFileName);
         if (builder.hasSubscriber()) {
-            Subscriber subscriber = builder.createSubscriber() ;
-            subscriber.start();
+            Subscriber subscriber = builder.createSubscriber();
             addShutdownHook(subscriber);
+            subscriber.start();
         }
         if (builder.hasPublisher()) {
             Publisher publisher = builder.createPublisher();
-            List<Listener> listeners = builder.createListeners(publisher);
-            for (Listener l : listeners) {
-                addShutdownHook(l);
-            }
             addShutdownHook(publisher);
-        }      
-        
+        }
+        //help GC
+        builder = null;
         waitUntilSIGTERM(); 
         
         log.info("Databus has finished!");
         log.info("******************************************************************************");
+        //gracefully close log
         LogFactory.releaseAll();
         try {
             Class clazz = Class.forName("org.apache.logging.log4j.LogManager",
                                         false,
                                         Thread.currentThread().getContextClassLoader());
-            Method method = clazz.getMethod("shutdown", null);
+            Method method = clazz.getMethod("shutdown", new Class[]{});
             if (Modifier.isStatic(method.getModifiers())) {
-                LogManager.shutdown();
+                org.apache.logging.log4j.LogManager.shutdown();
+            } else {
+                System.out.println("shutdown() is't a static method!");
             }
         } catch (ClassNotFoundException e) {
             System.out.println("log4j packet does't exist!");

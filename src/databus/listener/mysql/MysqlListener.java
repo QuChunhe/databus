@@ -18,12 +18,12 @@ import org.apache.commons.logging.LogFactory;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 import databus.listener.RestartableListener;
-import databus.network.netty.NettyPublisher;
 import databus.util.Backup;
+import databus.core.Publisher;
 
 public class MysqlListener extends RestartableListener{  
     
-    public MysqlListener(NettyPublisher publisher, Properties properties) {
+    public MysqlListener(Publisher publisher, Properties properties) {
         super(publisher);
         initialize(properties);        
     }
@@ -47,7 +47,7 @@ public class MysqlListener extends RestartableListener{
         try {
             openRelicator.stop(1, TimeUnit.SECONDS);
         } catch (Exception e) {
-            log.error("Can't stop sucessfully", e);
+            log.error("Can't stop successfully", e);
             openRelicator.stopQuietly(1, TimeUnit.SECONDS);
         }
         super.stop();
@@ -230,7 +230,7 @@ public class MysqlListener extends RestartableListener{
     private Map<String, String[]> columnsMap;
     private Map<String, ColumnAttribute[]> attributesMap;
     private Map<String, Set<String>> primaryKeysMap;
-    private Set<String> permittedTableSet;
+    protected Set<String> permittedTableSet;
     
     private String recordedId;
 }

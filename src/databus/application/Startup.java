@@ -2,6 +2,7 @@ package databus.application;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,7 +20,14 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 public class Startup {
-    
+
+    static {
+        final String LOG_CONFIG_FILE =  System.getProperty("user.dir") + "/conf/log4j2.xml";
+        if (new File(LOG_CONFIG_FILE).exists()) {
+            System.setProperty("log4j.configurationFile", LOG_CONFIG_FILE);
+        }
+    }
+
     public static String getPid() {
         String runtimeBean = ManagementFactory.getRuntimeMXBean().getName();
         if (null == runtimeBean) {

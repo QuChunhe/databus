@@ -16,6 +16,7 @@ import redis.clients.jedis.JedisPoolConfig;
 public abstract class RedisReceiver implements Receiver, Closeable {
     
     public RedisReceiver() {
+        super();
     }
 
     @Override
