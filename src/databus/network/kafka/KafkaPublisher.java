@@ -1,6 +1,5 @@
 package databus.network.kafka;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -45,7 +44,6 @@ public class KafkaPublisher extends AbstractPublisher {
 
     @Override
     public void publish(Event event) {
-        event.ipAddress(kafkaInetAddress);
         Long time = System.currentTimeMillis();
         String topic =  SPECIAL_CHARACTER.matcher(event.topic()).replaceAll("-");
         event.topic(null);
@@ -67,8 +65,7 @@ public class KafkaPublisher extends AbstractPublisher {
     private static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaProducer<Long, String> producer;
-    private InetAddress kafkaInetAddress;
-    
+
     private static class LogCallback implements Callback {        
         
         public LogCallback(String topic, long key, String value) {

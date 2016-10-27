@@ -2,6 +2,7 @@ package databus.network;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -59,18 +60,22 @@ public abstract class AbstractSubscriber  implements Subscriber {
                 log.error("Can't wait the termination of ExecutorService", e);
             }            
         }
-    }
 
-    @Override
-    public void close() throws IOException {
+        HashSet<Receiver> receiverSet = new HashSet<Receiver>();
         for(Set<Receiver> receivers : receiversMap.values()) {
-            for(Receiver r : receivers) {
-                if (r instanceof Closeable) {
+            receiverSet.addAll(receivers);
+        }
+        for(Receiver r : receiverSet) {
+            if (r instanceof Closeable) {
+                try {
                     ((Closeable) r).close();
+                } catch (IOException e) {
+                    log.error("Can not close "+r.getClass().getName(), e);
                 }
             }
         }
     }
+
 
     @Override
     public void register(String topic, Receiver receiver) {

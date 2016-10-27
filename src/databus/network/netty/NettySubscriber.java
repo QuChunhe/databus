@@ -60,7 +60,7 @@ public class NettySubscriber extends AbstractSubscriber {
         }
          return hasReceived;
     }
-    
+
     @Override
     protected Runner[] createBackgroundRunners() {
         return new Runner[] {new ListeningRunner()};
@@ -139,11 +139,6 @@ public class NettySubscriber extends AbstractSubscriber {
 
         @Override
         public void close() {
-            try {
-                NettySubscriber.this.close();
-            } catch (IOException e) {
-                log.error("Can't close", e);
-            }
         }        
     }
 

@@ -12,9 +12,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
-import databus.core.Publisher;
+import databus.network.AbstractPublisher;
 
-public class NettyPublisher implements Publisher{    
+public class NettyPublisher extends AbstractPublisher {
 
     public NettyPublisher() {
         subscribersMap = new ConcurrentHashMap<String, Set<SocketAddress>>();

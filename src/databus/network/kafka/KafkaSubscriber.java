@@ -188,12 +188,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
         @Override
         public void close() {
-            consumer.close();   
-            try {
-                KafkaSubscriber.this.close();
-            } catch (IOException e) {
-                log.error("Can't close", e);
-            }
+            consumer.close();
         }
         
         private Properties properties;

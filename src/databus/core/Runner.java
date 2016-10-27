@@ -2,15 +2,15 @@ package databus.core;
 
 public interface Runner {
     
-    public void initialize();
+    void initialize();
     
-    public void runOnce() throws Exception;
+    void runOnce() throws Exception;
     
-    public void processException(Exception e);
+    void processException(Exception e);
     
-    public void processFinally();
+    void processFinally();
     
-    public void stop(Thread owner);
+    void stop(Thread owner);
     
-    public void close();
+    void close();
 }

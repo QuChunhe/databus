@@ -1,8 +1,6 @@
 package databus.core;
 
-import java.io.Closeable;
-
-public interface Subscriber extends Initializable, Joinable, Startable, Stoppable , Closeable {
+public interface Subscriber extends Initializable, Joinable, Startable, Stoppable {
     
-    public void register(String topic, Receiver receiver);
+    void register(String topic, Receiver receiver);
 }
