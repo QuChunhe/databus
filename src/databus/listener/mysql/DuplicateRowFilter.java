@@ -11,6 +11,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,7 +40,7 @@ public class DuplicateRowFilter implements EventFilter {
         if (null != writeExpireTimeValue) {
             writeExpireTime = Long.parseUnsignedLong(writeExpireTimeValue);
         }
-        Cache<String, Long>
+        Cache<String, AtomicInteger>
                  factory = CacheBuilder.newBuilder()
                                        .softValues()       
                                        .expireAfterWrite(writeExpireTime, TimeUnit.SECONDS)
@@ -51,13 +52,25 @@ public class DuplicateRowFilter implements EventFilter {
     public boolean doesReject(Event event) {
         log.info(cache.toString());
         if (event instanceof MysqlWriteRow) {
-            return removeIfExist((MysqlWriteRow) event);
+            return existAndRemoveIfZero((MysqlWriteRow) event);
         }
         return false;
     }
 
-    public void put(MysqlWriteRow event) {
-        cache.put(toKey(event), System.currentTimeMillis());
+    public void putIfAbsentOrIncrementIfPresent(MysqlWriteRow event) {
+        String key = toKey(event);
+        AtomicInteger count = new AtomicInteger(1);
+        AtomicInteger preCount = cache.putIfAbsent(key, count);
+        if (null != preCount) {
+            if (preCount.incrementAndGet() == 1) {
+                synchronized (this) {
+                    AtomicInteger currentCount = cache.get(key);
+                    if (currentCount != preCount) {
+                        currentCount.addAndGet(preCount.get());
+                    }
+                }
+            }
+        }
         log.info(cache.toString());
     }
 
@@ -67,9 +80,9 @@ public class DuplicateRowFilter implements EventFilter {
                                                              StandardOpenOption.CREATE,
                                                              StandardOpenOption.TRUNCATE_EXISTING,
                                                              StandardOpenOption.WRITE);) {
-            Properties p = new Properties();
-            p.putAll(cache);
-            p.store(writer, "Filter Duplicate Row");
+            Properties properties = new Properties();
+            properties.putAll(cache);
+            properties.store(writer, "Filter Duplicate Row");
         } catch (IOException e) {
             log.error("Can't write "+ backupFileName, e);
         }
@@ -82,11 +95,12 @@ public class DuplicateRowFilter implements EventFilter {
         }
         try (BufferedReader reader = Files.newBufferedReader(backupFile.toPath(),
                                                              StandardCharsets.UTF_8);) {
-            Properties p = new Properties();
-            p.load(reader);
-            for(Map.Entry<Object, Object> entry : p.entrySet()) {
+            Properties properties = new Properties();
+            properties.load(reader);
+            for(Map.Entry<Object, Object> entry : properties.entrySet()) {
                 cache.put(entry.getKey().toString(),
-                          Long.parseUnsignedLong(entry.getValue().toString()));
+                          new AtomicInteger(Integer.parseUnsignedInt(entry.getValue()
+                                                                          .toString())));
             }
         } catch (IOException e) {
             log.error("Can't load cache data from "+ backupFileName, e);
@@ -106,13 +120,20 @@ public class DuplicateRowFilter implements EventFilter {
         return getClass().getName();
     }
     
-    private boolean removeIfExist(MysqlWriteRow event) {
+    private boolean existAndRemoveIfZero(MysqlWriteRow event) {
         String key = toKey(event);
-        Long time = cache.get(key);
-        if (null != time) {
-            cache.remove(key, time);
+        AtomicInteger count = cache.get(key);
+        if (null == count) {
+            return false;
         }
-        return time != null;
+        if (count.decrementAndGet() == 0) {
+            synchronized (this) {
+                if (count.get() == 0) {
+                    cache.remove(key, count);
+                }
+            }
+        }
+        return true;
     }
     
     private String toKey(MysqlWriteRow event) {
@@ -149,6 +170,6 @@ public class DuplicateRowFilter implements EventFilter {
     private final ColumnComparator COLUMN_COMPARATOR = new ColumnComparator();
     private final String backupFileName = "data/master2master_replication_cache_backup.data";
 
-    private ConcurrentMap<String, Long> cache = null;
+    private ConcurrentMap<String, AtomicInteger> cache = null;
     private Set<String> filteredTableSet;
 }

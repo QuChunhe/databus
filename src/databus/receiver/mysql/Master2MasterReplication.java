@@ -24,7 +24,7 @@ public class Master2MasterReplication extends MysqlReplication implements Closea
         if (event instanceof MysqlWriteRow) {
             MysqlWriteRow mysqlWriteRow = (MysqlWriteRow)event;
             if (filter.isFilteredTable(mysqlWriteRow.table().toLowerCase())) {
-                filter.put(mysqlWriteRow);
+                filter.putIfAbsentOrIncrementIfPresent(mysqlWriteRow);
             }
             super.receive(conn, event);
         }
