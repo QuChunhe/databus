@@ -13,4 +13,5 @@ public interface Runner {
     void stop(Thread owner);
     
     void close();
+
 }

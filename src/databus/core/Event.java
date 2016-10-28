@@ -4,24 +4,24 @@ import java.net.InetAddress;
 
 public interface Event{
     
-    public static enum Source {REDIS, MYSQL}
+    enum Source {REDIS, MYSQL}
 
-    public Source source();
+    Source source();
     
-    public String topic();
+    String topic();
     
-    public Event topic(String topic);
+    Event topic(String topic);
     
-    public String fullTopic();
+    String fullTopic();
     
-    public long time();
+    long time();
     
-    public Event time(long time);
+    Event time(long time);
     
-    public String type();
+    String type();
     
-    public InetAddress ipAddress();
+    InetAddress ipAddress();
     
-    public Event ipAddress(InetAddress ipAddress);
+    Event ipAddress(InetAddress ipAddress);
     
 }

@@ -4,6 +4,6 @@ import java.util.Properties;
 
 public interface Initializable {
     
-    public void initialize(Properties properties);
+    void initialize(Properties properties);
 
 }
