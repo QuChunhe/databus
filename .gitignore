@@ -12,3 +12,4 @@ databus.iml
 .idea/
 /target/
 out/
+src/META-INF/MANIFEST.MF

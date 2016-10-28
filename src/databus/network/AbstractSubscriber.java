@@ -11,15 +11,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import databus.core.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Event;
-import databus.core.Receiver;
-import databus.core.Subscriber;
-import databus.core.ThreadHolder;
 import databus.util.Helper;
-import databus.core.Runner;
 
 public abstract class AbstractSubscriber  implements Subscriber {
     
@@ -39,6 +35,12 @@ public abstract class AbstractSubscriber  implements Subscriber {
 
     @Override
     public void start() {
+        for(Receiver receiver : getReceiverSet()) {
+            if (receiver instanceof Startable) {
+                ((Startable) receiver).start();
+            }
+        }
+
         holder = new ThreadHolder(createTransporters());
         holder.start();   
     }
@@ -61,16 +63,12 @@ public abstract class AbstractSubscriber  implements Subscriber {
             }            
         }
 
-        HashSet<Receiver> receiverSet = new HashSet<Receiver>();
-        for(Set<Receiver> receivers : receiversMap.values()) {
-            receiverSet.addAll(receivers);
-        }
-        for(Receiver r : receiverSet) {
-            if (r instanceof Closeable) {
+        for(Receiver receiver : getReceiverSet()) {
+            if (receiver instanceof Closeable) {
                 try {
-                    ((Closeable) r).close();
+                    ((Closeable) receiver).close();
                 } catch (IOException e) {
-                    log.error("Can not close "+r.getClass().getName(), e);
+                    log.error("Can not close "+receiver.getClass().getName(), e);
                 }
             }
         }
@@ -129,6 +127,14 @@ public abstract class AbstractSubscriber  implements Subscriber {
         } catch (Exception e) {
             log.error(receiver.getClass().getName() + " can't receive " + event.toString(), e);
         }
+    }
+
+    private Set<Receiver> getReceiverSet() {
+        HashSet<Receiver> receiverSet = new HashSet<Receiver>();
+        for(Set<Receiver> receivers : receiversMap.values()) {
+            receiverSet.addAll(receivers);
+        }
+        return receiverSet;
     }
     
     protected Map<String, Set<Receiver>> receiversMap;
