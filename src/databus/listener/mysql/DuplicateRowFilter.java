@@ -39,7 +39,7 @@ public class DuplicateRowFilter implements EventFilter {
         if (null != writeExpireTimeValue) {
             writeExpireTime = Long.parseUnsignedLong(writeExpireTimeValue);
         }
-        Cache<String, Long> 
+        Cache<String, Long>
                  factory = CacheBuilder.newBuilder()
                                        .softValues()       
                                        .expireAfterWrite(writeExpireTime, TimeUnit.SECONDS)
@@ -117,14 +117,14 @@ public class DuplicateRowFilter implements EventFilter {
     
     private String toKey(MysqlWriteRow event) {
         List<Column> primaryKeys = event.primaryKeys();
-        Column[] orderedPrimaryKeys = primaryKeys.toArray(new Column[primaryKeys.size()]);
-        Arrays.sort(orderedPrimaryKeys, COLUMN_COMPARATOR);
+        Column[] sortedPrimaryKeys = primaryKeys.toArray(new Column[primaryKeys.size()]);
+        Arrays.sort(sortedPrimaryKeys, COLUMN_COMPARATOR);
         StringBuilder builder = new StringBuilder(128);
         builder.append(event.table())
                .append(":")
                .append(event.type())
                .append(":");
-        for(Column c : orderedPrimaryKeys) {
+        for(Column c : sortedPrimaryKeys) {
             builder.append(c.name())
                    .append("=")
                    .append(c.value())
@@ -132,9 +132,9 @@ public class DuplicateRowFilter implements EventFilter {
         }
         if (MysqlEvent.Type.UPDATE.toString().equals(event.type())) {
             List<Column> row = event.row();
-            Column[] orderedColumns = row.toArray(new Column[row.size()]);
-            Arrays.sort(orderedColumns, COLUMN_COMPARATOR);
-            for(Column c : orderedColumns) {
+            Column[] sortedColumns = row.toArray(new Column[row.size()]);
+            Arrays.sort(sortedColumns, COLUMN_COMPARATOR);
+            for(Column c : sortedColumns) {
                 builder.append(c.name())
                        .append("=")
                        .append(c.value())

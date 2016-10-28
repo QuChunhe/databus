@@ -42,7 +42,7 @@ public class DatabusBuilder {
 
     public Publisher createPublisher() {
         Initializable object = loadInitialiableObject(xmlConfig.configurationAt("publisher"));
-        if ((null != object) && (object instanceof Publisher)) {
+        if ((null!=object) && (object instanceof Publisher)) {
         } else {
             log.error("Can not instantiate Publisher!");
             System.exit(1);
@@ -58,7 +58,7 @@ public class DatabusBuilder {
 
     public Subscriber createSubscriber() {
         Initializable object = loadInitialiableObject(xmlConfig.configurationAt("subscriber"));
-        if ((null != object) && (object instanceof Subscriber)) {
+        if ((null!=object) && (object instanceof Subscriber)) {
         } else {
             log.error("Can not instantiate Subscriber!");
             System.exit(1);
@@ -72,7 +72,7 @@ public class DatabusBuilder {
         for (HierarchicalConfiguration<ImmutableNode> c :
                 xmlConfig.configurationsAt("publisher.listener")) {
             Initializable object = loadInitialiableObject(c);
-            if ((null != object) && (object instanceof Listener)) {
+            if ((null!=object) && (object instanceof Listener)) {
                 Listener listener = (Listener) object;
                 publisher.addListener(listener);
                 listener.start();
@@ -86,14 +86,15 @@ public class DatabusBuilder {
         for (HierarchicalConfiguration<ImmutableNode> sc :
                 xmlConfig.configurationsAt("subscriber.receiver")) {
             Initializable object = loadInitialiableObject(sc);
-            if ((null != object) && (object instanceof Receiver)) {
+            if ((null!=object) && (object instanceof Receiver)) {
                 Receiver receiver = (Receiver) object;
                 String[] remoteTopics = sc.getStringArray("remoteTopic");
-                for (String t : remoteTopics) {
-                    subscriber.register(t, receiver);
+                for (String topic : remoteTopics) {
+                    subscriber.register(topic, receiver);
                 }
             } else {
                 log.error("Can't instantiate Receiver: " + sc.toString());
+                System.exit(1);
             }
         }
     }
@@ -144,7 +145,7 @@ public class DatabusBuilder {
     private void loadGlobalParameters() {
         globalParameters = new HashMap<String, Initializable>();
         for (HierarchicalConfiguration<ImmutableNode> c :
-             xmlConfig.configurationsAt("global")) {
+                xmlConfig.configurationsAt("global")) {
             String id = c.getString("id");
             if (null == id) {
                 log.error("id is null : "+ConfigurationConverter.getProperties(c));

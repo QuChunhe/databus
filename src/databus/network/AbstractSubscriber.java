@@ -76,7 +76,6 @@ public abstract class AbstractSubscriber  implements Subscriber {
         }
     }
 
-
     @Override
     public void register(String topic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(topic);
@@ -138,5 +137,4 @@ public abstract class AbstractSubscriber  implements Subscriber {
     
     private ThreadHolder holder = null;
     private ExecutorService executor = null;
-
 }

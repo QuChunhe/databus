@@ -1,8 +1,5 @@
 package databus.application;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -39,24 +36,6 @@ public class DatabusStartup extends Startup {
         log.info("******************************************************************************");
         //gracefully close log
         LogFactory.releaseAll();
-        try {
-            Class<?> clazz = Class.forName("org.apache.logging.log4j.LogManager",
-                                           false,
-                                           Thread.currentThread().getContextClassLoader());
-            Method method = clazz.getMethod("shutdown", new Class[]{});
-            if (Modifier.isStatic(method.getModifiers())) {
-                org.apache.logging.log4j.LogManager.shutdown();
-            } else {
-                System.out.println("shutdown() is't a static method!");
-            }
-        } catch (ClassNotFoundException e) {
-            System.out.println("log4j packet does't exist!");
-            e.printStackTrace(System.out);
-        } catch (NoSuchMethodException e) {
-            System.out.println("version of log4j is less than 2.6!");
-            e.printStackTrace(System.out);
-        }
-        System.out.println("******************************************************************************");
     }
     
     private static Log log = LogFactory.getLog(DatabusStartup.class);
