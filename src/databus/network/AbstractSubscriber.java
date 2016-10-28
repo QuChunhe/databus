@@ -39,7 +39,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
 
     @Override
     public void start() {
-        holder = new ThreadHolder(createBackgroundRunners());
+        holder = new ThreadHolder(createTransporters());
         holder.start();   
     }
 
@@ -102,7 +102,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
         return true;
     }
     
-    protected abstract Runner[] createBackgroundRunners();
+    protected abstract Runner[] createTransporters();
     
     private void receive(Set<Receiver> receiversSet, Event event) {
         if (null == receiversSet) {

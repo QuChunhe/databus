@@ -61,7 +61,7 @@ public class NettySubscriber extends AbstractSubscriber {
     }
 
     @Override
-    protected Runner[] createBackgroundRunners() {
+    protected Runner[] createTransporters() {
         return new Runner[] {new ListeningRunner()};
     } 
 

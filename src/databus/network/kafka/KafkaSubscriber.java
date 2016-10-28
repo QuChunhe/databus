@@ -89,7 +89,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     }
 
     @Override
-    protected Runner[] createBackgroundRunners() {
+    protected Runner[] createTransporters() {
         Runner[] runners = new Runner[serverTopicsMap.size()];
         int i = 0;
         for(String server : serverTopicsMap.keySet()) {
