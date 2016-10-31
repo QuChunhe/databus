@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -72,7 +73,7 @@ public class DuplicateRowFilter implements EventFilter {
                     }
                 }
             }
-        } while (preCount == count);
+        } while (preCount != count);
 
         log.info(cache.toString());
     }
