@@ -59,18 +59,21 @@ public class DuplicateRowFilter implements EventFilter {
 
     public void putIfAbsentOrIncrementIfPresent(MysqlWriteRow event) {
         String key = toKey(event);
-        AtomicInteger count = new AtomicInteger(1);
-        AtomicInteger preCount = cache.putIfAbsent(key, count);
-        if (null != preCount) {
-            if (preCount.incrementAndGet() == 1) {
-                synchronized (this) {
-                    AtomicInteger currentCount = cache.get(key);
-                    if (currentCount != preCount) {
-                        currentCount.addAndGet(preCount.get());
+        final AtomicInteger ONE = new AtomicInteger(1);
+        AtomicInteger preCount;
+        AtomicInteger count = null;
+        do {
+            preCount = cache.putIfAbsent(key, ONE);
+            if (null != preCount) {
+                synchronized (preCount) {
+                    count = cache.get(key);
+                    if (count == preCount) {
+                        count.incrementAndGet();
                     }
                 }
             }
-        }
+        } while (preCount == count);
+
         log.info(cache.toString());
     }
 
@@ -127,7 +130,7 @@ public class DuplicateRowFilter implements EventFilter {
             return false;
         }
         if (count.decrementAndGet() == 0) {
-            synchronized (this) {
+            synchronized (count) {
                 if (count.get() == 0) {
                     cache.remove(key, count);
                 }
