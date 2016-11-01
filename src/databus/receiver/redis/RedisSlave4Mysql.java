@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import databus.util.Benchmark;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -25,27 +26,32 @@ public class RedisSlave4Mysql extends RedisReceiver {
 
     @Override
     protected void receive(Jedis jedis, Event event) {
-        if (event instanceof AbstractMysqlWriteRow) {            
+        if (event instanceof AbstractMysqlWriteRow) {
+            Benchmark benchmark = new Benchmark();
             AbstractMysqlWriteRow e = (AbstractMysqlWriteRow) event;
             String tableName = e.table().toLowerCase();
             Table table = tableMap.get(tableName);
             if (null == table) {
-                log.warn("Has't information about "+tableName);
+                log.warn("Has not information about "+tableName);
                 return;
             }
             List<Column> primaryKeyColumns = e.primaryKeys();
             List<Column> row = e.row();
+            String command = null;
             if (e instanceof MysqlUpdateRow) {
-                table.update(jedis, primaryKeyColumns, row);
+                command = table.update(jedis, primaryKeyColumns, row);
             } else if (e instanceof MysqlInsertRow) {
-                table.insert(jedis, primaryKeyColumns, row);
+                command = table.insert(jedis, primaryKeyColumns, row);
             } else if (e instanceof MysqlDeleteRow) {
-                table.delete(jedis, primaryKeyColumns, row);
+                command = table.delete(jedis, primaryKeyColumns, row);
             } else {
                 log.info(event.toString());
             }
+            if (null != command) {
+                log.info(benchmark.elapsedMsec(3) +"ms execute : "+command);
+            }
         } else {
-            log.warn(event.getClass().getName()+" isn't AbstractMysqlWriteRow : " + 
+            log.warn(event.getClass().getName()+" is not AbstractMysqlWriteRow : " +
                      event.toString());
         }
     }    

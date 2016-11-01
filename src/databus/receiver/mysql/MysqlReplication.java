@@ -8,7 +8,6 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 import databus.core.Event;
 import databus.event.mysql.MysqlDeleteRow;
 import databus.event.mysql.MysqlInsertRow;
@@ -22,26 +21,26 @@ public class MysqlReplication extends MysqlReceiver{
     }
 
     @Override
-    protected void receive(Connection conn, Event event) {
-        String sql = null;;
+    protected String execute(Connection conn, Event event) {
+        String sql = null;
         if (event instanceof MysqlInsertRow) {
             sql = getInsertSql((MysqlInsertRow) event);
         } else if (event instanceof MysqlUpdateRow) {
             sql = getUpdateSql((MysqlUpdateRow)event);
         } else if (event instanceof MysqlDeleteRow) {
             sql = getDeleteSql((MysqlDeleteRow)event);
-        } else {
-            log.error("Can't process "+event.toString());
-            return;
         }
+
         if (null == sql) {
-            return;
+            log.error("Can not convert SQL from " + event.toString());
+        } else {
+            if (executeWrite(conn, sql) < 1) {
+                log.error("Can not execute : " + sql);
+                sql = null;
+            }
         }
-        log.info(sql);
-        int count = executeWrite(conn, sql);        
-        if (count < 1) {
-            log.error(sql + " cann't be executed ");
-        }        
+
+        return sql;
     }
 
     private String getInsertSql(MysqlInsertRow event) {
@@ -122,7 +121,7 @@ public class MysqlReplication extends MysqlReceiver{
     
     private int executeWrite(Connection conn, String sql) {
         int count = -1;
-        try (Statement stmt = conn.createStatement();) {           
+        try (Statement stmt = conn.createStatement()) {
             stmt.setEscapeProcessing(true);
             count = stmt.executeUpdate(sql);
         } catch (SQLException e) {

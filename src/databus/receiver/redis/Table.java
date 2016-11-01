@@ -20,22 +20,22 @@ public class Table {
         replicatedColumns.add(column);
     }
     
-    public void insert(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+    public String insert(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
         String redisKey = getRedisKey(primaryKeys);
         Map<String, String> columns = getRelicatedColumns(row);
         if (columns.size() > 0) {
             jedis.hmset(redisKey, columns);
-            log.info("HMSET "+redisKey+" "+columns.toString());
-        }        
+        }
+        return "HMSET "+redisKey+" "+columns.toString();
     }
     
-    public void delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+    public String delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
         String redisKey = getRedisKey(primaryKeys);
         jedis.del(redisKey);
-        log.info("DEL "+redisKey);
+        return "DEL "+redisKey;
     }
     
-    public void update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+    public String update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
         List<Column> updatedPrimaryKeys = new ArrayList<>(primaryKeys.size());
         boolean doesContainPK = false;
         for (Column k :  primaryKeys) {
@@ -66,7 +66,7 @@ public class Table {
             }
             delete(jedis, primaryKeys, row);
         }
-        insert(jedis, updatedPrimaryKeys, updatedRow);
+        return insert(jedis, updatedPrimaryKeys, updatedRow);
     }
     
     public String getRedisKey(List<Column> primaryKeys) {

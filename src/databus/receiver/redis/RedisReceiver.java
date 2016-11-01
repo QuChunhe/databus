@@ -40,10 +40,10 @@ public abstract class RedisReceiver implements Receiver, Closeable {
 
     @Override
     public void receive(Event event) {
-        try (Jedis jedis = jedisPool.getResource();) {
+        try (Jedis jedis = jedisPool.getResource()) {
             receive(jedis, event);
         } catch(Exception e) {
-            log.error("Redis can't save "+event.toString(), e);
+            log.error("Redis can not save "+event.toString(), e);
         }
     }
     

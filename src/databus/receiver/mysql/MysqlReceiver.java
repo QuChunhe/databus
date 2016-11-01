@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Event;
 import databus.core.Receiver;
+import databus.util.Benchmark;
 
 public abstract class MysqlReceiver implements Receiver{
     
@@ -22,21 +23,31 @@ public abstract class MysqlReceiver implements Receiver{
         try {
             dataSource = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {
-            log.error("Can't creat DataSoruce for "+properties.toString(), e);
+            log.error("Can't create DataSource for "+properties.toString(), e);
             System.exit(1);
         }                
     }   
 
     @Override
     public void receive(Event event) {
-        try (Connection connection = dataSource.getConnection();){
-            receive(connection, event);
+        try (Connection connection = dataSource.getConnection()){
+            Benchmark benchmark = new Benchmark();
+            String sql = execute(connection, event);
+            if (null != sql) {
+                log.info(benchmark.elapsedMsec(4)+"ms execute : "+sql);
+            }
         } catch (SQLException e) {
             log.error("Can't create Connection", e);
         }
     }
 
-    abstract protected void receive(Connection conn, Event event);
+    /**
+     * Execute MySQL commands.
+     * @param conn
+     * @param event
+     * @return sql
+     */
+    abstract protected String execute(Connection conn, Event event);
     
     protected Properties removePrefix(Properties originalProperties, String prefix) {
         Properties properties = new Properties();

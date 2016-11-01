@@ -36,7 +36,7 @@ public class MessagePersistence extends MysqlReceiver{
             System.exit(1);
         }
         if (keys.length != beans.length) {
-            log.error("The number of topics is't equal to beans!");
+            log.error("The number of topics isn't equal to beans!");
             System.exit(1);
         }
         
@@ -59,10 +59,11 @@ public class MessagePersistence extends MysqlReceiver{
                 beanContext = (BeanContext) beanContextClass.newInstance();
                 Properties prop = new Properties();
                 final String PREFIX = "beanContext";
-                for(String key : properties.stringPropertyNames()) {
+                for(Map.Entry<Object, Object> entry : properties.entrySet()) {
+                    String key = entry.getKey().toString();
                     if (key.startsWith(PREFIX)) {
                         String newKey = key.substring(PREFIX.length());
-                        prop.setProperty(newKey, properties.getProperty(key));
+                        prop.setProperty(newKey, entry.getValue().toString());
                     }
                 }
                 beanContext.initialize(prop);
@@ -73,25 +74,27 @@ public class MessagePersistence extends MysqlReceiver{
     }
 
     @Override
-    protected void receive(Connection conn, Event event) {
+    protected String execute(Connection conn, Event event) {
         if (!(event instanceof RedisMessaging)) {
-            log.error(event.getClass().getName()+" is't RedisMessaging");
-            return;
+            log.error(event.getClass().getName()+" is not RedisMessaging");
+            return null;
         }
         RedisMessaging e = (RedisMessaging) event;
         String key = e.key();        
         Class<?> beanClass = classesMap.get(key);
         if (null == beanClass) {
-            log.error(key + " has't corresponding MysqlBean Class");
-            return;
+            log.error(" Has not corresponding MysqlBean Class for " + key);
+            return null;
         }        
         String message = e.message();
         Object bean = gson.fromJson(message, beanClass);
+        String sql = null;
         if ((null!=bean) && (bean instanceof ExecutableBean)) {
-            ((ExecutableBean) bean).execute(conn, beanContext);;
+            sql = ((ExecutableBean) bean).execute(conn, beanContext);
         } else {
-            log.error(message + " can't convert to "+beanClass.getName());
-        }        
+            log.error(message + " can not convert to "+beanClass.getName());
+        }
+        return sql;
     }
     
     private String[] split(String value) {

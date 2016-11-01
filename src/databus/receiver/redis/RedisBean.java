@@ -5,6 +5,6 @@ import redis.clients.jedis.Jedis;
 
 public interface RedisBean extends Bean {
     
-    public void operate(Jedis jedis);
+    void operate(Jedis jedis);
 
 }

@@ -16,18 +16,18 @@ public class CoreTable extends Table{
     }
 
     @Override
-    public void insert(Jedis jedis, List<Column> primaryKeys,List<Column> row) {
-        super.insert(jedis, primaryKeys, row);        
+    public String insert(Jedis jedis, List<Column> primaryKeys,List<Column> row) {
+        return super.insert(jedis, primaryKeys, row);
     }
 
     @Override
-    public void delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        super.delete(jedis, primaryKeys, row);
+    public String delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+        return super.delete(jedis, primaryKeys, row);
     }
 
     @Override
-    public void update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        super.update(jedis, primaryKeys, row);
+    public String update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+        return super.update(jedis, primaryKeys, row);
     }
     
     public void insertFields(Jedis jedis, Map<String, String> coreTablePrimaryKeys, 
