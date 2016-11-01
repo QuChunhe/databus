@@ -34,7 +34,7 @@ public class MysqlReplication extends MysqlReceiver{
         if (null == sql) {
             log.error("Can not convert SQL from " + event.toString());
         } else if (executeWrite(conn, sql) < 1) {
-            log.error("Can not execute : " + sql);
+            sql = null;
         }
         return sql;
     }
@@ -120,6 +120,9 @@ public class MysqlReplication extends MysqlReceiver{
         try (Statement stmt = conn.createStatement()) {
             stmt.setEscapeProcessing(true);
             count = stmt.executeUpdate(sql);
+            if (count < 1) {
+                log.error("Fail to insert into DB : "+sql);
+            }
         } catch (SQLException e) {
             log.error("Can not execute : "+sql, e);
         }

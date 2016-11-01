@@ -24,7 +24,7 @@ public abstract class MysqlReceiver implements Receiver{
         try {
             dataSource = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {
-            log.error("Can't create DataSource for "+properties.toString(), e);
+            log.error("Can not create DataSource for "+properties.toString(), e);
             System.exit(1);
         }                
     }   
@@ -38,7 +38,7 @@ public abstract class MysqlReceiver implements Receiver{
                 log.info(benchmark.elapsedMsec(4)+"ms execute : "+sql);
             }
         } catch (SQLException e) {
-            log.error("Can't create Connection", e);
+            log.error("Can not create Connection", e);
         }
     }
 

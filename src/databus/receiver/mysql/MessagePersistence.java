@@ -36,7 +36,7 @@ public class MessagePersistence extends MysqlReceiver{
             System.exit(1);
         }
         if (keys.length != beans.length) {
-            log.error("The number of topics isn't equal to beans!");
+            log.error("The number of topics is not equal to beans!");
             System.exit(1);
         }
         
@@ -83,7 +83,7 @@ public class MessagePersistence extends MysqlReceiver{
         String key = e.key();        
         Class<?> beanClass = classesMap.get(key);
         if (null == beanClass) {
-            log.error(" Has not corresponding MysqlBean Class for " + key);
+            log.error("Has not corresponding MysqlBean Class for " + key);
             return null;
         }        
         String message = e.message();
