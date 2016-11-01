@@ -33,22 +33,18 @@ public class MysqlReplication extends MysqlReceiver{
 
         if (null == sql) {
             log.error("Can not convert SQL from " + event.toString());
-        } else {
-            if (executeWrite(conn, sql) < 1) {
-                log.error("Can not execute : " + sql);
-                sql = null;
-            }
+        } else if (executeWrite(conn, sql) < 1) {
+            log.error("Can not execute : " + sql);
         }
-
         return sql;
     }
 
     private String getInsertSql(MysqlInsertRow event) {
-        StringBuilder sqlBuilder = new StringBuilder();
+        StringBuilder sqlBuilder = new StringBuilder(128);
         sqlBuilder.append("INSERT INTO ");
         sqlBuilder.append(event.table());
         sqlBuilder.append(" (");
-        StringBuilder valuesBuilder = new StringBuilder();
+        StringBuilder valuesBuilder = new StringBuilder(64);
         valuesBuilder.append('(');
         List<Column> row = event.row();
         for(Column column : row) {          
@@ -67,7 +63,7 @@ public class MysqlReplication extends MysqlReceiver{
     }
     
     private String getUpdateSql(MysqlUpdateRow event) {
-        StringBuilder sqlBuilder = new StringBuilder();
+        StringBuilder sqlBuilder = new StringBuilder(128);
         sqlBuilder.append("UPDATE ");
         sqlBuilder.append(event.table());
         sqlBuilder.append(" SET ");
@@ -78,7 +74,7 @@ public class MysqlReplication extends MysqlReceiver{
     }
     
     private String getDeleteSql(MysqlDeleteRow event) {
-        StringBuilder sqlBuilder = new StringBuilder();
+        StringBuilder sqlBuilder = new StringBuilder(64);
         sqlBuilder.append("DELETE FROM ");
         sqlBuilder.append(event.table());
         sqlBuilder.append(" WHERE ");
@@ -125,9 +121,7 @@ public class MysqlReplication extends MysqlReceiver{
             stmt.setEscapeProcessing(true);
             count = stmt.executeUpdate(sql);
         } catch (SQLException e) {
-            log.error("Can't execute: "+sql, e);
-        } catch (Exception e) {
-            log.error("throws error when execute "+sql, e);
+            log.error("Can not execute : "+sql, e);
         }
         return count;
     }

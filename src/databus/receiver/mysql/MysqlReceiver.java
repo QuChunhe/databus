@@ -2,6 +2,7 @@ package databus.receiver.mysql;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -52,10 +53,10 @@ public abstract class MysqlReceiver implements Receiver{
     protected Properties removePrefix(Properties originalProperties, String prefix) {
         Properties properties = new Properties();
         int prefixLength = prefix.length();
-        for(String key : originalProperties.stringPropertyNames()) {
+        for(Map.Entry<Object, Object> entry : originalProperties.entrySet()) {
+            String key = entry.getKey().toString();
             if (key.startsWith(prefix)) {
-                String value = originalProperties.getProperty(key);
-                properties.setProperty(key.substring(prefixLength), value);
+                properties.setProperty(key.substring(prefixLength), entry.getValue().toString());
             }
         }
         

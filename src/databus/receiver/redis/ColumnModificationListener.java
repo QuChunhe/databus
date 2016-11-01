@@ -7,10 +7,10 @@ import redis.clients.jedis.Jedis;
 
 public interface ColumnModificationListener {
     
-    public void insert(Jedis jedis, List<Column> primaryKeyValues, Column column);
+    void insert(Jedis jedis, List<Column> primaryKeyValues, Column column);
     
-    public void update(Jedis jedis, List<Column> primaryKeyValues, Column column);
+    void update(Jedis jedis, List<Column> primaryKeyValues, Column column);
     
-    public void delete(Jedis jedis, List<Column> primaryKeyValues, Column column);
+    void delete(Jedis jedis, List<Column> primaryKeyValues, Column column);
 
 }
