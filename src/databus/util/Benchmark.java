@@ -36,5 +36,4 @@ public class Benchmark {
     }
 
     private final long beginTime;
-    private final static long ONE_MILLION = 1000000;
 }

@@ -2,9 +2,6 @@ package databus.receiver.redis;
 
 import java.util.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import databus.event.mysql.Column;
 import databus.event.mysql.ColumnComparator;
 import redis.clients.jedis.Jedis;
@@ -104,7 +101,6 @@ public class Table {
     protected String system;
     
     private static final ColumnComparator COLUMN_COMPARATOR = new ColumnComparator();
-    private static Log log = LogFactory.getLog(Table.class);
-    
+
     private Set<String> replicatedColumns = new HashSet<String>();
 }
