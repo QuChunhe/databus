@@ -18,7 +18,6 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-
 public class Recorder {
     
     public Recorder(String recordFileName){
@@ -26,8 +25,8 @@ public class Recorder {
     } 
     
     public Map<String, String> load(){
-        HashMap<String, String> data = new HashMap<String, String>();
-        File file = new File(recordFileName);;
+        HashMap<String, String> data = new HashMap<>();
+        File file = new File(recordFileName);
         if (!file.exists() || !file.isFile()) {        
             return data;
         }
@@ -61,7 +60,8 @@ public class Recorder {
             return;
         }
         StringBuilder builder = new StringBuilder(128);
-        builder.append("#" + new Date().toString());
+        builder.append("#")
+               .append(new Date().toString());
         for(Map.Entry<String, String> e : data.entrySet()) {
             builder.append(LINE_SEPERATOR)
                    .append(e.getKey())
@@ -77,7 +77,7 @@ public class Recorder {
             prevFileLength = currentFileLength;
             
             CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder();
-            ByteBuffer byteBuffer =  null;
+            ByteBuffer byteBuffer;
             try {
                 byteBuffer = encoder.encode(CharBuffer.wrap(builder, 0, builder.length()));
             } catch (CharacterCodingException e) {

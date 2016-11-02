@@ -26,7 +26,7 @@ public class DatabusBuilder {
     public DatabusBuilder(String configFile) {
         try {
             FileBasedConfigurationBuilder<XMLConfiguration> builder =
-                    new FileBasedConfigurationBuilder<XMLConfiguration>(XMLConfiguration.class)
+                    new FileBasedConfigurationBuilder<>(XMLConfiguration.class)
                             .configure(new Parameters().xml().setFileName(configFile));
             xmlConfig = builder.getConfiguration();
         } catch (ConfigurationException e) {
@@ -143,7 +143,7 @@ public class DatabusBuilder {
     }
 
     private void loadGlobalParameters() {
-        globalParameters = new HashMap<String, Initializable>();
+        globalParameters = new HashMap<>();
         for (HierarchicalConfiguration<ImmutableNode> c :
                 xmlConfig.configurationsAt("global")) {
             String id = c.getString("id");
@@ -169,7 +169,7 @@ public class DatabusBuilder {
                 System.exit(1);
             }
             Class<? extends Initializable> clazz = parameter.getClass();
-            Method method = object.getClass().getMethod(methodName, new Class[]{clazz});
+            Method method = object.getClass().getMethod(methodName, clazz);
             method.invoke(object, parameter);
         } catch (NoSuchMethodException |InvocationTargetException | IllegalAccessException  e) {
             log.error("Can not invoke setter!", e);

@@ -12,7 +12,7 @@ import org.apache.kafka.common.TopicPartition;
 
 public class AutoRebalanceListener implements ConsumerRebalanceListener{
     
-    public AutoRebalanceListener(String server, KafkaConsumer<Long, String> consumer) {;
+    public AutoRebalanceListener(String server, KafkaConsumer<Long, String> consumer) {
         this.consumer = consumer;
         this.server = server;
     }
@@ -24,7 +24,7 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
 
     @Override
     public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-        PositionsCache cache = new PositionsCache(new HashSet<String>());
+        PositionsCache cache = new PositionsCache(new HashSet<>());
         for(TopicPartition p : partitions) {
             long nextPosition = -1;
             try {

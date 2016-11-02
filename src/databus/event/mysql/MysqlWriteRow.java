@@ -6,8 +6,8 @@ import databus.event.MysqlEvent;
 
 public interface MysqlWriteRow extends MysqlEvent{
 
-    public List<Column> row();
+    List<Column> row();
     
-    public List<Column> primaryKeys();
+    List<Column> primaryKeys();
  
 }

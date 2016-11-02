@@ -20,7 +20,7 @@ import databus.util.Helper;
 public abstract class AbstractSubscriber  implements Subscriber {
     
     public AbstractSubscriber() {
-        receiversMap = new ConcurrentHashMap<String, Set<Receiver>>();
+        receiversMap = new ConcurrentHashMap<>();
     }    
 
     @Override
@@ -78,7 +78,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
     public void register(String topic, Receiver receiver) {
         Set<Receiver> receiversSet = receiversMap.get(topic);
         if (null == receiversSet) {
-            receiversSet = new CopyOnWriteArraySet<Receiver>();
+            receiversSet = new CopyOnWriteArraySet<>();
             receiversMap.put(topic, receiversSet);
         }
         receiversSet.add(receiver);        
@@ -130,7 +130,7 @@ public abstract class AbstractSubscriber  implements Subscriber {
     }
 
     private Set<Receiver> getReceiverSet() {
-        HashSet<Receiver> receiverSet = new HashSet<Receiver>();
+        HashSet<Receiver> receiverSet = new HashSet<>();
         for(Set<Receiver> receivers : receiversMap.values()) {
             receiverSet.addAll(receivers);
         }

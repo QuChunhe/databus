@@ -32,14 +32,14 @@ public class KafkaPublisher extends AbstractPublisher {
             System.exit(1);
         }
         String acks = properties.getProperty("kafka.acks", "1");               
-        Map<String, Object> config = new HashMap<String, Object>(6);
+        Map<String, Object> config = new HashMap<>(6);
         config.put("bootstrap.servers", kafkaServer);
         config.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
         config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         config.put("compression.type", "gzip");
         config.put("acks", acks);
         config.put("max.block.ms", 60000);
-        producer = new KafkaProducer<Long, String>(config);
+        producer = new KafkaProducer<>(config);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class KafkaPublisher extends AbstractPublisher {
         event.topic(null);
         String value = eventParser.toString(event);
         log.info(time + " " + topic +" : " +value);
-        ProducerRecord<Long, String> record = new ProducerRecord<Long, String>(topic, time, value);
+        ProducerRecord<Long, String> record = new ProducerRecord<>(topic, time, value);
         producer.send(record, new LogCallback(topic, time, value));         
     }
     

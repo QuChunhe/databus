@@ -8,8 +8,8 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
     
     public AbstractMysqlWriteRow() {
         super();
-        row = new LinkedList<Column>();
-        primaryKeys = new LinkedList<Column>();
+        row = new LinkedList<>();
+        primaryKeys = new LinkedList<>();
     }
 
     @Override

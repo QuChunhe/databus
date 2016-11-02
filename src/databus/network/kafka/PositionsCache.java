@@ -19,7 +19,7 @@ public class PositionsCache {
             throw new IllegalArgumentException("writePerFlush must be great than 0!");
         }
         this.writePerFlush = writePerFlush;
-        cacheCounters = new ConcurrentHashMap<String, AtomicInteger>();
+        cacheCounters = new ConcurrentHashMap<>();
     }
     
     public PositionsCache(Set<String> topicSet) {

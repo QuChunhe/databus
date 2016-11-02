@@ -45,9 +45,7 @@ public class RedisMessagingListener extends RedisListener {
         }
         String key = result.get(0);
         String message = result.get(1);
-        
-        RedisMessaging event = new RedisMessaging(key, message);        
-        return event;
+        return new RedisMessaging(key, message);
     } 
 
     private static Log log = LogFactory.getLog(RedisMessagingListener.class);

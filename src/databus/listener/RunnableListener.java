@@ -9,19 +9,15 @@ import databus.core.ThreadHolder;
 
 public abstract class RunnableListener extends AbstractListener {    
         
-    public RunnableListener(Publisher publisher, String name) {
+    public RunnableListener(Publisher publisher) {
         setPublisher(publisher);
         holder = new ThreadHolder(createListeningRunner());
     }
     
-    public RunnableListener(String name) {
-        this(null, name);
-    }
-    
     public RunnableListener() {
-        this(RunnableListener.class.getSimpleName());
+        this(null);
     }
-    
+
     @Override
     public void start() {
         if (!holder.isRunning()) {

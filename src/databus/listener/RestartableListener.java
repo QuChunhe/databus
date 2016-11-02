@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Publisher;
 import databus.core.Restartable;
 
-
 public abstract class RestartableListener extends AbstractListener implements Restartable {
 
     public RestartableListener(Publisher publisher) {
@@ -46,6 +45,7 @@ public abstract class RestartableListener extends AbstractListener implements Re
                 log.info("Waiting RestartableListener.RunningMonitor");
                 monitor.join();
             } catch (InterruptedException e) {
+                //do nothing
             }
         }
     }
@@ -60,9 +60,9 @@ public abstract class RestartableListener extends AbstractListener implements Re
     final private static long TEN_SECONDS = 10000L;
     
     private static Log log = LogFactory.getLog(RestartableListener.class);
-    private static Deque<Restartable> listeners = new ConcurrentLinkedDeque<Restartable>();
+    private static Deque<Restartable> listeners = new ConcurrentLinkedDeque<>();
     private static Thread monitor = null;
-    private static Object lock = new Object();
+    private static final Object lock = new Object();
     
     private static class RunningMonitor implements Runnable {
 
@@ -72,7 +72,7 @@ public abstract class RestartableListener extends AbstractListener implements Re
                 try {
                     Thread.sleep(TEN_SECONDS);
                 } catch (InterruptedException e) {
-                    
+                    // do nothing
                 }
                 for(Restartable listener : listeners) {
                     if (!listener.isRunning()) {

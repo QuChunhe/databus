@@ -66,7 +66,7 @@ public class Backup {
     private static Backup instance = null;    
     
     private Backup() {
-        recordCaches = new ConcurrentHashMap<String, RecordCache>();
+        recordCaches = new ConcurrentHashMap<>();
     }
     
     private Map<String, RecordCache> recordCaches;

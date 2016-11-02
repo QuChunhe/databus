@@ -37,7 +37,7 @@ public class KafkaHelper {
             long offset = cache.get(server+"/"+p.topic(), p.partition());
             if (offset < 0) {
                 if (null == topicPartitions) {
-                    topicPartitions = new HashSet<TopicPartition>();
+                    topicPartitions = new HashSet<>();
                 }
                 topicPartitions.add(p);
             } else {

@@ -108,7 +108,7 @@ public class Startup {
     
     private static Log log = LogFactory.getLog(Startup.class);
     
-    private static List<Stoppable> hooks = new CopyOnWriteArrayList<Stoppable>();
+    private static List<Stoppable> hooks = new CopyOnWriteArrayList<>();
     private static volatile boolean isRunning = true;
     private static Thread mainThread;
 }

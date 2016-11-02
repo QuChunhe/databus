@@ -146,7 +146,7 @@ public class MysqlListener extends RestartableListener{
             System.exit(1);
         }
         String[] tables = rawTables.split(",") ;
-        permittedTableSet = new HashSet<String>();
+        permittedTableSet = new HashSet<>();
         for(String t : tables) {
             permittedTableSet.add(t.trim().toLowerCase());
         }
@@ -168,7 +168,7 @@ public class MysqlListener extends RestartableListener{
     }
     
     private void loadSchema(MysqlDataSource ds) {
-        HashMap<String, Set<String>> tablesMap = new HashMap<String, Set<String>>();
+        HashMap<String, Set<String>> tablesMap = new HashMap<>();
         for(String fullName : permittedTableSet) {
             String[] r = fullName.split("\\.");
             if (r.length != 2) {
@@ -179,27 +179,27 @@ public class MysqlListener extends RestartableListener{
             String tableName = r[1].trim();
             Set<String> tables = tablesMap.get(databaseName);
             if (null == tables) {
-                tables = new HashSet<String>();
+                tables = new HashSet<>();
                 tablesMap.put(databaseName, tables);
             }
             tables.add(tableName);
         }
         
-        columnsMap = new HashMap<String, String[]>();
-        attributesMap = new HashMap<String, ColumnAttribute[]>();
-        primaryKeysMap = new HashMap<String, Set<String>>();
+        columnsMap = new HashMap<>();
+        attributesMap = new HashMap<>();
+        primaryKeysMap = new HashMap<>();
         
         for(String databaseName : tablesMap.keySet()) {
             ds.setDatabaseName(databaseName);
             String fullName = databaseName;
-            try (Connection conn = ds.getConnection();){
+            try (Connection conn = ds.getConnection()){
                 DatabaseMetaData metaData = conn.getMetaData();  
                 Set<String> tables = tablesMap.get(databaseName);
                 for(String tableName : tables) {
-                    LinkedList<String> columns = new LinkedList<String>();
-                    LinkedList<ColumnAttribute> attribute = new LinkedList<ColumnAttribute>();
+                    LinkedList<String> columns = new LinkedList<>();
+                    LinkedList<ColumnAttribute> attribute = new LinkedList<>();
                     fullName = databaseName + "." + tableName;
-                    try (ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%");) {                                   
+                    try (ResultSet resultSet1 = metaData.getColumns(null, "%", tableName, "%")) {
                         while (resultSet1.next()) {
                             columns.addLast(resultSet1.getString("COLUMN_NAME"));
                             int type = resultSet1.getInt("DATA_TYPE");
@@ -211,7 +211,7 @@ public class MysqlListener extends RestartableListener{
                     attributesMap.put(fullName, 
                                       attribute.toArray(new ColumnAttribute[attribute.size()]));
                     
-                    HashSet<String> keys = new HashSet<String>();
+                    HashSet<String> keys = new HashSet<>();
                     ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName);
                     while(resultSet2.next()) {
                         keys.add(resultSet2.getString("COLUMN_NAME"));

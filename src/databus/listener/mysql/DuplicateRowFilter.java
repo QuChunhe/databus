@@ -30,7 +30,7 @@ public class DuplicateRowFilter implements EventFilter {
     
     public DuplicateRowFilter() {
         super();
-        filteredTableSet = new HashSet<String>();
+        filteredTableSet = new HashSet<>();
     }
 
     @Override
@@ -82,7 +82,7 @@ public class DuplicateRowFilter implements EventFilter {
                                                              StandardCharsets.UTF_8,
                                                              StandardOpenOption.CREATE,
                                                              StandardOpenOption.TRUNCATE_EXISTING,
-                                                             StandardOpenOption.WRITE);) {
+                                                             StandardOpenOption.WRITE)) {
             Properties properties = new Properties();
             properties.putAll(cache);
             properties.store(writer, "Filter Duplicate Row");
@@ -97,7 +97,7 @@ public class DuplicateRowFilter implements EventFilter {
             return;
         }
         try (BufferedReader reader = Files.newBufferedReader(backupFile.toPath(),
-                                                             StandardCharsets.UTF_8);) {
+                                                             StandardCharsets.UTF_8)) {
             Properties properties = new Properties();
             properties.load(reader);
             for(Map.Entry<Object, Object> entry : properties.entrySet()) {

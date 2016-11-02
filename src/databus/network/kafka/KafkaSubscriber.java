@@ -45,7 +45,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
         
         Set<String> topicSet = serverTopicsMap.get(server);
         if (null == topicSet) {
-            topicSet = new HashSet<String>();
+            topicSet = new HashSet<>();
             serverTopicsMap.put(server, topicSet);
         }
         topicSet.add(normalizedTopic);
@@ -105,7 +105,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     private static JsonEventParser eventParser = new JsonEventParser(); 
     
     private Properties kafkaProperties;
-    private Map<String, Set<String>> serverTopicsMap = new HashMap<String, Set<String>>();
+    private Map<String, Set<String>> serverTopicsMap = new HashMap<>();
     private long pollingTimeout = 2000;
     private PositionsCache positionsCache;  
     
@@ -118,14 +118,14 @@ public class KafkaSubscriber extends AbstractSubscriber {
             String groupId = this.properties.getProperty("group.id");
             this.properties.put("client.id", groupId+"-"+server.replaceAll(":", "-"));
             this.properties.put("bootstrap.servers", server);            
-            this.kafkaTopics = new ArrayList<String>(kafkaTopics);
+            this.kafkaTopics = new ArrayList<>(kafkaTopics);
             this.server = server;
             log.info(server+" "+kafkaTopics.toString());
         }
 
         @Override
         public void initialize() {
-            consumer = new KafkaConsumer<Long, String>(properties); 
+            consumer = new KafkaConsumer<>(properties);
             consumer.subscribe(kafkaTopics, new AutoRebalanceListener(server, consumer)); 
             KafkaHelper.seekRightPositions(server, consumer, consumer.assignment());
             //help GC
@@ -182,6 +182,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 try {
                     owner.join(1000);
                 } catch (InterruptedException e) {
+                    //do nothing
                 }                
             }
         }

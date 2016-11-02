@@ -81,6 +81,7 @@ public abstract class RedisListener extends RunnableListener {
                 log.info("Waiting RedisListener finish!");
                 owner.join();
             } catch (InterruptedException e) {
+                //do nothing
             }
         }
 

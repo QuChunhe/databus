@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RecordCache { 
     
     public RecordCache(Recorder recorder) {
-        cache = new ConcurrentHashMap<String, String>(recorder.load());
+        cache = new ConcurrentHashMap<>(recorder.load());
         this.recorder = recorder;
     }
     
@@ -31,7 +31,7 @@ public class RecordCache {
     }
     
     public Map<String, String> copyCache(String key) {
-        return new HashMap<String, String>(cache);
+        return new HashMap<>(cache);
     }
 
     private ConcurrentHashMap<String, String> cache;
