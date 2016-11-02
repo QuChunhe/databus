@@ -6,7 +6,7 @@ import org.apache.commons.logging.LogFactory;
 
 
 /**
- * Created by Qu Chunhe on 10/27/16.
+ * Created by Qu Chunhe on 2016-10-27.
  */
 public class Master2MasterListener extends MysqlListener {
 

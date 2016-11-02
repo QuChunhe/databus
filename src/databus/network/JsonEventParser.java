@@ -15,7 +15,6 @@ import com.google.gson.JsonSyntaxException;
 
 import databus.core.Event;
 
-
 public class JsonEventParser implements EventParser { 
     
     public JsonEventParser() {

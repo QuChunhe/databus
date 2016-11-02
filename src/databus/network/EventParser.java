@@ -4,7 +4,7 @@ import databus.core.Event;
 
 public interface EventParser {
     
-    public String toString(Event event);
+    String toString(Event event);
     
-    public Event toEvent(String message);
+    Event toEvent(String message);
 }

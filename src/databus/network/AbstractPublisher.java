@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by Qu Chunhe on 10/27/16.
+ * Created by Qu Chunhe on 2016-10-27.
  */
 public abstract class AbstractPublisher implements Publisher {
 

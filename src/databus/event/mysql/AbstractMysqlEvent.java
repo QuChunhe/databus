@@ -1,6 +1,5 @@
 package databus.event.mysql;
 
-
 import databus.event.AbstractEvent;
 import databus.event.MysqlEvent;
 

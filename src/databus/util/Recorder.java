@@ -33,7 +33,7 @@ public class Recorder {
         }
         
         try (BufferedReader reader = Files.newBufferedReader(file.toPath(), 
-                                                             StandardCharsets.UTF_8);) {
+                                                             StandardCharsets.UTF_8)) {
             String line;
             while((line=reader.readLine()) != null) {
                 if (line.startsWith("#")) {

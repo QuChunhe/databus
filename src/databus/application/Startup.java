@@ -54,7 +54,7 @@ public class Startup {
                                              StandardCharsets.UTF_8,
                                              StandardOpenOption.CREATE,
                                              StandardOpenOption.TRUNCATE_EXISTING,
-                                             StandardOpenOption.WRITE);) {           
+                                             StandardOpenOption.WRITE)) {
             writer.write(pid);
             writer.flush();
         } catch (IOException e) {

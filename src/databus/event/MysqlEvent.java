@@ -4,13 +4,13 @@ import databus.core.Event;
 
 public interface MysqlEvent extends Event{   
     
-    static public enum Type {
+    enum Type {
         INSERT, UPDATE, DELETE        
     }
     
-    public long serverId();
+    long serverId();
     
-    public String database();
+    String database();
     
-    public String table();  
+    String table();
 }
