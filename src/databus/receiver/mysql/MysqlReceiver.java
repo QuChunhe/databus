@@ -4,8 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Pattern;
-
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSourceFactory;
@@ -62,16 +60,7 @@ public abstract class MysqlReceiver implements Receiver{
         
         return properties;
     }
-    
-    protected String quoteReplacement(String message) {
-        String replace = BSLASH_PATTERN.matcher(message).replaceAll("\\\\\\\\");
-        replace = QUOTE_PATTERN.matcher(replace).replaceAll("\\\\'");
-        return replace;
-    }
-    
-    protected final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
-    protected final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
-    
+
     private static Log log = LogFactory.getLog(MysqlReceiver.class);
     
     private DataSource dataSource = null;

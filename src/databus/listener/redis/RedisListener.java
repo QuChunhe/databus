@@ -12,7 +12,7 @@ import redis.clients.jedis.Jedis;
 public abstract class RedisListener extends RunnableListener {
 
     public RedisListener(String name) {
-        super(name);
+        super();
     }
     
     public RedisListener() {

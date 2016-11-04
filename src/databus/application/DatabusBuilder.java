@@ -77,7 +77,7 @@ public class DatabusBuilder {
                 publisher.addListener(listener);
                 listener.start();
             } else {
-                log.error("Can't instantiate Listener : " + c.toString());
+                log.error("Can not instantiate Listener : " + c.toString());
             }
         }
     }
@@ -93,7 +93,7 @@ public class DatabusBuilder {
                     subscriber.register(topic, receiver);
                 }
             } else {
-                log.error("Can't instantiate Receiver: " + sc.toString());
+                log.error("Can not instantiate Receiver: " + sc.toString());
                 System.exit(1);
             }
         }

@@ -107,7 +107,7 @@ public class MysqlReplication extends MysqlReceiver{
                 builder.append("NULL");
             } else {
                 builder.append("'");
-                builder.append(quoteReplacement(column.value()));
+                builder.append(MysqlHelper.quoteReplacement(column.value()));
                 builder.append("'");
             }
         } else {
