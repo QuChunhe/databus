@@ -7,7 +7,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -28,10 +27,6 @@ public class Helper {
         ip |= Byte.toUnsignedLong(parts[3]);
      
         return ip;
-    }
-    
-    public static long id(long unixTime, int serviceId) {
-        return (unixTime << 32) | ((serviceId & serviceIdMask) << 22) | rand();
     }
 
     public static String replaceEscapeString(String sql) {
@@ -56,7 +51,8 @@ public class Helper {
             }
             InetAddress inetAddress = InetAddress.getByName(parts[0]);
             normalizedAddress = inetAddress.getHostAddress() + ":" + port;
-        } catch(Exception e) {                
+        } catch(Exception e) {
+            // do nothing
         }
         return normalizedAddress;        
     }
@@ -84,19 +80,12 @@ public class Helper {
             }
             executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 
                                               30, TimeUnit.SECONDS, 
-                                              new ArrayBlockingQueue<Runnable>(taskCapacity),
+                                              new ArrayBlockingQueue<>(taskCapacity),
                                               Executors.defaultThreadFactory(),
                                               new CallerWaitsPolicy());
         }
         return executor;
-}
-    
-    private static int rand() {
-        return ThreadLocalRandom.current().nextInt(randomBound);
     }
-    
-    private static int randomBound = 1 << 22;
-    private static int serviceIdMask = (1 << 10) - 1;
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
