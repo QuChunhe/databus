@@ -8,25 +8,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Id {
 
     public Id() {
-        this(0);
+        this(0, 22);
     }
 
-    public Id(int initialValue) {
-        id = new AtomicInteger(initialValue);
+    public Id(int initialValue, int bits) {
+        autoIncrementId = new AtomicInteger(initialValue);
+        BITS = (bits>31) || (bits<1) ? 22 : bits;
+        ID_BOUND = (1 << BITS) - 1;
+        SERVICE_ID_MASK = (1 << (32 - BITS)) - 1;
     }
 
     public long next(long unixTime, int serviceId) {
-        return (unixTime << 32) | ((serviceId & SERVICE_ID_MASK) << 22) | next();
+        return (unixTime << 32) | ((serviceId & SERVICE_ID_MASK) << BITS) | next();
     }
 
     private int next() {
         int currentId;
         do {
-            currentId = id.getAndIncrement();
+            currentId = autoIncrementId.getAndIncrement();
             if (currentId > ID_BOUND) {
                 synchronized (lock) {
-                    if (id.get() > ID_BOUND) {
-                        id.set(0);
+                    if (autoIncrementId.get() > ID_BOUND) {
+                        autoIncrementId.set(0);
                     }
                 }
             }
@@ -35,9 +38,10 @@ public class Id {
         return currentId;
     }
 
-    private final static int ID_BOUND = (1 << 22) - 1;
-    private final static int SERVICE_ID_MASK = (1 << 10) - 1;
+    private final int BITS;
+    private final int ID_BOUND;
+    private final int SERVICE_ID_MASK;
 
-    private final AtomicInteger id;
+    private final AtomicInteger autoIncrementId;
     private final Object lock = new Object();
 }
