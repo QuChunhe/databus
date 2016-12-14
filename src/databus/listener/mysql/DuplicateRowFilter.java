@@ -49,12 +49,16 @@ public class DuplicateRowFilter implements EventFilter {
     }
     
     @Override
-    public boolean doesReject(Event event) {
+    public Event process(Event event) {
         log.info(cache.toString());
         if (event instanceof MysqlWriteRow) {
-            return existAndRemoveIfZero((MysqlWriteRow) event);
+            if (existAndRemoveIfZero((MysqlWriteRow) event)) {
+                return null;
+            } else {
+                return event;
+            }
         }
-        return false;
+        return event;
     }
 
     public void putIfAbsentOrIncrementIfPresent(MysqlWriteRow event) {

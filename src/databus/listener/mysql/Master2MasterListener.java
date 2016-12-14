@@ -16,7 +16,7 @@ public class Master2MasterListener extends MysqlListener {
 
     @Override
     public void onEvent(Event event) {
-        if (filter.doesReject(event)) {
+        if (null == filter.process(event)) {
             log.info("REJECT: " + event.toString());
         } else {
             super.onEvent(event);
