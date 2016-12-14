@@ -86,6 +86,11 @@ public class Helper {
         }
         return executor;
     }
+
+    public static String substring(String string, String splitter) {
+        int position = string.indexOf(splitter);
+        return position<0 ? null : string.substring(position+splitter.length());
+    }
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
