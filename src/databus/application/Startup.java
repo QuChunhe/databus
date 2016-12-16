@@ -28,7 +28,7 @@ public class Startup {
         }
     }
 
-    public static String getPid() {
+    protected static String getPid() {
         String runtimeBean = ManagementFactory.getRuntimeMXBean().getName();
         if (null == runtimeBean) {
             return null;            
@@ -42,7 +42,7 @@ public class Startup {
         return parts[0];
     }
     
-    public static void savePid(String fileName) {
+    protected static void savePid(String fileName) {
         String pid = getPid();
         if (null == pid) {
             log.error("Can't get pid");
@@ -62,11 +62,11 @@ public class Startup {
         }
     }
     
-    public static void addShutdownHook(Stoppable hook) {
+    protected static void addShutdownHook(Stoppable hook) {
         hooks.add(hook);
     }
 
-    public static void waitUntilSIGTERM() {
+    protected static void waitUntilSIGTERM() {
         if (hooks.size() == 0) {
             log.error("Hasn't hook to wait!");
             return;
