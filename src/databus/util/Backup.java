@@ -57,7 +57,7 @@ public class Backup {
         id = id.replace('.', '_')
                .replace('/', '-')
                .replace(':', '-');
-        return BACKUP_DIR_NAME + Helper.toAlias(id) + "_backup.data";
+        return BACKUP_DIR_NAME + id + "_backup.data";
     }
     
     private static final String BACKUP_DIR_NAME = "data/";
