@@ -20,7 +20,7 @@ public class NettyPublisher extends AbstractPublisher {
         subscribersMap = new ConcurrentHashMap<String, Set<SocketAddress>>();
     }
     
-    @Override
+
     public void initialize(Properties properties) {        
         int threadPoolSize = Integer.parseInt(properties.getProperty("netty.threadPoolSize")); 
         int connectionsPerThread 

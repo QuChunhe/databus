@@ -16,7 +16,6 @@ public abstract class RestartableListener extends AbstractListener implements Re
     }
     
     public RestartableListener() {
-        this(null);        
     }
 
     @Override
@@ -57,12 +56,12 @@ public abstract class RestartableListener extends AbstractListener implements Re
         }
     }
 
-    final private static long TEN_SECONDS = 10000L;
-    
-    private static Log log = LogFactory.getLog(RestartableListener.class);
-    private static Deque<Restartable> listeners = new ConcurrentLinkedDeque<>();
+    private final static long TEN_SECONDS = 10000L;
+    private final static Log log = LogFactory.getLog(RestartableListener.class);
+    private final static Deque<Restartable> listeners = new ConcurrentLinkedDeque<>();
+    private final static  Object lock = new Object();
+
     private static Thread monitor = null;
-    private static final Object lock = new Object();
     
     private static class RunningMonitor implements Runnable {
 

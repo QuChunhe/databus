@@ -1,11 +1,8 @@
 package databus.network.kafka;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
-import databus.network.AbstractPublisher;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.producer.Callback;
@@ -16,6 +13,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import databus.core.Event;
 import databus.network.JsonEventParser;
 import databus.util.Helper;
+import databus.network.AbstractPublisher;
 
 public class KafkaPublisher extends AbstractPublisher {
 
@@ -23,23 +21,13 @@ public class KafkaPublisher extends AbstractPublisher {
         super();
     }
 
-    @Override
-    public void initialize(Properties properties) {
-        String kafkaServerValue = properties.getProperty("kafka.server").trim();
-        String kafkaServer = Helper.normalizeSocketAddress(kafkaServerValue);
-        if (null == kafkaServer) {
-            log.error("kafka.server has illegal value "+kafkaServerValue);
-            System.exit(1);
-        }
-        String acks = properties.getProperty("kafka.acks", "1");               
-        Map<String, Object> config = new HashMap<>(6);
-        config.put("bootstrap.servers", kafkaServer);
-        config.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
-        config.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        config.put("compression.type", "gzip");
-        config.put("acks", acks);
-        config.put("max.block.ms", 60000);
-        producer = new KafkaProducer<>(config);
+    public void setConfigFileName(String configFileName) {
+        Properties properties = Helper.loadProperties(configFileName);
+        properties.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
+        properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("compression.type", "gzip");
+
+        producer = new KafkaProducer<>(properties);
     }
 
     @Override
@@ -58,11 +46,10 @@ public class KafkaPublisher extends AbstractPublisher {
         super.stop();
         producer.close();        
     }
-    
-    private static final Pattern SPECIAL_CHARACTER = Pattern.compile("_|:|/|\\.");
-    
-    private static Log log = LogFactory.getLog(KafkaPublisher.class);
-    private static JsonEventParser eventParser = new JsonEventParser();
+
+    private final static Log log = LogFactory.getLog(KafkaPublisher.class);
+    private final static Pattern SPECIAL_CHARACTER = Pattern.compile("_|:|/|\\.");
+    private final static JsonEventParser eventParser = new JsonEventParser();
     
     private KafkaProducer<Long, String> producer;
 

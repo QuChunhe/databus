@@ -1,6 +1,6 @@
 package databus.receiver;
 
-import java.util.Properties;
+import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,11 +14,10 @@ public class DefaultReceiver implements Receiver{
     public void receive(Event event) {
         log.info(event.toString());        
     }
-    
+
     @Override
-    public void initialize(Properties properties) {
-        log.info(properties.toString());
+    public void close() throws IOException {
     }
 
-    private Log log = LogFactory.getLog(DefaultReceiver.class);
+    private final static Log log = LogFactory.getLog(DefaultReceiver.class);
 }

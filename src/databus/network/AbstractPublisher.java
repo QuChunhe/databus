@@ -1,10 +1,13 @@
 package databus.network;
 
-import databus.core.Listener;
-import databus.core.Publisher;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import databus.core.Listener;
+import databus.core.Publisher;
 
 /**
  * Created by Qu Chunhe on 2016-10-27.
@@ -12,13 +15,12 @@ import java.util.Set;
 public abstract class AbstractPublisher implements Publisher {
 
     public AbstractPublisher() {
-        listenerSet = new HashSet<Listener>();
+        listenerSet = new HashSet<>();
     }
 
     @Override
     public void addListener(Listener listener) {
         listenerSet.add(listener);
-        listener.setPublisher(this);
     }
 
     @Override
@@ -30,11 +32,30 @@ public abstract class AbstractPublisher implements Publisher {
 
     @Override
     public void join() throws InterruptedException {
+        int count = 0;
         for(Listener listener : listenerSet) {
-            listener.join();
+            try {
+                listener.join();
+            } catch (InterruptedException e) {
+                log.error(listener.getClass().getName()+" has been interrupted!", e);
+                count++;
+            }
+        }
+        if (count > 0) {
+            throw new InterruptedException(count+" listeners in total "+listenerSet.size()+
+                                           " has been interrupted!");
         }
     }
 
-    private Set<Listener> listenerSet;
+    @Override
+    public void start() {
+        for(Listener l : listenerSet) {
+            l.start();
+        }
+    }
+
+    private final static Log log = LogFactory.getLog(AbstractPublisher.class);
+
+    private final Set<Listener> listenerSet;
 
 }

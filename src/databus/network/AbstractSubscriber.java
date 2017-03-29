@@ -1,31 +1,25 @@
 package databus.network;
 
-import java.io.Closeable;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import databus.core.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.util.Helper;
+import databus.core.*;
 
 public abstract class AbstractSubscriber  implements Subscriber {
     
     public AbstractSubscriber() {
         receiversMap = new ConcurrentHashMap<>();
-    }    
-
-    @Override
-    public void initialize(Properties properties) {
-        executor = Helper.loadExecutor(properties, 0);        
     }
 
     @Override
@@ -35,13 +29,17 @@ public abstract class AbstractSubscriber  implements Subscriber {
 
     @Override
     public void start() {
+        if (coreThreadPoolSize > 0) {
+            executor = Helper.loadExecutor(coreThreadPoolSize, maxThreadPoolSize,
+                                           keepAliveSeconds, taskQueueCapacity);
+        }
         for(Receiver receiver : getReceiverSet()) {
             if (receiver instanceof Startable) {
                 ((Startable) receiver).start();
             }
         }
 
-        holder = new ThreadHolder(createTransporters());
+        holder = new RunnerHolder(createTransporters());
         holder.start();   
     }
 
@@ -64,12 +62,10 @@ public abstract class AbstractSubscriber  implements Subscriber {
         }
 
         for(Receiver receiver : getReceiverSet()) {
-            if (receiver instanceof Closeable) {
-                try {
-                    ((Closeable) receiver).close();
-                } catch (IOException e) {
-                    log.error("Can not close "+receiver.getClass().getName(), e);
-                }
+            try {
+                receiver.close();
+            } catch (IOException e) {
+                log.error("Can not close "+receiver.getClass().getName(), e);
             }
         }
     }
@@ -83,11 +79,36 @@ public abstract class AbstractSubscriber  implements Subscriber {
         }
         receiversSet.add(receiver);        
     }
-    
+
     public boolean receive(Event event) {
         return receive(event.topic(), event);
     }
-    
+
+    public void setCoreThreadPoolSize(int coreThreadPoolSize) {
+        this.coreThreadPoolSize = coreThreadPoolSize;
+    }
+
+    public void setMaxThreadPoolSize(int maxThreadPoolSize) {
+        this.maxThreadPoolSize = maxThreadPoolSize;
+    }
+
+    public void setKeepAliveSeconds(long keepAliveSeconds) {
+        this.keepAliveSeconds = keepAliveSeconds;
+    }
+
+    public void setTaskQueueCapacity(int taskQueueCapacity) {
+        this.taskQueueCapacity = taskQueueCapacity;
+    }
+
+    public void setReceiversMap(Map<String, Collection<Receiver>> receiversMap) {
+        for (Map.Entry entry : receiversMap.entrySet()) {
+            String topic = (String) entry.getKey();
+            for (Receiver r : (Collection<Receiver>) entry.getValue()) {
+                register(topic, r);
+            }
+        }
+    }
+
     protected boolean receive(String topic, Event event) {
         Set<Receiver> receiversSet = receiversMap.get(topic);
         if ((null==receiversSet) || (receiversSet.size()==0)){
@@ -98,10 +119,10 @@ public abstract class AbstractSubscriber  implements Subscriber {
         }
         return true;
     }
+
+    protected abstract Transporter[] createTransporters();
     
-    protected abstract Runner[] createTransporters();
-    
-    private void receive(Set<Receiver> receiversSet, Event event) {
+    private void receive(Set<Receiver> receiversSet, final Event event) {
         if (null == receiversSet) {
             return;
         }
@@ -137,10 +158,14 @@ public abstract class AbstractSubscriber  implements Subscriber {
         return receiverSet;
     }
     
-    protected Map<String, Set<Receiver>> receiversMap;
+    protected final Map<String, Set<Receiver>> receiversMap;
     
-    private static Log log = LogFactory.getLog(AbstractSubscriber.class);  
+    private final static Log log = LogFactory.getLog(AbstractSubscriber.class);
     
-    private ThreadHolder holder = null;
+    private RunnerHolder holder = null;
     private ExecutorService executor = null;
+    private int coreThreadPoolSize = 0;
+    private int maxThreadPoolSize = 5;
+    private long keepAliveSeconds = 60;
+    private int taskQueueCapacity = 2;
 }

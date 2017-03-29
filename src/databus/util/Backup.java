@@ -9,13 +9,6 @@ import org.apache.commons.logging.LogFactory;
 public class Backup {
     
     public static Backup instance() {
-        if (null == instance) {
-            synchronized(Backup.class) {
-                if (null == instance) {
-                    instance = new Backup();
-                }
-            }
-        }
         return instance;
     }    
  
@@ -59,15 +52,14 @@ public class Backup {
                .replace(':', '-');
         return BACKUP_DIR_NAME + id + "_backup.data";
     }
-    
-    private static final String BACKUP_DIR_NAME = "data/";
-            
-    private static Log log = LogFactory.getLog(Backup.class);    
-    private static Backup instance = null;    
-    
+
     private Backup() {
         recordCaches = new ConcurrentHashMap<>();
     }
-    
-    private Map<String, RecordCache> recordCaches;
+
+    private final static  String BACKUP_DIR_NAME = "data/";
+    private final static Log log = LogFactory.getLog(Backup.class);
+    private final static Backup instance = new Backup();
+
+    private final Map<String, RecordCache> recordCaches;
 }

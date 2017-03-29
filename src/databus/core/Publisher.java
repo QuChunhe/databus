@@ -1,6 +1,6 @@
 package databus.core;
 
-public interface Publisher extends Initializable, Stoppable, Joinable {
+public interface Publisher extends Endpoint {
     
     void publish(Event event);
 

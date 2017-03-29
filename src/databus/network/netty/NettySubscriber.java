@@ -10,6 +10,7 @@ import java.net.SocketAddress;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import databus.network.Transporter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,7 +39,7 @@ public class NettySubscriber extends AbstractSubscriber {
         super();
     }
     
-    @Override
+
     public void initialize(Properties properties) {
         String rawHost = properties.getProperty("netty.host");
         String[] parts = rawHost.split(":");
@@ -61,8 +62,8 @@ public class NettySubscriber extends AbstractSubscriber {
     }
 
     @Override
-    protected Runner[] createTransporters() {
-        return new Runner[] {new ListeningRunner()};
+    protected Transporter[] createTransporters() {
+        return new Transporter[] {new ListeningRunner()};
     } 
 
     private static Log log = LogFactory.getLog(NettySubscriber.class);
@@ -76,7 +77,7 @@ public class NettySubscriber extends AbstractSubscriber {
     private StringDecoder stringDecoder = new StringDecoder(CharsetUtil.UTF_8);
     private Channel listeningChannel;
     
-    private class ListeningRunner implements Runner {
+    private class ListeningRunner implements Transporter {
 
         @Override
         public void initialize() {

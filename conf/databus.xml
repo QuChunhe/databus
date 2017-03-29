@@ -1,88 +1,41 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+                       "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+<beans>
+    <import resource="mysql_listener.xml" />
+    <import resource="mysql_replication_receiver.xml" />
+    <import resource="redis_receiver4mysql.xml" />
 
-<configuration>
+    <bean id="startup" class="databus.application.Startup" scope="singleton">
+        <property name="endpoints" >
+            <list>
+                <ref bean="publisher"/>
+                <ref bean="subscriber"/>
+            </list>
+        </property>
+    </bean>
 
-<publisher> 
-    <class>databus.network.kafka.KafkaPublisher</class>
-    <kafka>
-        <server>127.0.0.1:9092</server>
-        <acks>1</acks>        
-    </kafka>
+    <bean id="publisher" class="databus.network.kafka.KafkaPublisher" scope="singleton">
+        <property name="configFileName" value="conf/kafka_publisher.properties"/>
+    </bean>
 
-    <listener>
-        <class>databus.listener.mysql.MysqlListener</class>
-        <mysql>
-            <host>127.0.0.1</host>
-            <port>3306</port>
-            <user>root</user>
-            <password>quchunhe</password>
-            <serverId>3</serverId>
-            <permittedTables>test.user</permittedTables>
-            <binlogFileName>master-bin.000096</binlogFileName>
-            <position>2134</position>
-        </mysql>
-        <topic>test/mysql</topic>
-<!--
-        <filter>
-            <class>databus.listener.mysql.IdModulusMysqlRowFilter</class>
-            <id>1/3</id>
-            <ignoredTables>test.user</ignoredTables>            
-        </filter>
+    <bean id="subscriber" class="databus.network.kafka.KafkaSubscriber" scope="singleton">
+        <property name="receiversMap">
+            <map>
+                <entry key="127.0.0.1:9092/test/mysql">
+                    <list>
+                        <ref bean="mysqlReceiver" />
+                        <ref bean="redisReceiver" />
+                    </list>
+                </entry>
+            </map>
+        </property>
+        <property name="configFileName" value="conf/kafka_subscriber.properties"/>
+        <property name="coreThreadPoolSize" value="2"/>
+        <property name="maxThreadPoolSize" value="7"/>
+        <property name="keepAliveSeconds" value="60"/>
+        <property name="taskQueueCapacity" value="2"/>
+    </bean>
 
-        <filter>
-            <class>databus.listener.mysql.DuplicateMysqlRowFilter</class>
-            <expireAfterWrite>600</expireAfterWrite>
-            <expireAfterAccess>1</expireAfterAccess>            
-        </filter>
--->
-    </listener> 
-</publisher>
 
-<subscriber>
-    <class>databus.network.kafka.KafkaSubscriber</class>
-    <maxWorkerThreadPoolSize>6</maxWorkerThreadPoolSize>
-    <taskCapacity>100</taskCapacity>
-    <kafka>
-        <consumerConfig>conf/kafka_consumer.properties</consumerConfig>
-        <pollingTimeout>2000</pollingTimeout>
-        <writePerFlush>1</writePerFlush>        
-    </kafka> 
-  
-    <receiver>
-        <class>databus.receiver.redis.RedisSlave4Mysql</class>
-        <remoteTopic>127.0.0.1:9092/test/mysql</remoteTopic>
-        <redis>
-            <host>127.0.0.1</host>
-            <port>6379</port>
-            <timeout>400</timeout>
-            <maxTotal>10</maxTotal>
-            <maxIdle>3</maxIdle>
-            <minIdle>1</minIdle>
-        </redis>
-       <system>adm</system>
-       <replicatedTables>
-         <user>id3,id1,id2, age, position, salary, time1, time2</user>
-         <book>name, isdn, author</book>
-       </replicatedTables>
-    </receiver>
-
-    <receiver>
-        <class>databus.receiver.mysql.MysqlReplication</class>
-        <remoteTopic>127.0.0.1:9092/test/mysql</remoteTopic>
-        <mysql>
-            <url>jdbc:mysql://127.0.0.1:3306/test2</url>
-            <username>root</username>
-            <password>quchunhe</password>
-            <driverClassName>com.mysql.jdbc.Driver</driverClassName>
-            <initialSize>1</initialSize>
-            <maxActive>10</maxActive>
-            <maxIdle>5</maxIdle>
-            <minIdle>0</minIdle>
-            <maxWait>50000</maxWait>
-            <defaultAutoCommit>true</defaultAutoCommit>
-            <connectionProperties>useUnicode=true;characterEncoding=UTF-8</connectionProperties>
-        </mysql>
-    </receiver> 
-</subscriber>
-
-</configuration>
+</beans>

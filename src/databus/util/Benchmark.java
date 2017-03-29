@@ -1,6 +1,5 @@
 package databus.util;
 
-
 /**
  * Created by Qu Chunhe on 2016-10-31.
  */

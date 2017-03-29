@@ -7,36 +7,23 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Event;
-import databus.core.Receiver;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-public abstract class RedisReceiver implements Receiver, Closeable {
+import databus.core.Event;
+import databus.core.Receiver;
+import databus.util.Helper;
+
+public abstract class RedisReceiver implements Receiver {
     
     public RedisReceiver() {
         super();
     }
 
-    @Override
-    public void initialize(Properties properties) {
-        String host = properties.getProperty("redis.host", "127.0.0.1");
-        int port = Integer.parseInt(properties.getProperty("redis.port", "6379"));
-        int timeout = Integer.parseInt(properties.getProperty("redis.timeout","60"));
-        String password = properties.getProperty("redis.password");
-        int database = Integer.parseInt(properties.getProperty("redis.database","0"));
-        int maxTotal = Integer.parseInt(properties.getProperty("redis.maxTotal","5"));
-        int maxIdle = Integer.parseInt(properties.getProperty("redis.maxIdle","3"));
-        int minIdle = Integer.parseInt(properties.getProperty("redis.minIdle","0"));
-        
-        JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxTotal(maxTotal);
-        config.setMaxIdle(maxIdle);
-        config.setMinIdle(minIdle);
-        
-        jedisPool = new JedisPool(config, host, port, timeout, password, database);        
-    }    
+    public void setConfigFileName(String configFileName) {
+        initialize(Helper.loadProperties(configFileName));
+    }
 
     @Override
     public void receive(Event event) {
@@ -53,8 +40,26 @@ public abstract class RedisReceiver implements Receiver, Closeable {
     }
 
     abstract protected void receive(Jedis jedis, Event event);
-    
-    private static Log log = LogFactory.getLog(RedisReceiver.class);
+
+    private void initialize(Properties properties) {
+        String host = properties.getProperty("host", "127.0.0.1");
+        int port = Integer.parseInt(properties.getProperty("port", "6379"));
+        int timeout = Integer.parseInt(properties.getProperty("timeout","60"));
+        String password = properties.getProperty("password");
+        int database = Integer.parseInt(properties.getProperty("database","0"));
+        int maxTotal = Integer.parseInt(properties.getProperty("maxTotal","5"));
+        int maxIdle = Integer.parseInt(properties.getProperty("maxIdle","3"));
+        int minIdle = Integer.parseInt(properties.getProperty("minIdle","0"));
+
+        JedisPoolConfig config = new JedisPoolConfig();
+        config.setMaxTotal(maxTotal);
+        config.setMaxIdle(maxIdle);
+        config.setMinIdle(minIdle);
+
+        jedisPool = new JedisPool(config, host, port, timeout, password, database);
+    }
+
+    private final static Log log = LogFactory.getLog(RedisReceiver.class);
     
     private JedisPool jedisPool;
 }

@@ -15,7 +15,7 @@ public class InetTopic {
         this(InetAddress.getByName(hostName), topic);
     }
 
-    public InetAddress iAddress() {
+    public InetAddress ipAddress() {
         return ipAddress;
     }
     

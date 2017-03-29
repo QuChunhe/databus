@@ -4,20 +4,22 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Joinable;
-import databus.core.Stoppable;
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
+import databus.core.Endpoint;
 
 public class Startup {
 
@@ -28,24 +30,43 @@ public class Startup {
         }
     }
 
-    protected static String getPid() {
-        String runtimeBean = ManagementFactory.getRuntimeMXBean().getName();
+    public void addEndpoint(Endpoint hook) {
+        endpoints.add(hook);
+    }
+
+    public void setEndpoints(Collection<Endpoint> endpoints) {
+        this.endpoints = new CopyOnWriteArrayList<>(endpoints);
+    }
+
+    public void run(String pidFileName) {
+        log.info("********************Databus Will Begin!**************************************");
+        savePid(pidFileName);
+
+        for (Endpoint e : endpoints) {
+            e.start();
+        }
+
+        registerSigTermMHander();
+        waitUntilSigTerm();
+        log.info("********************Databus Will End!****************************************");
+    }
+
+    private String getPid() {
+        RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
         if (null == runtimeBean) {
             return null;            
         }
-
-        String[] parts = ManagementFactory.getRuntimeMXBean().getName().split("@");
+        String[] parts = runtimeBean.getName().split("@");
         if (parts.length < 2) {
             return null;
         }
-        
         return parts[0];
     }
     
-    protected static void savePid(String fileName) {
+    private void savePid(String fileName) {
         String pid = getPid();
         if (null == pid) {
-            log.error("Can't get pid");
+            log.error("Can not get pid!");
             return;
         }
         
@@ -58,30 +79,20 @@ public class Startup {
             writer.write(pid);
             writer.flush();
         } catch (IOException e) {
-            log.error("Can't write "+fileName, e);
+            log.error("Can not write "+fileName, e);
         }
     }
-    
-    protected static void addShutdownHook(Stoppable hook) {
-        hooks.add(hook);
-    }
 
-    protected static void waitUntilSIGTERM() {
-        if (hooks.size() == 0) {
-            log.error("Hasn't hook to wait!");
+    private void waitUntilSigTerm() {
+        if (endpoints.size() == 0) {
+            log.error("Has not hook to wait!");
             return;
         }
         while (isRunning) {
             try {
-                for(Stoppable s : hooks) {
-                    if(s instanceof Joinable) {
-                        ((Joinable) s).join();
-                        log.info(s.getClass().getName() +" has finished!");
-                    } else {
-                        log.info(s.getClass().getName()+" isn't Joinable");
-                        long TEN_SECONDS = 10000;
-                        Thread.sleep(TEN_SECONDS);
-                    }
+                for(Endpoint e : endpoints) {
+                    e.join();
+                    log.error(e.getClass().getName()+" has stop!");
                 }
             } catch (InterruptedException e) {
                 log.warn(Thread.currentThread().getName()+" is interrupted!");
@@ -89,26 +100,25 @@ public class Startup {
         }
     }        
     
-    static {
-        mainThread = Thread.currentThread();
+    private void registerSigTermMHander() {
+        Thread mainThread = Thread.currentThread();
         Signal.handle(new Signal("TERM"), new SignalHandler() {
             @Override
             public void handle(Signal arg0) {
                 log.info("Receiving SIGTERM");
                 isRunning = false;
-                for(Stoppable s : hooks) {
-                    s.stop();
-                    log.info("Has stopped "+s.getClass().getName());
+                for(Endpoint e: endpoints) {
+                    e.stop();
+                    log.info("Has stopped "+e.getClass().getName());
                 }
-                log.info("All hooks has been stopped!");                
+                log.info("All endpoints has been stopped!");
                 mainThread.interrupt();
             }            
         });
     } 
     
-    private static Log log = LogFactory.getLog(Startup.class);
+    private final static Log log = LogFactory.getLog(Startup.class);
     
-    private static List<Stoppable> hooks = new CopyOnWriteArrayList<>();
-    private static volatile boolean isRunning = true;
-    private static Thread mainThread;
+    private List<Endpoint> endpoints = new CopyOnWriteArrayList<>();
+    private volatile boolean isRunning = true;
 }

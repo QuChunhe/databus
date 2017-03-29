@@ -27,7 +27,6 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
 
     public DatabusBinlogEventListener(MysqlListener listener) {
         this.listener = listener;
-        preTableMapEvent = null;
     }
 
     @Override
@@ -74,7 +73,7 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
             return;
         }
         if (preTableMapEvent.getTableId() != currentEvent.getTableId()) {
-            log.error("Current event isn't consistend with TableMapEvent : "+
+            log.error("Current event isn't consistent with TableMapEvent : "+
                     preTableMapEvent.toString()+" ; "+currentEvent.toString());
             return;
         }
@@ -137,9 +136,9 @@ public class DatabusBinlogEventListener implements BinlogEventListener {
         preTableMapEvent = tableMapEvent;
     }
 
-    private static Log log = LogFactory.getLog(DatabusBinlogEventListener.class);
+    private final static Log log = LogFactory.getLog(DatabusBinlogEventListener.class);
     
-    private TableMapEvent preTableMapEvent;
-    private MysqlListener listener;
+    private TableMapEvent preTableMapEvent = null;
+    private final MysqlListener listener ;
     
 }

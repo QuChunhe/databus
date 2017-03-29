@@ -6,35 +6,33 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public final class ThreadHolder implements Startable, Stoppable, Joinable {    
+public final class RunnerHolder implements Startable, Stoppable, Joinable {
     
-    public ThreadHolder(Runner... runners) {
+    public RunnerHolder(Runner... runners) {
         threads = new RunnerThread[runners.length];
         for(int i=0; i<threads.length; i++) {
-            threads[i] = new RunnerThread(runners[i], runners[i].getClass().getName()+"-"+i);
+            threads[i] = new RunnerThread(runners[i], i+"-"+runners[i].getClass().getName());
         }
     }
     
-    public ThreadHolder(Collection<Runner> runners) {
+    public RunnerHolder(Collection<Runner> runners) {
         this(runners.toArray(new Runner[runners.size()]));
     }
 
     @Override
     public void join() throws InterruptedException {
-        StringBuilder builder = new StringBuilder();
+        int count = 0;
         for(RunnerThread t : threads) {
             try {
                 t.join();
             } catch (InterruptedException e) {
-                String message = e.getMessage();
-                if (builder.length() > 0) {
-                    message += "\n";
-                }
-                builder.append(message);
+                log.error(t.getClass().getName()+" has finished!", e);
+                count++;
             }
         }
-        if (builder.length() > 0) {
-            throw new InterruptedException(builder.toString());
+        if (count > 0) {
+            throw new InterruptedException(count+" runners in total "+threads.length+
+                                           " are interrupted!");
         }        
     }
 
@@ -48,7 +46,7 @@ public final class ThreadHolder implements Startable, Stoppable, Joinable {
             log.info(t.getRunner().getClass().getName()+" will stop");
             t.getRunner().stop(t);
             if (t.isAlive()) {
-                log.info(t.getRunner().getClass().getName()+" hasn't stopped!");                
+                log.info(t.getRunner().getClass().getName()+" has not stopped!");
             } else {
                 log.info(t.getRunner().getClass().getName()+" has finished!");
             }
@@ -70,10 +68,10 @@ public final class ThreadHolder implements Startable, Stoppable, Joinable {
         }
     }
     
-    private static Log log = LogFactory.getLog(ThreadHolder.class);
+    private final static Log log = LogFactory.getLog(RunnerHolder.class);
     
-    private AtomicBoolean doesRun = new AtomicBoolean(false);
-    private RunnerThread[] threads;
+    private final AtomicBoolean doesRun = new AtomicBoolean(false);
+    private final RunnerThread[] threads;
     
     private class RunnerThread extends Thread {
         

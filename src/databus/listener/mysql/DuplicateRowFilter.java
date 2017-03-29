@@ -33,17 +33,11 @@ public class DuplicateRowFilter implements EventFilter {
         filteredTableSet = new HashSet<>();
     }
 
-    @Override
-    public void initialize(Properties properties) {
-        String writeExpireTimeValue = properties.getProperty("expireAfterWrite");
-        long writeExpireTime = 600;
-        if (null != writeExpireTimeValue) {
-            writeExpireTime = Long.parseUnsignedLong(writeExpireTimeValue);
-        }
+    public void initialize() {
         Cache<String, AtomicInteger>
                  factory = CacheBuilder.newBuilder()
                                        .softValues()       
-                                       .expireAfterWrite(writeExpireTime, TimeUnit.SECONDS)
+                                       .expireAfterWrite(expireSecondsAfterWrite, TimeUnit.SECONDS)
                                        .build();
         cache = factory.asMap();
     }
@@ -110,7 +104,7 @@ public class DuplicateRowFilter implements EventFilter {
                                                                           .toString())));
             }
         } catch (IOException e) {
-            log.error("Can't load cache data from "+ backupFileName, e);
+            log.error("Can not load cache data from "+ backupFileName, e);
         }
     }
 
@@ -120,6 +114,10 @@ public class DuplicateRowFilter implements EventFilter {
 
     public boolean isFilteredTable(String table) {
         return filteredTableSet.contains(table);
+    }
+
+    public void setExpireSecondsAfterWrite(long expireSecondsAfterWrite) {
+        this.expireSecondsAfterWrite = expireSecondsAfterWrite;
     }
 
     @Override
@@ -172,11 +170,12 @@ public class DuplicateRowFilter implements EventFilter {
         return builder.substring(0, builder.length()-1);
     }
     
-    private static Log log = LogFactory.getLog(DuplicateRowFilter.class);
+    private final static Log log = LogFactory.getLog(DuplicateRowFilter.class);
 
     private final ColumnComparator COLUMN_COMPARATOR = new ColumnComparator();
     private final String backupFileName = "data/master2master_replication_cache_backup.data";
+    private final Set<String> filteredTableSet;
 
     private ConcurrentMap<String, AtomicInteger> cache = null;
-    private Set<String> filteredTableSet;
+    private long expireSecondsAfterWrite = 600;
 }

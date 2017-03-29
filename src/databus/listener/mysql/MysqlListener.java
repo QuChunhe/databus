@@ -20,6 +20,7 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import databus.listener.RestartableListener;
 import databus.util.Backup;
 import databus.core.Publisher;
+import databus.util.Helper;
 
 public class MysqlListener extends RestartableListener{  
     
@@ -48,7 +49,7 @@ public class MysqlListener extends RestartableListener{
             openRelicator.stop(1, TimeUnit.SECONDS);
         } catch (Exception e) {
             log.error("Can not stop successfully", e);
-            openRelicator.stopQuietly(1, TimeUnit.SECONDS);
+            openRelicator.stopQuietly(4, TimeUnit.SECONDS);
         }
         super.stop();
     }
@@ -65,47 +66,10 @@ public class MysqlListener extends RestartableListener{
             log.error("OpenRelicator throws a Exception",e);
         }
     }
-    
-    @Override
-    public void initialize(Properties properties){  
-        super.initialize(properties);
-        
-        String user = properties.getProperty("mysql.user", "root");
-        String password = properties.getProperty("mysql.password", "");
-        String host = properties.getProperty("mysql.host", "127.0.0.1");
-        int port = Integer.valueOf(properties.getProperty("mysql.port", "3306"));
-        int serverId = Integer.valueOf(properties.getProperty("mysql.serverId", "1"));
-        
-        recordedId = "MysqlListener-" + host + "-" + serverId;
-        loadBackup(properties);
-        
-        String binlogFileName = properties.getProperty("mysql.binlogFileName", "master-bin.000001");
-        int nextPosition = Integer.valueOf(properties.getProperty("mysql.position", "1"));
-        openRelicator = new DatabusOpenReplicator();
-        openRelicator.setUser(user);
-        openRelicator.setPassword(password);
-        openRelicator.setHost(host);
-        openRelicator.setPort(port);
-        openRelicator.setServerId(serverId);
-        openRelicator.setBinlogFileName(binlogFileName); 
-        openRelicator.setBinlogPosition(nextPosition);
-        openRelicator.setBinlogEventListener(new DatabusBinlogEventListener(this));
-       
-        loadPermittedTables(properties);
 
-        MysqlDataSource ds = new MysqlDataSource();
-        ds.setUser(user);
-        ds.setPassword(password);
-        ds.setServerName(host);
-        ds.setPort(port);
-        loadSchema(ds);
-        
-        
-        Backup.instance()
-              .store(recordedId, 
-                     "mysql.binlogFileName", binlogFileName,
-                     "mysql.position", Long.toString(nextPosition));
-    }    
+    public void setConfigFileName(String configFileName) {
+        initialize(Helper.loadProperties(configFileName));
+    }
     
     public boolean doesPermit(String fullTableName) {
         return permittedTableSet.contains(fullTableName);
@@ -140,13 +104,12 @@ public class MysqlListener extends RestartableListener{
     }
     
     private void loadPermittedTables(Properties config){        
-        String rawTables = config.getProperty("mysql.permittedTables");
+        String rawTables = config.getProperty("permittedTables");
         if (null == rawTables) {
-            log.error("mysql.permittedTables is null!");
+            log.error("permittedTables is null!");
             System.exit(1);
         }
         String[] tables = rawTables.split(",") ;
-        permittedTableSet = new HashSet<>();
         for(String t : tables) {
             permittedTableSet.add(t.trim().toLowerCase());
         }
@@ -159,20 +122,57 @@ public class MysqlListener extends RestartableListener{
         }
         String backupBinfileName =  backup.get("mysql.binlogFileName");
         if (null != backupBinfileName) {
-            properties.setProperty("mysql.binlogFileName", backupBinfileName);
+            properties.setProperty("binlogFileName", backupBinfileName);
         }
         String backupPosition = backup.get("mysql.position");
         if (null != backupPosition) {
-            properties.setProperty("mysql.position", backupPosition);
+            properties.setProperty("position", backupPosition);
         }
     }
-    
+
+    private void initialize(Properties properties){
+        String user = properties.getProperty("user", "root");
+        String password = properties.getProperty("password", "");
+        String host = properties.getProperty("host", "127.0.0.1");
+        int port = Integer.valueOf(properties.getProperty("port", "3306"));
+        int serverId = Integer.valueOf(properties.getProperty("serverId", "1"));
+
+        recordedId = "MysqlListener-" + host + "-" + serverId;
+        loadBackup(properties);
+
+        String binlogFileName = properties.getProperty("binlogFileName", "master-bin.000001");
+        int nextPosition = Integer.valueOf(properties.getProperty("position", "1"));
+        openRelicator = new DatabusOpenReplicator();
+        openRelicator.setUser(user);
+        openRelicator.setPassword(password);
+        openRelicator.setHost(host);
+        openRelicator.setPort(port);
+        openRelicator.setServerId(serverId);
+        openRelicator.setBinlogFileName(binlogFileName);
+        openRelicator.setBinlogPosition(nextPosition);
+        openRelicator.setBinlogEventListener(new DatabusBinlogEventListener(this));
+
+        loadPermittedTables(properties);
+
+        MysqlDataSource ds = new MysqlDataSource();
+        ds.setUser(user);
+        ds.setPassword(password);
+        ds.setServerName(host);
+        ds.setPort(port);
+        loadSchema(ds);
+
+        Backup.instance()
+              .store(recordedId,
+                     "mysql.binlogFileName", binlogFileName,
+                     "mysql.position", Long.toString(nextPosition));
+    }
+
     private void loadSchema(MysqlDataSource ds) {
         HashMap<String, Set<String>> tablesMap = new HashMap<>();
         for(String fullName : permittedTableSet) {
             String[] r = fullName.split("\\.");
             if (r.length != 2) {
-                log.error(fullName+" cannot be splitted normally");
+                log.error(fullName+" can not be split normally");
                 continue;
             }
             String databaseName = r[0].trim();
@@ -223,14 +223,15 @@ public class MysqlListener extends RestartableListener{
             }           
         } 
     }
-    
-    private static Log log = LogFactory.getLog(MysqlListener.class);
+
+    protected final Set<String> permittedTableSet = new HashSet<>();
+
+    private final static Log log = LogFactory.getLog(MysqlListener.class);
 
     private DatabusOpenReplicator openRelicator;
     private Map<String, String[]> columnsMap;
     private Map<String, ColumnAttribute[]> attributesMap;
     private Map<String, Set<String>> primaryKeysMap;
-    protected Set<String> permittedTableSet;
     
     private String recordedId;
 }

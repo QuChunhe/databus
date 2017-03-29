@@ -1,6 +1,8 @@
 package databus.core;
 
-public interface Receiver extends Initializable {    
+import java.io.Closeable;
+
+public interface Receiver extends Closeable {
     
     void receive(Event event);
 

@@ -1,8 +1,8 @@
 package databus.receiver.mysql;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Map;
 import java.util.Properties;
 import javax.sql.DataSource;
 
@@ -13,12 +13,12 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Event;
 import databus.core.Receiver;
 import databus.util.Benchmark;
+import databus.util.Helper;
 
 public abstract class MysqlReceiver implements Receiver{
-    
-    @Override
-    public void initialize(Properties properties) {
-        properties = removePrefix(properties, "mysql.");
+
+    public void setConfigFileName(String configFileName) {
+        Properties properties = Helper.loadProperties(configFileName);
         try {
             dataSource = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {
@@ -40,6 +40,10 @@ public abstract class MysqlReceiver implements Receiver{
         }
     }
 
+    @Override
+    public void close() throws IOException {
+    }
+
     /**
      * Execute MySQL commands.
      * @param conn
@@ -47,21 +51,8 @@ public abstract class MysqlReceiver implements Receiver{
      * @return sql
      */
     abstract protected String execute(Connection conn, Event event);
-    
-    protected Properties removePrefix(Properties originalProperties, String prefix) {
-        Properties properties = new Properties();
-        int prefixLength = prefix.length();
-        for(Map.Entry<Object, Object> entry : originalProperties.entrySet()) {
-            String key = entry.getKey().toString();
-            if (key.startsWith(prefix)) {
-                properties.setProperty(key.substring(prefixLength), entry.getValue().toString());
-            }
-        }
-        
-        return properties;
-    }
 
-    private static Log log = LogFactory.getLog(MysqlReceiver.class);
+    private final static Log log = LogFactory.getLog(MysqlReceiver.class);
     
     private DataSource dataSource = null;
 }

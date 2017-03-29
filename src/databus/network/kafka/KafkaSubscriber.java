@@ -1,8 +1,5 @@
 package databus.network.kafka;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,14 +16,16 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import databus.core.Event;
 import databus.core.Receiver;
-import databus.core.Runner;
 import databus.network.AbstractSubscriber;
 import databus.network.JsonEventParser;
+import databus.network.Transporter;
+import databus.util.Helper;
 
 public class KafkaSubscriber extends AbstractSubscriber {
     
     public KafkaSubscriber() {
         super();
+        serverTopicsMap = new HashMap<>();
     }
 
     @Override
@@ -51,73 +50,55 @@ public class KafkaSubscriber extends AbstractSubscriber {
         topicSet.add(normalizedTopic);
     }
 
-    @Override
-    public void initialize(Properties properties) {
-        super.initialize(properties);
-        
-        if (null != properties.getProperty("kafka.pollingTimeout")) {
-            pollingTimeout = Long.parseLong(properties.getProperty("kafka.pollingTimeout"));
-        }
-        
-        String kafkaPropertieFile = properties.getProperty("kafka.consumerConfig");
-        if (null == kafkaPropertieFile) {
-            log.error("Must configure 'consumerConfig' for 'kafka'");
-            System.exit(1);
-        }
-
-        kafkaProperties = new Properties();
-        try {
-            kafkaProperties.load(Files.newBufferedReader(Paths.get(kafkaPropertieFile)));
-            log.info(kafkaProperties.toString());
-        } catch (IOException e) {
-            log.error("Can't load properties file "+kafkaPropertieFile, e);
-            System.exit(1);
-        }
-
+    public void setConfigFileName(String configFileName) {
+        kafkaProperties = Helper.loadProperties(configFileName);
         if (null == kafkaProperties.getProperty("group.id")) {
-            kafkaProperties.setProperty("group.id", 
+            kafkaProperties.setProperty("group.id",
                                         "default-" + Math.round(Math.random()*1000000));
         }
-        kafkaProperties.setProperty("key.deserializer", 
+        kafkaProperties.setProperty("key.deserializer",
                                     "org.apache.kafka.common.serialization.LongDeserializer");
-        kafkaProperties.setProperty("value.deserializer", 
+        kafkaProperties.setProperty("value.deserializer",
                                     "org.apache.kafka.common.serialization.StringDeserializer");
-        String writePerFlushValue = properties.getProperty("kafka.writePerFlush");
-        int writePerFlush = null==writePerFlushValue ? 1 : Integer.parseInt(writePerFlushValue);
-        writePerFlush = (writePerFlush<1) ? 1 : writePerFlush;  
-        positionsCache = new PositionsCache(writePerFlush);
+    }
+
+    public void setPollingTimeout(long pollingTimeout) {
+        this.pollingTimeout = pollingTimeout;
+    }
+
+    public void setWriteNumberPerFlush(int writeNumberPerFlush) {
+        positionsCache = new PositionsCache(writeNumberPerFlush);
     }
 
     @Override
-    protected Runner[] createTransporters() {
-        Runner[] runners = new Runner[serverTopicsMap.size()];
+    protected Transporter[] createTransporters() {
+        Transporter[] transporters = new PollingTransporter[serverTopicsMap.size()];
         int i = 0;
         for(String server : serverTopicsMap.keySet()) {
-            runners[i++] = new PollingRunner(kafkaProperties, server,serverTopicsMap.get(server));
+            transporters[i++] = new PollingTransporter(server, serverTopicsMap.get(server));
         }
         //help GC
         kafkaProperties = null;
         serverTopicsMap = null;
-        return runners;
-    } 
-       
-    private static Log log = LogFactory.getLog(KafkaSubscriber.class);
-    private static JsonEventParser eventParser = new JsonEventParser(); 
-    
-    private Properties kafkaProperties;
-    private Map<String, Set<String>> serverTopicsMap = new HashMap<>();
-    private long pollingTimeout = 2000;
-    private PositionsCache positionsCache;  
-    
-   
-    private class PollingRunner implements Runner {        
+        return transporters;
+    }
 
-        public PollingRunner(Properties properties, String server, Set<String> kafkaTopics) {
-            this.properties = new Properties();
-            this.properties.putAll(properties);
-            String groupId = this.properties.getProperty("group.id");
-            this.properties.put("client.id", groupId+"-"+server.replaceAll(":", "-"));
-            this.properties.put("bootstrap.servers", server);            
+    private final static Log log = LogFactory.getLog(KafkaSubscriber.class);
+    private final static JsonEventParser eventParser = new JsonEventParser();
+    
+    private Map<String, Set<String>> serverTopicsMap;
+    private long pollingTimeout = 2000;
+    private PositionsCache positionsCache = new PositionsCache(1);
+    private Properties kafkaProperties;
+   
+    private class PollingTransporter implements Transporter {
+
+        public PollingTransporter(String server, Set<String> kafkaTopics) {
+            properties = new Properties();
+            properties.putAll(kafkaProperties);
+            String groupId = properties.getProperty("group.id");
+            properties.put("client.id", groupId+"-"+server.replaceAll(":", "-"));
+            properties.put("bootstrap.servers", server);
             this.kafkaTopics = new ArrayList<>(kafkaTopics);
             this.server = server;
             log.info(server+" "+kafkaTopics.toString());

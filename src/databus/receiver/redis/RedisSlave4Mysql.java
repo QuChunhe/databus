@@ -1,13 +1,11 @@
 package databus.receiver.redis;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
-import databus.util.Benchmark;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import redis.clients.jedis.Jedis;
 
 import databus.core.Event;
 import databus.event.mysql.AbstractMysqlWriteRow;
@@ -15,13 +13,19 @@ import databus.event.mysql.Column;
 import databus.event.mysql.MysqlDeleteRow;
 import databus.event.mysql.MysqlInsertRow;
 import databus.event.mysql.MysqlUpdateRow;
-import redis.clients.jedis.Jedis;
+import databus.util.Benchmark;
 
 public class RedisSlave4Mysql extends RedisReceiver {
 
     public RedisSlave4Mysql() {
         super();
-        tableMap = new HashMap<String, Table>();
+        tableMap = new HashMap<>();
+    }
+
+    public void setTables(Collection<Table> tables) {
+        for(Table t : tables) {
+            tableMap.put(t.name(), t);
+        }
     }
 
     @Override
@@ -55,38 +59,8 @@ public class RedisSlave4Mysql extends RedisReceiver {
                      event.toString());
         }
     }    
-    
-    @Override
-    public void initialize(Properties properties) {
-        super.initialize(properties);
-        
-        String system = properties.getProperty("system", "system");
-        for(String name : properties.stringPropertyNames()) {
-            if (name.startsWith(TABLES_PREFIX)) {
-                String tableName = name.substring(TABLES_PREFIX.length());
-                if (tableName.length() == 0) {
-                    continue;
-                }
-                Table table = new Table(system, tableName);
-                tableMap.put(tableName.toLowerCase(), table);
-                String value = properties.getProperty(name);
-                if ((null != value) && (value.length()>0)) {
-                    String[] columns = value.split(",");
-                    for(String c : columns) {
-                        String columnName = c.trim().toLowerCase();
-                        if ((null!=columnName) && (columnName.length()>0)) {
-                            table.setReplicatedColumn(columnName);
-                        }
-                    }
-                }
-            }
-        }
-        
-    }
-    
-    private static final String TABLES_PREFIX = "replicatedTables.";
 
-    private static Log log = LogFactory.getLog(RedisSlave4Mysql.class);
+    private final static Log log = LogFactory.getLog(RedisSlave4Mysql.class);
 
-    private Map<String, Table> tableMap;
+    private final Map<String, Table> tableMap;
 }

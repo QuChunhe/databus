@@ -1,7 +1,10 @@
 package databus.util;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -11,6 +14,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class Helper {
     
@@ -78,24 +84,43 @@ public class Helper {
             if (taskCapacity < 1) {
                 taskCapacity = DEFAULT_TASK_CAPACITY;
             }
-            executor = new ThreadPoolExecutor(1, maxThreadPoolSize, 
-                                              30, TimeUnit.SECONDS, 
-                                              new ArrayBlockingQueue<>(taskCapacity),
-                                              Executors.defaultThreadFactory(),
-                                              new CallerWaitsPolicy());
+            executor = loadExecutor(1, maxThreadPoolSize, 30, taskCapacity);
         }
         return executor;
+    }
+
+    public static ExecutorService loadExecutor(int corePoolSize, int maximumPoolSize,
+                                               long keepAliveSeconds, int taskQueueCapacity) {
+        return new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
+                                      keepAliveSeconds, TimeUnit.SECONDS,
+                                      new ArrayBlockingQueue<>(taskQueueCapacity),
+                                      Executors.defaultThreadFactory(),
+                                      new CallerWaitsPolicy());
     }
 
     public static String substring(String string, String splitter) {
         int position = string.indexOf(splitter);
         return position<0 ? null : string.substring(position+splitter.length());
     }
+
+    public static Properties loadProperties(String file) {
+        if ((null==file) || (file.length()==0)) {
+            log.error("Configuration file is null!");
+            System.exit(1);
+        }
+        Properties properties = new Properties();
+        try {
+            properties.load(Files.newBufferedReader(Paths.get(file)));
+        } catch (IOException e) {
+            log.error("Can not load properties file "+ file, e);
+            System.exit(1);
+        }
+        return properties;
+    }
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
-
-    private static final int DEFAULT_TASK_CAPACITY = 10;
+    private final static int DEFAULT_TASK_CAPACITY = 10;
 
     public static class CallerWaitsPolicy implements RejectedExecutionHandler {
         @Override
@@ -110,4 +135,6 @@ public class Helper {
             }
         }
     }
+
+    private final static Log log = LogFactory.getLog(Helper.class);
 }

@@ -129,5 +129,5 @@ public class MysqlReplication extends MysqlReceiver{
         return count;
     }
 
-    private static Log log = LogFactory.getLog(MysqlReplication.class);
+    private final static Log log = LogFactory.getLog(MysqlReplication.class);
 }

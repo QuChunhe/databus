@@ -1,6 +1,7 @@
 package databus.core;
 
-public interface EventFilter extends Initializable {
-    
+public interface EventFilter {
+
     Event process(Event event);
+
 }

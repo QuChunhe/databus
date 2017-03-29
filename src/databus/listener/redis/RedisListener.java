@@ -1,13 +1,12 @@
 package databus.listener.redis;
 
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import redis.clients.jedis.Jedis;
+
 import databus.event.RedisEvent;
 import databus.listener.RunnableListener;
-import redis.clients.jedis.Jedis;
 
 public abstract class RedisListener extends RunnableListener {
 
@@ -19,13 +18,16 @@ public abstract class RedisListener extends RunnableListener {
         this("RedisListener");
     }
 
-    @Override
-    public void initialize(Properties properties) {
-        super.initialize(properties);
-        
-        host = properties.getProperty("redis.host", "127.0.0.1");
-        port = Integer.parseInt(properties.getProperty("redis.port", "6379"));
-        timeout = Integer.parseInt(properties.getProperty("redis.timeout", "60"));        
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
     }
 
     @Override
@@ -34,18 +36,18 @@ public abstract class RedisListener extends RunnableListener {
     }
 
     protected abstract RedisEvent listen();
-    
+
     private void newJedis() {
         jedis = new Jedis(host, port, timeout);
     }
 
     protected Jedis jedis;
     
-    private static Log log = LogFactory.getLog(RedisListener.class);
+    private final static Log log = LogFactory.getLog(RedisListener.class);
     
-    private String host;
-    private int port;
-    private int timeout;
+    private String host = "127.0.0.1";
+    private int port = 6379;
+    private int timeout = 1000;
     
     private class RedisListeningRunner extends ListeningRunner {        
 
@@ -72,7 +74,6 @@ public abstract class RedisListener extends RunnableListener {
 
         @Override
         public void processFinally() {
-            
         }
 
         @Override
@@ -88,7 +89,6 @@ public abstract class RedisListener extends RunnableListener {
         @Override
         public void close() {
             jedis.close();
-            
         }        
     }
 }

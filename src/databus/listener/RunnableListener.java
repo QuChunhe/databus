@@ -5,13 +5,13 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.Publisher;
 import databus.core.Runner;
-import databus.core.ThreadHolder;
+import databus.core.RunnerHolder;
 
 public abstract class RunnableListener extends AbstractListener {    
         
     public RunnableListener(Publisher publisher) {
         setPublisher(publisher);
-        holder = new ThreadHolder(createListeningRunner());
+        holder = new RunnerHolder(createListeningRunner());
     }
     
     public RunnableListener() {
@@ -36,7 +36,6 @@ public abstract class RunnableListener extends AbstractListener {
     }
 
     protected abstract ListeningRunner createListeningRunner();
-
     
     protected static abstract class ListeningRunner implements Runner {        
         
@@ -64,6 +63,6 @@ public abstract class RunnableListener extends AbstractListener {
     
     private static Log log = LogFactory.getLog(RunnableListener.class);
     
-    private ThreadHolder holder;    
+    private RunnerHolder holder;
     
 }

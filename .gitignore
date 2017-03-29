@@ -10,7 +10,8 @@ data/
 databus.iml
 .gitignore
 .idea/
-/target/
+target/
 out/
 src/META-INF/MANIFEST.MF
 databus.jar
+lib/
