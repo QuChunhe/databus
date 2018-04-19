@@ -57,12 +57,12 @@ public class BinlogEventProcessor implements BinaryLogClient.EventListener{
         }
 
         if (EventType.ROTATE != eventHeader.getEventType()) {
-            mysqlListener.saveBinlog(eventHeader.getNextPosition());
+            mysqlListener.setBinlog(eventHeader.getNextPosition());
         }
     }
 
     private void processRotateEvent(EventHeaderV4 eventHeader, RotateEventData rotateEventData) {
-        mysqlListener.saveBinlog(rotateEventData.getBinlogFilename(),
+        mysqlListener.setBinlog(rotateEventData.getBinlogFilename(),
                                  rotateEventData.getBinlogPosition());
     }
 

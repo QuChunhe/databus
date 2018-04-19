@@ -56,25 +56,38 @@ public class MysqlListener extends RunnableListener {
         this.binlogFileName = binlogFileName;
     }
 
-    public void saveBinlog(long binlogPosition) {
-        saveBinlog0(this.binlogFileName, binlogPosition);
+    public void setBinlog(long binlogPosition) {
+        saveBinlog(this.binlogFileName, binlogPosition);
     }
 
-    public void saveBinlog(String binlogFileName, long binlogPosition) {
+    public void setBinlog(String binlogFileName, long binlogPosition) {
         this.binlogFileName = binlogFileName;
         this.binlogPosition = binlogPosition;
-        saveBinlog0(binlogFileName, binlogPosition);
+        saveBinlog(binlogFileName, binlogPosition);
+    }
+
+    public void setRecordingInterval(long recordingInterval) {
+        this.recordingInterval = recordingInterval;
     }
 
     public void setReplicatedTables(Collection<String> replicatedTables) {
         this.replicatedTableSet = new HashSet<>(replicatedTables);
     }
 
+    protected void saveBinlog(String binlogFileName, long binlogPosition) {
+        long currentTime = System.currentTimeMillis();
+        if ((currentTime-prevRecordedTime)<recordingInterval) {
+            return;
+        }
+        prevRecordedTime = currentTime;
+        saveBinlog0(binlogFileName,binlogPosition);
+    }
+
     protected void saveBinlog0(String binlogFileName, long binlogPosition) {
         Backup.instance()
               .store(getRecordedId(),
-                        "mysql.binlogFileName", binlogFileName,
-                        "mysql.position", Long.toString(binlogPosition));
+                     "mysql.binlogFileName", binlogFileName,
+                     "mysql.position", Long.toString(binlogPosition));
     }
 
     @Override
@@ -112,6 +125,8 @@ public class MysqlListener extends RunnableListener {
     private long binlogPosition;
     private String binlogFileName = null;
 
+    private long prevRecordedTime = 0;
+    private long recordingInterval = 1000*10;
     private String recordedId = null;
 
     private BinlogEventProcessor binlogEventProcessor;
