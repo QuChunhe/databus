@@ -1,2 +1,6 @@
 #!/bin/bash
-cd $(dirname $_) && cd .. && kill -15 `cat ./data/pid`
+if [ $# -ge 1 ]
+then PID_FILE=$1
+else echo "Must add pid file as arg!"
+fi
+kill -15 `cat $PID_FILE`
