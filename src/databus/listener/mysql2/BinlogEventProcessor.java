@@ -23,6 +23,7 @@ public class BinlogEventProcessor implements BinaryLogClient.EventListener{
 
     @Override
     public void onEvent(Event event) {
+        log.info(event.toString());
         EventHeaderV4 eventHeader = (EventHeaderV4)event.getHeader();
         EventData eventData = event.getData();
         switch (eventHeader.getEventType()) {

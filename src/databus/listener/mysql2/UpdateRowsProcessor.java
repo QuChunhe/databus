@@ -11,7 +11,7 @@ import databus.event.mysql.Column;
 import databus.event.mysql.ColumnAttribute;
 import databus.event.mysql.MysqlUpdateRow;
 
-public class UpdateRowsProcessor {
+public class UpdateRowsProcessor extends WriteRowsProcessor {
     
     public UpdateRowsProcessor() {
     }
@@ -47,11 +47,11 @@ public class UpdateRowsProcessor {
                 String name = columns[i];
                 ColumnAttribute attribute = attributes[i];
                 if ((beforeColumn!=afterColumn) && !beforeColumn.equals(afterColumn)) {
-                    Column column = new Column(name, afterColumn.toString(), attribute.type());
+                    Column column = new Column(name, toString(afterColumn,attribute.type()), attribute.type());
                     event.addColumn(column);
                 }
                 if (primaryKeysSet.contains(name)) {
-                    Column column = new Column(name, beforeColumn.toString(), attribute.type());
+                    Column column = new Column(name, toString(beforeColumn,attribute.type()), attribute.type());
                     event.addPrimaryKey(column);
                 }
             }

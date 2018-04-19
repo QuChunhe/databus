@@ -11,7 +11,7 @@ import databus.event.mysql.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class InsertRowsProcessor {
+public class InsertRowsProcessor extends WriteRowsProcessor {
     
     public InsertRowsProcessor() {
     }
@@ -38,7 +38,7 @@ public class InsertRowsProcessor {
                 Serializable value = r[i];
                 String name = columns[i];
                 ColumnAttribute attribute = attributes[i];
-                Column column = new Column(name, value.toString(), attribute.type());
+                Column column = new Column(name, toString(value,attribute.type()), attribute.type());
                 event.addColumn(column);
                 if (primaryKeysSet.contains(name)) {
                     event.addPrimaryKey(column);
