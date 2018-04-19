@@ -18,9 +18,10 @@ public abstract class AbstractListener implements Listener {
 
     public void onEvent(Event event) {
         if (null != topic) {
-            event.topic(topic);
+            publisher.publish(topic, event);
+        } else {
+            publisher.publish(event);
         }
-        publisher.publish(event);
     }
 
     private Publisher publisher;

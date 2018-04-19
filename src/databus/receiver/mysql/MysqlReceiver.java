@@ -17,8 +17,8 @@ import databus.util.Helper;
 
 public abstract class MysqlReceiver implements Receiver{
 
-    public void setConfigFileName(String configFileName) {
-        Properties properties = Helper.loadProperties(configFileName);
+    public void setConfigFile(String configFile) {
+        Properties properties = Helper.loadProperties(configFile);
         try {
             dataSource = BasicDataSourceFactory.createDataSource(properties);
         } catch (Exception e) {

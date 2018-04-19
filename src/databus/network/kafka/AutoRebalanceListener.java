@@ -5,14 +5,14 @@ import java.util.HashSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
 
-
 public class AutoRebalanceListener implements ConsumerRebalanceListener{
     
-    public AutoRebalanceListener(String server, KafkaConsumer<Long, String> consumer) {
+    public AutoRebalanceListener(String server, KafkaConsumer<String, String> consumer) {
         this.consumer = consumer;
         this.server = server;
     }
@@ -39,8 +39,8 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
         cache.saveAll();
     }
     
-    private static Log log = LogFactory.getLog(AutoRebalanceListener.class);
+    private final static Log log = LogFactory.getLog(AutoRebalanceListener.class);
     
-    private KafkaConsumer<Long, String> consumer;
+    private KafkaConsumer<String, String> consumer;
     private String server;
 }

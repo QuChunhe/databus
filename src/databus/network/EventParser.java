@@ -6,5 +6,5 @@ public interface EventParser {
     
     String toString(Event event);
     
-    Event toEvent(String message);
+    Event toEvent(String key, String message);
 }

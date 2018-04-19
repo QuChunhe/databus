@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
-        "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+        "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-    <bean id="mysqlListener" class="databus.listener.mysql.MysqlListener" scope="singleton">
-        <property name="configFileName" value="conf/mysql_listener.properties"/>
-        <property name="publisher" ref="publisher"/>
-        <property name="topic" value="test/mysql"/>
+    <bean id="mysqlListener" class="databus.listener.mysql2.MysqlListener" scope="singleton">
+        <constructor-arg index="0" ref="publisher"/>
+        <property name="topic" value="test-mysql"/>
+        <property name="hostname" value="127.0.0.1"/>
+        <property name="username" value="root"/>
+        <property name="password" value="quchunhe"/>
+        <property name="serverId" value="1000"/>
+        <property name="binlogFileName" value="master-bin.000151"/>
+        <property name="binlogPosition" value="343"/>
+        <property name="replicatedTables">
+            <list>
+                <value>test.user</value>
+            </list>
+        </property>
     </bean>
 
 </beans>

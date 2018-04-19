@@ -33,13 +33,8 @@ public class RedisMessaging  extends AbstractRedisEvent{
                .append("{")
                .append("\"time\": ")
                .append(time())
-               .append(", ");
-        if (null != ipAddress()) {
-            builder.append("\"ipAddress\": \"")
-                   .append(ipAddress().getHostAddress())
-                   .append("\", ");
-        }               
-        builder.append("\"source\": \"")
+               .append(", ")
+               .append("\"source\": \"")
                .append(source())
                .append("\", ")
                .append("\"key\": \"")

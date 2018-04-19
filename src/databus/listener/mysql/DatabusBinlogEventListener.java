@@ -3,6 +3,7 @@ package databus.listener.mysql;
 import java.util.List;
 import java.util.Set;
 
+import databus.event.mysql.ColumnAttribute;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

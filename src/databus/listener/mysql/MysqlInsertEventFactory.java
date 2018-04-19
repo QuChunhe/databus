@@ -8,6 +8,7 @@ import com.google.code.or.common.glossary.Row;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
 import databus.event.mysql.Column;
+import databus.event.mysql.ColumnAttribute;
 import databus.event.mysql.MysqlInsertRow;
 
 

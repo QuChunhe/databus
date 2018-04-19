@@ -1,40 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
-                       "http://www.springframework.org/dtd/spring-beans-2.0.dtd">
+                       "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <import resource="mysql_listener.xml" />
     <import resource="mysql_replication_receiver.xml" />
-    <import resource="redis_receiver4mysql.xml" />
+    <!--   <import resource="redis_receiver4mysql.xml" />-->
 
-    <bean id="startup" class="databus.application.Startup" scope="singleton">
-        <property name="endpoints" >
-            <list>
-                <ref bean="publisher"/>
-                <ref bean="subscriber"/>
-            </list>
-        </property>
-    </bean>
+       <bean id="startup" class="databus.application.Startup" scope="singleton">
+           <property name="endpoints" >
+               <list>
+                   <ref bean="publisher"/>
+                   <ref bean="subscriber"/>
+               </list>
+           </property>
+       </bean>
 
-    <bean id="publisher" class="databus.network.kafka.KafkaPublisher" scope="singleton">
-        <property name="configFileName" value="conf/kafka_publisher.properties"/>
-    </bean>
+       <bean id="publisher" class="databus.network.kafka.KafkaPublisher" scope="singleton">
+           <property name="configFile" value="conf/kafka_publisher.properties"/>
+       </bean>
 
-    <bean id="subscriber" class="databus.network.kafka.KafkaSubscriber" scope="singleton">
-        <property name="receiversMap">
-            <map>
-                <entry key="127.0.0.1:9092/test/mysql">
-                    <list>
-                        <ref bean="mysqlReceiver" />
-                        <ref bean="redisReceiver" />
+       <bean id="subscriber" class="databus.network.kafka.KafkaSubscriber" scope="singleton">
+           <constructor-arg index="0" value="127.0.0.1:9092"/>
+           <property name="configFile" value="conf/kafka_subscriber.properties"/>
+           <property name="receiversMap">
+               <map>
+                   <entry key="test-mysql">
+                       <list>
+                           <ref bean="mysqlReceiver"/>
+                          <!-- <ref bean="redisReceiver" /> -->
                     </list>
                 </entry>
             </map>
         </property>
-        <property name="configFileName" value="conf/kafka_subscriber.properties"/>
-        <property name="coreThreadPoolSize" value="2"/>
-        <property name="maxThreadPoolSize" value="7"/>
-        <property name="keepAliveSeconds" value="60"/>
-        <property name="taskQueueCapacity" value="2"/>
     </bean>
 
 

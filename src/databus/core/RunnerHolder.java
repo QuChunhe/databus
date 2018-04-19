@@ -1,6 +1,5 @@
 package databus.core;
 
-import java.util.Collection;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.logging.Log;
@@ -8,73 +7,56 @@ import org.apache.commons.logging.LogFactory;
 
 public final class RunnerHolder implements Startable, Stoppable, Joinable {
     
-    public RunnerHolder(Runner... runners) {
-        threads = new RunnerThread[runners.length];
-        for(int i=0; i<threads.length; i++) {
-            threads[i] = new RunnerThread(runners[i], i+"-"+runners[i].getClass().getName());
-        }
+    public RunnerHolder(Runner runner, String name) {
+        thread = new RunnerThread(runner, name);
     }
-    
-    public RunnerHolder(Collection<Runner> runners) {
-        this(runners.toArray(new Runner[runners.size()]));
+
+    public RunnerHolder(Runner runner) {
+        thread = new RunnerThread(runner, runner.getClass().getName());
     }
 
     @Override
     public void join() throws InterruptedException {
-        int count = 0;
-        for(RunnerThread t : threads) {
-            try {
-                t.join();
-            } catch (InterruptedException e) {
-                log.error(t.getClass().getName()+" has finished!", e);
-                count++;
-            }
-        }
-        if (count > 0) {
-            throw new InterruptedException(count+" runners in total "+threads.length+
-                                           " are interrupted!");
-        }        
+        thread.join();
     }
 
     @Override
     public void stop() {
-        if (!doesRun.get()) {
+        if (!isRunning.get()) {
             return;
         }
-        doesRun.set(false);
-        for(RunnerThread t : threads) {
-            log.info(t.getRunner().getClass().getName()+" will stop");
-            t.getRunner().stop(t);
-            if (t.isAlive()) {
-                log.info(t.getRunner().getClass().getName()+" has not stopped!");
-            } else {
-                log.info(t.getRunner().getClass().getName()+" has finished!");
-            }
+        isRunning.set(false);
+
+        log.info(thread.getName() + " will stop");
+        thread.getRunner().stop(thread);
+        if (thread.isAlive()) {
+            log.info(thread.getName() + " has not stopped!");
+        } else {
+            log.info(thread.getName() + " has finished!");
         }
     }
 
     public boolean isRunning() {
-        return doesRun.get();
+        return isRunning.get();
     }
 
     @Override
     public void start() {
-        if (doesRun.get()) {
+        if (isRunning.get()) {
+            log.error(thread.getName()+" is running!");
             return;
         }
-        doesRun.set(true);
-        for(RunnerThread t : threads) {
-            t.start();
-        }
+        isRunning.set(true);
+        thread.start();
     }
     
     private final static Log log = LogFactory.getLog(RunnerHolder.class);
     
-    private final AtomicBoolean doesRun = new AtomicBoolean(false);
-    private final RunnerThread[] threads;
-    
+    private final AtomicBoolean isRunning = new AtomicBoolean(false);
+    private final RunnerThread thread;
+
     private class RunnerThread extends Thread {
-        
+
         public RunnerThread(Runner runner, String name) {
             super(name);
             if (null == runner) {
@@ -82,15 +64,15 @@ public final class RunnerHolder implements Startable, Stoppable, Joinable {
             }
             this.runner = runner;
         }
-        
+
         public Runner getRunner() {
             return runner;
         }
 
         @Override
-        public void run() {   
+        public void run() {
             runner.initialize();
-            while (doesRun.get()) {
+            while (isRunning.get()) {
                 try {
                     runner.runOnce();
                 } catch (Exception e) {
@@ -99,10 +81,10 @@ public final class RunnerHolder implements Startable, Stoppable, Joinable {
                     runner.processFinally();
                 }
             }
-            log.info(runner.getClass().getName()+" will close");
+            log.info(getName()+" will close");
             runner.close();
         }
-        
+
         private Runner runner;
     }
 

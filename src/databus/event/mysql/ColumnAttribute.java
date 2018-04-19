@@ -1,4 +1,4 @@
-package databus.listener.mysql;
+package databus.event.mysql;
 
 public class ColumnAttribute { 
     

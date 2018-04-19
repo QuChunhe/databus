@@ -3,8 +3,8 @@ package databus.event.mysql;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent 
-                                             implements MysqlWriteRow{
+public abstract class AbstractMysqlWriteRow extends AbstractMysqlEvent
+                                            implements MysqlWriteRow {
     
     public AbstractMysqlWriteRow() {
         super();
@@ -42,13 +42,8 @@ public abstract class AbstractMysqlWriteRow  extends AbstractMysqlEvent
                .append("{")
                .append("\"time\": ")
                .append(time())
-               .append(", ");
-        if (ipAddress() != null) {
-            builder.append("\"ipAddress\": \"")
-                   .append(ipAddress().getHostAddress())
-                   .append("\", ");
-        }
-        builder.append("\"source\": \"")
+               .append(", ")
+               .append("\"source\": \"")
                .append(source())
                .append("\", ")
                .append("\"serverId\": ")

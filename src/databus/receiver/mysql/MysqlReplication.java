@@ -14,7 +14,7 @@ import databus.event.mysql.MysqlInsertRow;
 import databus.event.mysql.MysqlUpdateRow;
 import databus.event.mysql.Column;
 
-public class MysqlReplication extends MysqlReceiver{    
+public class MysqlReplication extends MysqlReceiver {
 
     public MysqlReplication() {
         super();

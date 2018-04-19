@@ -8,13 +8,14 @@ import com.google.code.or.common.glossary.Pair;
 import com.google.code.or.common.glossary.Row;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
+import databus.event.mysql.ColumnAttribute;
 import databus.event.mysql.MysqlUpdateRow;
 import databus.event.mysql.Column;
 
 public class MysqlUpdateEventFactory extends MysqlWriteEventFactory {
     
     public MysqlUpdateEventFactory(String[] columns, ColumnAttribute[] attributes,
-                                  Set<String> primaryKeysSet, List<Pair<Row>> rows) {
+                                   Set<String> primaryKeysSet, List<Pair<Row>> rows) {
         iterator = rows.listIterator();
         this.columns = columns;
         this.attributes = attributes;

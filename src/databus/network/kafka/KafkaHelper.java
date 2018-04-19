@@ -29,7 +29,7 @@ public class KafkaHelper {
         return remoteTopic.substring(index+1);
     }
     
-    public static void seekRightPositions(String server, KafkaConsumer<Long, String> consumer, 
+    public static void seekRightPositions(String server, KafkaConsumer<String, String> consumer,
                                           Collection<TopicPartition> partitions) {
         PositionsCache cache = new PositionsCache();
         HashSet<TopicPartition> topicPartitions = null;

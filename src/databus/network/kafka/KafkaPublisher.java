@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -21,9 +22,9 @@ public class KafkaPublisher extends AbstractPublisher {
         super();
     }
 
-    public void setConfigFileName(String configFileName) {
-        Properties properties = Helper.loadProperties(configFileName);
-        properties.put("key.serializer", "org.apache.kafka.common.serialization.LongSerializer");
+    public void setConfigFile(String configFile) {
+        Properties properties = Helper.loadProperties(configFile);
+        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("compression.type", "gzip");
 
@@ -32,30 +33,46 @@ public class KafkaPublisher extends AbstractPublisher {
 
     @Override
     public void publish(Event event) {
-        Long time = System.currentTimeMillis();
-        String topic =  SPECIAL_CHARACTER.matcher(event.topic()).replaceAll("-");
-        event.topic(null);
-        String value = eventParser.toString(event);
-        log.info(time + " " + topic +" : " +value);
-        ProducerRecord<Long, String> record = new ProducerRecord<>(topic, time, value);
-        producer.send(record, new LogCallback(topic, time, value));         
+        publish(topic, event);
     }
-    
+
+    @Override
+    public void publish(String topic, Event event) {
+        if (null == topic) {
+            topic = this.topic;
+        }
+        if (null == topic) {
+            log.error("topic is null!");
+            return;
+        }
+        topic =  SPECIAL_CHARACTER.matcher(topic).replaceAll("-");
+        String value = eventParser.toString(event);
+        String key = event.source().toString()+":"+event.type();
+        log.info(topic +" -- " + key + " : " +value);
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+        producer.send(record, new LogCallback(topic, key, value));
+    }
+
     @Override
     public void stop() {
         super.stop();
         producer.close();        
     }
 
+    public void setTopic(String topic) {
+        this.topic = topic;
+    }
+
     private final static Log log = LogFactory.getLog(KafkaPublisher.class);
     private final static Pattern SPECIAL_CHARACTER = Pattern.compile("_|:|/|\\.");
     private final static JsonEventParser eventParser = new JsonEventParser();
     
-    private KafkaProducer<Long, String> producer;
+    private KafkaProducer<String, String> producer;
+    private String topic = null;
 
     private static class LogCallback implements Callback {        
         
-        public LogCallback(String topic, long key, String value) {
+        public LogCallback(String topic, String key, String value) {
             this.key = key;
             this.topic = topic;
             this.value = value;
@@ -64,14 +81,14 @@ public class KafkaPublisher extends AbstractPublisher {
         @Override
         public void onCompletion(RecordMetadata metadata, Exception exception) {
             if (null != metadata) {
-                log.info(key + " " + topic + " (" + metadata.partition() + "," + 
-                         metadata.offset() + ") : " + value);
+                log.info(topic + " (" + metadata.partition() + "," +
+                        metadata.offset() + ")   "  + key + " : " + value);
             } else {
-                log.error(key + " " + topic + " : " +value, exception);
+                log.error(topic + " " + key + " : " +value, exception);
             }
         }        
 
-        private long key;        
+        private String key;
         private String value;
         private String topic;
     }    

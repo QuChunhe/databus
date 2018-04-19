@@ -6,6 +6,7 @@ import java.util.Set;
 import com.google.code.or.common.glossary.Row;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
+import databus.event.mysql.ColumnAttribute;
 import databus.event.mysql.MysqlDeleteRow;
 
 public class MysqlDeleteEventFactory extends MysqlInsertEventFactory{

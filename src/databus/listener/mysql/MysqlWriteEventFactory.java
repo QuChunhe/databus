@@ -18,6 +18,7 @@ import com.google.code.or.common.glossary.column.TimestampColumn;
 import com.google.code.or.common.glossary.column.TinyColumn;
 
 import databus.event.mysql.AbstractMysqlWriteRow;
+import databus.event.mysql.ColumnAttribute;
 
 public abstract class MysqlWriteEventFactory {
     

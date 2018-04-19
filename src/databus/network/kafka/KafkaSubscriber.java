@@ -1,15 +1,10 @@
 package databus.network.kafka;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -23,108 +18,75 @@ import databus.util.Helper;
 
 public class KafkaSubscriber extends AbstractSubscriber {
     
-    public KafkaSubscriber() {
+    public KafkaSubscriber(String serverAddress) {
         super();
-        serverTopicsMap = new HashMap<>();
+        this.serverAddress = serverAddress;
     }
 
     @Override
-    public void register(String remoteTopic, Receiver receiver) {
-        String server = KafkaHelper.splitSocketAddress(remoteTopic); 
-        String topic = KafkaHelper.splitTopic(remoteTopic);
-        if ((null==server) || (null==topic)) {
-            log.error("remoteTopic is illegal : "+remoteTopic);
-            System.exit(1);
-        }
+    public void register(String topic, Receiver receiver) {
         String normalizedTopic = topic.replace('/', '-')
                                       .replace('.', '-')
                                       .replace(':', '-')
                                       .replace('_', '-');
-        super.register(server+"/"+normalizedTopic, receiver);
-        
-        Set<String> topicSet = serverTopicsMap.get(server);
-        if (null == topicSet) {
-            topicSet = new HashSet<>();
-            serverTopicsMap.put(server, topicSet);
-        }
-        topicSet.add(normalizedTopic);
+        super.register(normalizedTopic, receiver);
     }
 
-    public void setConfigFileName(String configFileName) {
-        kafkaProperties = Helper.loadProperties(configFileName);
-        if (null == kafkaProperties.getProperty("group.id")) {
-            kafkaProperties.setProperty("group.id",
-                                        "default-" + Math.round(Math.random()*1000000));
+
+    public void setConfigFile(String configFile) {
+        properties = Helper.loadProperties(configFile);
+        properties.put("bootstrap.servers", serverAddress);
+        if (null == properties.getProperty("group.id")) {
+            properties.setProperty("group.id",
+                                   "default-" + Math.round(Math.random()*1000000));
         }
-        kafkaProperties.setProperty("key.deserializer",
-                                    "org.apache.kafka.common.serialization.LongDeserializer");
-        kafkaProperties.setProperty("value.deserializer",
-                                    "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.setProperty("key.deserializer",
+                               "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.setProperty("value.deserializer",
+                               "org.apache.kafka.common.serialization.StringDeserializer");
     }
 
     public void setPollingTimeout(long pollingTimeout) {
         this.pollingTimeout = pollingTimeout;
     }
 
-    public void setWriteNumberPerFlush(int writeNumberPerFlush) {
-        positionsCache = new PositionsCache(writeNumberPerFlush);
-    }
-
     @Override
-    protected Transporter[] createTransporters() {
-        Transporter[] transporters = new PollingTransporter[serverTopicsMap.size()];
-        int i = 0;
-        for(String server : serverTopicsMap.keySet()) {
-            transporters[i++] = new PollingTransporter(server, serverTopicsMap.get(server));
-        }
-        //help GC
-        kafkaProperties = null;
-        serverTopicsMap = null;
-        return transporters;
+    protected Transporter createTransporter() {
+        return new PollingTransporter();
     }
 
     private final static Log log = LogFactory.getLog(KafkaSubscriber.class);
     private final static JsonEventParser eventParser = new JsonEventParser();
-    
-    private Map<String, Set<String>> serverTopicsMap;
+
+    private final PositionsCache positionsCache = new PositionsCache(1);
+    private final String serverAddress;
+
     private long pollingTimeout = 2000;
-    private PositionsCache positionsCache = new PositionsCache(1);
-    private Properties kafkaProperties;
+    private Properties properties;
    
     private class PollingTransporter implements Transporter {
 
-        public PollingTransporter(String server, Set<String> kafkaTopics) {
-            properties = new Properties();
-            properties.putAll(kafkaProperties);
-            String groupId = properties.getProperty("group.id");
-            properties.put("client.id", groupId+"-"+server.replaceAll(":", "-"));
-            properties.put("bootstrap.servers", server);
-            this.kafkaTopics = new ArrayList<>(kafkaTopics);
-            this.server = server;
-            log.info(server+" "+kafkaTopics.toString());
+        public PollingTransporter() {
         }
 
         @Override
         public void initialize() {
             consumer = new KafkaConsumer<>(properties);
-            consumer.subscribe(kafkaTopics, new AutoRebalanceListener(server, consumer)); 
-            KafkaHelper.seekRightPositions(server, consumer, consumer.assignment());
-            //help GC
-            kafkaTopics = null;
-            properties = null;
+            consumer.subscribe(receiversMap.keySet(), new AutoRebalanceListener(serverAddress, consumer));
+            KafkaHelper.seekRightPositions(serverAddress, consumer, consumer.assignment());
         }
 
         @Override
         public void runOnce() throws Exception {
-            ConsumerRecords<Long, String> records = consumer.poll(pollingTimeout);
+            ConsumerRecords<String, String> records = consumer.poll(pollingTimeout);
             if ((null!=records) && (!records.isEmpty())) {               
-                for (ConsumerRecord<Long, String> r : records) {
+                for (ConsumerRecord<String, String> r : records) {
                     String topic = r.topic();
                     int partition = r.partition();
                     long offset = r.offset();
-                    long key = r.key();
-                    String fullTopic = server + "/" + topic;  
-                    String logPrefix = key + " " + fullTopic + " (" + partition + ", " + offset + ")";                    
+                    String key = r.key();
+                    String fullTopic = serverAddress + "/" + topic;
+                    String logPrefix = fullTopic+ "   " +key + " (" + partition + ", " + offset + ")";
                     if (offset <= positionsCache.get(fullTopic, partition)) {
                         log.warn(logPrefix + " is processed ahead : " + r.value());
                         continue;
@@ -132,15 +94,14 @@ public class KafkaSubscriber extends AbstractSubscriber {
                         positionsCache.set(fullTopic, partition, offset);
                     }
                     
-                    Event event = eventParser.toEvent(r.value()); 
+                    Event event = eventParser.toEvent(key, r.value());
                     if (null == event) {
                         log.error("message can not be parser as an event " + logPrefix+ " : " +
                                   r.value());
                         continue;
                     } 
                     log.info(logPrefix + " : " + event.toString());
-                    event.topic(topic);                    
-                    receive(fullTopic, event);                    
+                    receive(topic, event);
                 }
             }            
         }
@@ -173,9 +134,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
             consumer.close();
         }
         
-        private Properties properties;
-        private List<String> kafkaTopics;
-        private KafkaConsumer<Long, String> consumer;
-        private String server;
+        private KafkaConsumer<String, String> consumer;
+
     }
 }

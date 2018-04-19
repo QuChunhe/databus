@@ -83,8 +83,8 @@ public class Column {
         return builder.toString();
     }
 
-    private String name;
-    private String value;
-    private int type;
+    private final String name;
+    private final String value;
+    private final int type;
     
 }
