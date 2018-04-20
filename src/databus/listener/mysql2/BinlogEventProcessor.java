@@ -1,6 +1,7 @@
 package databus.listener.mysql2;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import databus.event.MysqlEvent;
@@ -18,6 +19,7 @@ public class BinlogEventProcessor implements BinaryLogClient.EventListener{
     public BinlogEventProcessor(MysqlListener mysqlListener, Set<String> replicatedTableSet) {
         this.mysqlListener = mysqlListener;
         this.replicatedTableSet = replicatedTableSet;
+        this.deniedOperationSet = mysqlListener.getDeniedOperationSet();
         schemaCache = new SchemaCache(mysqlListener.createDataSource(), replicatedTableSet);
     }
 
@@ -36,15 +38,21 @@ public class BinlogEventProcessor implements BinaryLogClient.EventListener{
                 break;
 
             case UPDATE_ROWS:
-                processUpdateRowsEvent(eventHeader, (UpdateRowsEventData)eventData);
+                if (!deniedOperationSet.contains(MysqlEvent.Type.UPDATE)) {
+                    processUpdateRowsEvent(eventHeader, (UpdateRowsEventData)eventData);
+                }
                 break;
 
             case DELETE_ROWS:
-                processDeleteRowsEvent(eventHeader, (DeleteRowsEventData)eventData);
+                if (!deniedOperationSet.contains(MysqlEvent.Type.DELETE)) {
+                    processDeleteRowsEvent(eventHeader, (DeleteRowsEventData)eventData);
+                }
                 break;
 
             case WRITE_ROWS:
-                processInsertRowsEvent(eventHeader, (WriteRowsEventData)eventData);
+                if (!deniedOperationSet.contains(MysqlEvent.Type.INSERT)) {
+                    processInsertRowsEvent(eventHeader, (WriteRowsEventData)eventData);
+                }
                 break;
 
             case XID:
@@ -143,6 +151,7 @@ public class BinlogEventProcessor implements BinaryLogClient.EventListener{
     private final MysqlListener mysqlListener;
     private final Set<String> replicatedTableSet;
     private final SchemaCache schemaCache;
+    private final Set<MysqlEvent.Type> deniedOperationSet;
 
     private final UpdateRowsProcessor updateRowsProcessor = new UpdateRowsProcessor();
     private final DeleteRowsProcessor deleteRowsProcessor = new DeleteRowsProcessor();

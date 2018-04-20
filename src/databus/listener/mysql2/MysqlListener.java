@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import databus.core.Publisher;
+import databus.event.MysqlEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -74,6 +76,10 @@ public class MysqlListener extends RunnableListener {
         this.replicatedTableSet = new HashSet<>(replicatedTables);
     }
 
+    public void setDeniedOperations(Collection<MysqlEvent.Type> deniedOperations) {
+        deniedOperationSet.addAll(deniedOperations);
+    }
+
     protected void saveBinlog(String binlogFileName, long binlogPosition) {
         long currentTime = System.currentTimeMillis();
         if ((currentTime-prevRecordedTime)<recordingInterval) {
@@ -104,6 +110,10 @@ public class MysqlListener extends RunnableListener {
         return ds;
     }
 
+    protected Set<MysqlEvent.Type> getDeniedOperationSet() {
+        return deniedOperationSet;
+    }
+
     private String getRecordedId() {
         if (null == recordedId) {
             recordedId = "MysqlListener-" + hostname + "-" + port + "-" + serverId;
@@ -114,6 +124,7 @@ public class MysqlListener extends RunnableListener {
     private final static Log log = LogFactory.getLog(MysqlListener.class);
 
     protected HashSet<String> replicatedTableSet;
+    private final Set<MysqlEvent.Type> deniedOperationSet = new HashSet<>();
 
     private BinaryLogClient client;
     private String hostname = "127.0.0.1";
@@ -163,6 +174,7 @@ public class MysqlListener extends RunnableListener {
                     }
                 }
             }
+
             client.setBinlogPosition(binlogPosition);
             client.setBinlogFilename(binlogFileName);
 

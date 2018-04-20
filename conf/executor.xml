@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+    <bean id="executor" class="databus.util.Helper"
+                        factory-method="loadExecutor"
+                        scope="singleton">
+        <constructor-arg index="0" value="1"/>
+        <constructor-arg index="1" value="10"/>
+        <constructor-arg index="2" value="120"/>
+        <constructor-arg index="3" value="10"/>
+    </bean>
+
+</beans>

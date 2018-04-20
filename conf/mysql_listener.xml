@@ -9,12 +9,17 @@
         <property name="hostname" value="127.0.0.1"/>
         <property name="username" value="root"/>
         <property name="password" value="quchunhe"/>
-        <property name="serverId" value="1000"/>
+        <property name="serverId" value="1090"/>
         <property name="binlogFileName" value="master-bin.000151"/>
-        <property name="binlogPosition" value="343"/>
+        <property name="binlogPosition" value="29382"/>
         <property name="replicatedTables">
             <list>
                 <value>test.user</value>
+            </list>
+        </property>
+        <property name="deniedOperations">
+            <list>
+                <value>INSERT</value>
             </list>
         </property>
     </bean>

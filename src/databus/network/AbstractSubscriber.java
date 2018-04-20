@@ -75,7 +75,9 @@ public abstract class AbstractSubscriber implements Subscriber {
         receiversSet.add(receiver);        
     }
 
-
+    public void setExecutorService(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
 
     public void setReceiversMap(Map<String, Collection<Receiver>> receiversMap) {
         for (Map.Entry entry : receiversMap.entrySet()) {
