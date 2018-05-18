@@ -1,11 +1,9 @@
 package databus.listener.mysql2;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+import databus.core.Event;
 import databus.core.Publisher;
 import databus.event.MysqlEvent;
 import org.apache.commons.logging.Log;
@@ -24,6 +22,18 @@ public class MysqlListener extends RunnableListener {
 
     public MysqlListener(Publisher publisher) {
         super(publisher);
+    }
+
+    @Override
+    public void onEvent(Event event) {
+        MysqlEvent mysqlEven = (MysqlEvent) event;
+        String fullName = mysqlEven.database()+"."+mysqlEven.table();
+        String topic = topicMap.get(fullName);
+        if (null != topic) {
+            publisher.publish(topic, event);
+        } else {
+            super.onEvent(event);
+        }
     }
 
     public void setHostname(String hostname) {
@@ -66,6 +76,10 @@ public class MysqlListener extends RunnableListener {
         this.binlogFileName = binlogFileName;
         this.binlogPosition = binlogPosition;
         saveBinlog(binlogFileName, binlogPosition);
+    }
+
+    public void setTopicMap(Map<String, String> topicMap) {
+        this.topicMap = topicMap;
     }
 
     public void setRecordingInterval(long recordingInterval) {
@@ -141,6 +155,8 @@ public class MysqlListener extends RunnableListener {
     private String recordedId = null;
 
     private BinlogEventProcessor binlogEventProcessor;
+
+    private Map<String, String> topicMap = new HashMap<>();
 
     private class MysqlListeningRunner extends ListeningRunner {
 

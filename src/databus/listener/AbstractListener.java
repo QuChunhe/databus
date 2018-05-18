@@ -24,6 +24,6 @@ public abstract class AbstractListener implements Listener {
         }
     }
 
-    private Publisher publisher;
+    protected Publisher publisher;
     private String topic = null;
 }
