@@ -1,6 +1,5 @@
 package databus.receiver.redis;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -26,7 +25,7 @@ public abstract class RedisReceiver implements Receiver {
     }
 
     @Override
-    public void receive(Event event) {
+    public void receive(final Event event) {
         try (Jedis jedis = jedisPool.getResource()) {
             receive(jedis, event);
         } catch(Exception e) {

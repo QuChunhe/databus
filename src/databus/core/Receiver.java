@@ -4,6 +4,6 @@ import java.io.Closeable;
 
 public interface Receiver extends Closeable {
     
-    void receive(Event event);
+    void receive(final Event event);
 
 }

@@ -20,14 +20,14 @@ public class Master2MasterReplication extends MysqlReplication {
     }
 
     @Override
-    protected String execute(Connection conn, Event event) {
+    protected void execute(Connection conn, Event event) {
         if (event instanceof MysqlWriteRow) {
             MysqlWriteRow mysqlWriteRow = (MysqlWriteRow)event;
             if (duplicateRowFilter.isFilteredTable(mysqlWriteRow.table().toLowerCase())) {
                 duplicateRowFilter.putIfAbsentOrIncrementIfPresent(mysqlWriteRow);
             }
         }
-        return super.execute(conn, event);
+        super.execute(conn, event);
     }
 
     public void setDuplicateRowFilter(DuplicateRowFilter duplicateRowFilter) {

@@ -1,75 +1,43 @@
 package databus.receiver.mysql;
 
 import java.sql.Connection;
-import java.text.DateFormat;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import databus.core.Event;
 import databus.event.redis.RedisMessaging;
 
-public class MessagePersistence extends MysqlReceiver{
+public class MessagePersistence extends MysqlReceiver {
     
     public MessagePersistence() {
-        gson = new GsonBuilder().enableComplexMapKeySerialization() 
-                                .serializeNulls()   
-                                .setDateFormat(DateFormat.LONG)
-                                .create();
-        beanClassMap = new HashMap<>();
+        super();
     }
 
-    public void setBeanContext(BeanContext beanContext) {
-        this.beanContext = beanContext;
-    }
-
-    public void setExecutableBeanClassMap(Map<String, String> executableBeanClassMap) {
-        for (Map.Entry entry : executableBeanClassMap.entrySet()) {
-            String key = entry.getKey().toString();
-            String className = entry.getValue().toString();
-            try {
-                Class<? extends ExecutableBean> beanClass =
-                                        (Class<? extends ExecutableBean>) Class.forName(className);
-                beanClassMap.put(key.trim(), beanClass);
-            } catch (ClassNotFoundException e) {
-                log.error("Can not find "+className+"!", e);
-                System.exit(1);
-            }
-        }
+    public void setMessageBeanMap(Map<String, MessageBean> messageBeanMap) {
+        this.messageBeanMap = messageBeanMap;
     }
 
     @Override
-    protected String execute(Connection conn, Event event) {
-        if (!(event instanceof RedisMessaging)) {
+    protected void execute(Connection conn, final Event event) {
+        if (event instanceof RedisMessaging) {
+        } else {
             log.error(event.getClass().getName()+" is not RedisMessaging");
-            return null;
+            return;
         }
-        RedisMessaging e = (RedisMessaging) event;
-        String key = e.key();        
-        Class<? extends ExecutableBean> beanClass = beanClassMap.get(key);
-        if (null == beanClass) {
-            log.error("Has not corresponding MysqlBean Class for " + key);
-            return null;
-        }        
-        String message = e.message();
-        ExecutableBean bean = gson.fromJson(message, beanClass);
-        if (null == bean) {
-            log.error(message + " can not convert to "+beanClass.getName());
-            return null;
+        RedisMessaging redisMessaging = (RedisMessaging) event;
+        String key = redisMessaging.key();
+        MessageBean messageBean = messageBeanMap.get(key);
+        if (null == messageBean) {
+            log.error("Can not get message bean for "+key);
+            return;
         }
-
-        return bean.execute(conn, beanContext);
+        String message = redisMessaging.message();
+        messageBean.execute(conn, key, message);
     }
 
     private final static Log log = LogFactory.getLog(MessagePersistence.class);
-    
-    private final Gson gson;
-    private final Map<String, Class<? extends ExecutableBean>> beanClassMap;
 
-    private BeanContext beanContext = null;
+    private Map<String, MessageBean> messageBeanMap;
 }

@@ -26,6 +26,9 @@ public class MysqlListener extends RunnableListener {
 
     @Override
     public void onEvent(Event event) {
+        if (null == topicMap) {
+            super.onEvent(event);
+        }
         MysqlEvent mysqlEven = (MysqlEvent) event;
         String fullName = mysqlEven.database()+"."+mysqlEven.table();
         String topic = topicMap.get(fullName);
@@ -156,7 +159,7 @@ public class MysqlListener extends RunnableListener {
 
     private BinlogEventProcessor binlogEventProcessor;
 
-    private Map<String, String> topicMap = new HashMap<>();
+    private Map<String, String> topicMap = null;
 
     private class MysqlListeningRunner extends ListeningRunner {
 

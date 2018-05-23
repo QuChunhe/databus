@@ -21,7 +21,7 @@ public class MysqlReplication extends MysqlReceiver {
     }
 
     @Override
-    protected String execute(Connection conn, Event event) {
+    protected void execute(Connection conn, Event event) {
         String sql = null;
         if (event instanceof MysqlInsertRow) {
             sql = getInsertSql((MysqlInsertRow) event);
@@ -34,9 +34,8 @@ public class MysqlReplication extends MysqlReceiver {
         if (null == sql) {
             log.error("Can not convert SQL from " + event.toString());
         } else if (executeWrite(conn, sql) < 1) {
-            sql = null;
+            log.info("Execute : "+sql);
         }
-        return sql;
     }
 
     private String getInsertSql(MysqlInsertRow event) {
