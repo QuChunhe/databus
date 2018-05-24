@@ -1,5 +1,6 @@
 package databus.util;
 
+import java.math.BigInteger;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -18,8 +19,12 @@ public class Id {
         SERVICE_ID_MASK = (1 << (32 - BITS)) - 1;
     }
 
-    public long next(long unixTime, int serviceId) {
-        return (unixTime << 32) | ((serviceId & SERVICE_ID_MASK) << BITS) | next();
+    public BigInteger next(long unixTime, int serviceId) {
+        BigInteger upper = new BigInteger(Long.toUnsignedString(unixTime));
+        upper = upper.shiftLeft(32);
+        long lower = ((serviceId & SERVICE_ID_MASK) << BITS) | next();
+
+        return upper.or(new BigInteger(Long.toUnsignedString(lower)));
     }
 
     private int next() {
@@ -40,7 +45,7 @@ public class Id {
 
     private final int BITS;
     private final int ID_BOUND;
-    private final int SERVICE_ID_MASK;
+    private final long SERVICE_ID_MASK;
 
     private final AtomicInteger autoIncrementId;
     private final Object lock = new Object();

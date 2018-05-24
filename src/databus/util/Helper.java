@@ -1,5 +1,6 @@
 package databus.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -19,7 +20,30 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class Helper {
-    
+
+    public static Properties loadProperties(String file) {
+        Properties properties= loadPropertiesWithoutExit(file);
+        if (null == properties) {
+            System.exit(1);
+        }
+        return properties;
+    }
+
+    public static  Properties loadPropertiesWithoutExit(String file) {
+        if ((null==file) || (file.length()==0)) {
+            log.error("Configuration file is null!");
+            return null;
+        }
+        Properties properties = new Properties();
+        try (BufferedReader reader = Files.newBufferedReader(Paths.get(file))){
+            properties.load(reader);
+        } catch (IOException e) {
+            log.error("Can not load properties file "+ file, e);
+            return null;
+        }
+        return properties;
+    }
+
     public static long ipToInt(String ipAddr) throws UnknownHostException, DataFormatException {
         InetAddress inetAddress = InetAddress.getByName(ipAddr);
         byte[] parts = inetAddress.getAddress();
@@ -101,21 +125,6 @@ public class Helper {
     public static String substring(String string, String splitter) {
         int position = string.indexOf(splitter);
         return position<0 ? null : string.substring(position+splitter.length());
-    }
-
-    public static Properties loadProperties(String file) {
-        if ((null==file) || (file.length()==0)) {
-            log.error("Configuration file is null!");
-            System.exit(1);
-        }
-        Properties properties = new Properties();
-        try {
-            properties.load(Files.newBufferedReader(Paths.get(file)));
-        } catch (IOException e) {
-            log.error("Can not load properties file "+ file, e);
-            System.exit(1);
-        }
-        return properties;
     }
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
