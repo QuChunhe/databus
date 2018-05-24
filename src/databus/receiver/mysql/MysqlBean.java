@@ -5,7 +5,7 @@ import java.sql.Connection;
 /**
  * Created by Qu Chunhe on 2018-05-18.
  */
-public interface MessageBean {
+public interface MysqlBean {
 
     void execute(Connection connection, String key, String message);
 }

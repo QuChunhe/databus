@@ -15,7 +15,7 @@ public class MysqlReceiver4Redis extends MysqlReceiver {
         super();
     }
 
-    public void setMessageBeanMap(Map<String, MessageBean> messageBeanMap) {
+    public void setMessageBeanMap(Map<String, MysqlBean> messageBeanMap) {
         this.messageBeanMap = messageBeanMap;
     }
 
@@ -28,9 +28,9 @@ public class MysqlReceiver4Redis extends MysqlReceiver {
         }
         RedisMessaging redisMessaging = (RedisMessaging) event;
         String key = redisMessaging.key();
-        MessageBean messageBean = messageBeanMap.get(key);
+        MysqlBean messageBean = messageBeanMap.get(key);
         if (null == messageBean) {
-            log.error("Can not get message bean for "+key);
+            log.error("Can not get value bean for "+key);
             return;
         }
         String message = redisMessaging.message();
@@ -39,5 +39,5 @@ public class MysqlReceiver4Redis extends MysqlReceiver {
 
     private final static Log log = LogFactory.getLog(MysqlReceiver4Redis.class);
 
-    private Map<String, MessageBean> messageBeanMap;
+    private Map<String, MysqlBean> messageBeanMap;
 }
