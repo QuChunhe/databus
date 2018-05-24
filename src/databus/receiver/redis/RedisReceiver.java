@@ -20,8 +20,8 @@ public abstract class RedisReceiver implements Receiver {
         super();
     }
 
-    public void setConfigFileName(String configFileName) {
-        initialize(Helper.loadProperties(configFileName));
+    public void setConfigFile(String configFile) {
+        initialize(Helper.loadProperties(configFile));
     }
 
     @Override

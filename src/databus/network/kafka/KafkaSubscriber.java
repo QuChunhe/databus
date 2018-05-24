@@ -96,7 +96,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     
                     Event event = eventParser.toEvent(key, r.value());
                     if (null == event) {
-                        log.error("message can not be parser as an event " + logPrefix+ " : " +
+                        log.error("value can not be parser as an event " + logPrefix+ " : " +
                                   r.value());
                         continue;
                     } 
