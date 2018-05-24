@@ -9,9 +9,9 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Event;
 import databus.event.redis.RedisMessaging;
 
-public class MessagePersistence extends MysqlReceiver {
+public class MysqlReceiver4Redis extends MysqlReceiver {
     
-    public MessagePersistence() {
+    public MysqlReceiver4Redis() {
         super();
     }
 
@@ -37,7 +37,7 @@ public class MessagePersistence extends MysqlReceiver {
         messageBean.execute(conn, key, message);
     }
 
-    private final static Log log = LogFactory.getLog(MessagePersistence.class);
+    private final static Log log = LogFactory.getLog(MysqlReceiver4Redis.class);
 
     private Map<String, MessageBean> messageBeanMap;
 }
