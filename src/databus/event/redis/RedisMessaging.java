@@ -40,7 +40,7 @@ public class RedisMessaging  extends AbstractRedisEvent{
                .append("\"key\": \"")
                .append(key())
                .append("\", ")
-               .append("\"message\": \"")
+               .append("\"value\": \"")
                .append(message)
                .append("\"}");
         return builder.toString();

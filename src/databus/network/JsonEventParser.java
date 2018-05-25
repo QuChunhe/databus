@@ -41,7 +41,7 @@ public class JsonEventParser implements EventParser {
     @Override
     public Event toEvent(String key, String message) {
         if (null == message) {
-            log.error("Received message is null!");
+            log.error("Received value is null!");
             return null;
         }
         if (null != key) {
