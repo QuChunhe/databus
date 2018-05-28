@@ -20,11 +20,11 @@ public class Id {
     }
 
     public BigInteger next(long unixTime, int serviceId) {
-        BigInteger upper = new BigInteger(Long.toUnsignedString(unixTime));
-        upper = upper.shiftLeft(32);
-        long lower = ((serviceId & SERVICE_ID_MASK) << BITS) | next();
+        BigInteger highPart = new BigInteger(Long.toUnsignedString(unixTime));
+        highPart = highPart.shiftLeft(32);
+        long lowPart = ((serviceId & SERVICE_ID_MASK) << BITS) | next();
 
-        return upper.or(new BigInteger(Long.toUnsignedString(lower)));
+        return highPart.or(new BigInteger(Long.toUnsignedString(lowPart)));
     }
 
     private int next() {
