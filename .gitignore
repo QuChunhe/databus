@@ -13,5 +13,6 @@ databus.iml
 target/
 out/
 src/META-INF/MANIFEST.MF
+src/adm
 databus.jar
 lib/
