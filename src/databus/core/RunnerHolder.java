@@ -5,14 +5,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public final class RunnerHolder implements Startable, Stoppable, Joinable {
+public class RunnerHolder implements Startable, Stoppable, Joinable {
     
     public RunnerHolder(Runner runner, String name) {
-        thread = new RunnerThread(runner, name);
+        setRunner(runner, name);
     }
 
     public RunnerHolder(Runner runner) {
-        thread = new RunnerThread(runner, runner.getClass().getName());
+        this(runner, runner.getClass().getName());
+    }
+
+    public RunnerHolder() {
     }
 
     @Override
@@ -36,6 +39,14 @@ public final class RunnerHolder implements Startable, Stoppable, Joinable {
         }
     }
 
+    public void setRunner(Runner runner) {
+        setRunner(runner, runner.getClass().getName());
+    }
+
+    public void setRunner(Runner runner, String name) {
+        thread = new RunnerThread(runner, name);
+    }
+
     public boolean isRunning() {
         return isRunning.get();
     }
@@ -53,7 +64,7 @@ public final class RunnerHolder implements Startable, Stoppable, Joinable {
     private final static Log log = LogFactory.getLog(RunnerHolder.class);
     
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
-    private final RunnerThread thread;
+    private RunnerThread thread;
 
     private class RunnerThread extends Thread {
 

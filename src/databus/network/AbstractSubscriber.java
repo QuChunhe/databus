@@ -15,16 +15,12 @@ import org.apache.commons.logging.LogFactory;
 
 import databus.core.*;
 
-public abstract class AbstractSubscriber implements Subscriber {
+public abstract class AbstractSubscriber extends RunnerHolder implements Subscriber {
     
     public AbstractSubscriber() {
         receiversMap = new ConcurrentHashMap<>();
     }
 
-    @Override
-    public void join() throws InterruptedException {
-        holder.join();               
-    }
 
     @Override
     public void start() {
@@ -34,17 +30,13 @@ public abstract class AbstractSubscriber implements Subscriber {
             }
         }
 
-        holder = new RunnerHolder(createTransporter());
-        holder.start();   
+        setRunner(createTransporter());
+        start();
     }
 
     @Override
     public void stop() {
-        if (null != holder) {
-            holder.stop();
-        } else {
-            log.warn(getClass().getName() + " hasn't started!");
-        }
+        super.stop();
         
         if ((null!= executorService) && (!executorService.isTerminated())) {
             log.info("Waiting ExecutorService termination!");
@@ -141,6 +133,5 @@ public abstract class AbstractSubscriber implements Subscriber {
     
     private final static Log log = LogFactory.getLog(AbstractSubscriber.class);
     
-    private RunnerHolder holder = null;
     private ExecutorService executorService = null;
 }
