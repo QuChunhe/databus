@@ -1,6 +1,6 @@
 package databus.core;
 
-public interface Subscriber extends Endpoint {
+public interface Subscriber extends Service {
     
     void register(String topic, Receiver receiver);
 

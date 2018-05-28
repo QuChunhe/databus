@@ -19,7 +19,7 @@ import sun.misc.SignalHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.core.Endpoint;
+import databus.core.Service;
 
 public class Startup {
 
@@ -30,20 +30,20 @@ public class Startup {
         }
     }
 
-    public void addEndpoint(Endpoint hook) {
-        endpoints.add(hook);
+    public void addEndpoint(Service service) {
+        services.add(service);
     }
 
-    public void setEndpoints(Collection<Endpoint> endpoints) {
-        this.endpoints = new CopyOnWriteArrayList<>(endpoints);
+    public void setServices(Collection<Service> services) {
+        this.services = new CopyOnWriteArrayList<>(services);
     }
 
     public void run(String pidFileName) {
         log.info("********************Databus Will Begin!**************************************");
         savePid(pidFileName);
 
-        for (Endpoint e : endpoints) {
-            e.start();
+        for (Service s : services) {
+            s.start();
         }
 
         registerSigTermMHander();
@@ -84,15 +84,15 @@ public class Startup {
     }
 
     private void waitUntilSigTerm() {
-        if (endpoints.size() == 0) {
+        if (services.size() == 0) {
             log.error("Has not hook to wait!");
             return;
         }
         while (isRunning) {
             try {
-                for(Endpoint e : endpoints) {
-                    e.join();
-                    log.error(e.getClass().getName()+" has stop!");
+                for(Service s : services) {
+                    s.join();
+                    log.error(s.getClass().getName()+" has stop!");
                 }
             } catch (InterruptedException e) {
                 log.warn(Thread.currentThread().getName()+" is interrupted!");
@@ -107,9 +107,9 @@ public class Startup {
             public void handle(Signal arg0) {
                 log.info("Receiving SIGTERM");
                 isRunning = false;
-                for(Endpoint e: endpoints) {
-                    e.stop();
-                    log.info("Has stopped "+e.getClass().getName());
+                for(Service s: services) {
+                    s.stop();
+                    log.info("Has stopped "+s.getClass().getName());
                 }
                 log.info("All endpoints has been stopped!");
                 mainThread.interrupt();
@@ -119,6 +119,6 @@ public class Startup {
     
     private final static Log log = LogFactory.getLog(Startup.class);
     
-    private List<Endpoint> endpoints = new CopyOnWriteArrayList<>();
+    private List<Service> services = new CopyOnWriteArrayList<>();
     private volatile boolean isRunning = true;
 }

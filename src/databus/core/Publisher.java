@@ -1,6 +1,6 @@
 package databus.core;
 
-public interface Publisher extends Endpoint {
+public interface Publisher extends Service {
     
     void publish(Event event);
 
