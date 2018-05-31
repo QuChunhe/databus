@@ -9,9 +9,13 @@ public class RedisMessaging  extends AbstractRedisEvent{
     }
 
     public RedisMessaging(String key, String message) {
+        this(System.currentTimeMillis(), key, message);
+    }
+
+    public RedisMessaging(long time, String key, String message) {
         super(key);
+        time(time);
         this.message = message;
-        time(System.currentTimeMillis());
     }
 
     @Override
