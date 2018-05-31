@@ -11,7 +11,6 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Event;
 import databus.core.Receiver;
 
-
 public abstract class MysqlReceiver implements Receiver {
 
     public void setDataSource(DataSource dataSource) {
