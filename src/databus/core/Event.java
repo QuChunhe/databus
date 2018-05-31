@@ -2,7 +2,7 @@ package databus.core;
 
 public interface Event{
     
-    enum Source {REDIS, MYSQL}
+    enum Source {REDIS, MYSQL, APPLICATION}
 
     Source source();
 

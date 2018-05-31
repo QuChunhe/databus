@@ -30,11 +30,6 @@ public abstract class AbstractRedisEvent extends AbstractEvent
         this.key = key;
         return this;
     }
-    
-    @Override
-    protected String defaultTopic() {
-        return source()+"/"+type()+"/"+key();
-    }
-    
+
     private String key;
 }

@@ -40,12 +40,7 @@ public abstract class AbstractMysqlEvent extends AbstractEvent
         this.table = table.toLowerCase();
         return this;
     }
-    
-    @Override
-    protected String defaultTopic() {
-        return source()+"/"+serverId()+"/"+database();
-    } 
-    
+
     private long serverId;
     private String database;
     private String table;    
