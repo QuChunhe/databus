@@ -15,7 +15,5 @@ public abstract class AbstractEvent implements Event {
         return this;
     }
 
-    protected abstract String defaultTopic();
-
     private long time;
 }
