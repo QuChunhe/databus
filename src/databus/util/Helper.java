@@ -7,12 +7,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+
 import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
 
@@ -29,7 +24,7 @@ public class Helper {
         return properties;
     }
 
-    public static  Properties loadPropertiesWithoutExit(String file) {
+    public static Properties loadPropertiesWithoutExit(String file) {
         if ((null==file) || (file.length()==0)) {
             log.error("Configuration file is null!");
             return null;
@@ -67,60 +62,6 @@ public class Helper {
         replace = QUOTE_PATTERN.matcher(replace).replaceAll("\\\\'");
         return replace;
     }
-    
-    public static String normalizeSocketAddress(String address) {
-        String[] parts = address.split(":");
-        if (parts.length != 2) {
-            return null;
-        }
-        String normalizedAddress = null;
-        try {
-            int port = Integer.parseInt(parts[1]);
-            if (port >= (1<<16)) {
-                return null;
-            }
-            InetAddress inetAddress = InetAddress.getByName(parts[0]);
-            normalizedAddress = inetAddress.getHostAddress() + ":" + port;
-        } catch(Exception e) {
-            // do nothing
-        }
-        return normalizedAddress;        
-    }
-    
-    public static String toAlias(String name) {
-        return name.replace('.', '_')
-                   .replace('/', '-')
-                   .replace(':', '-');
-    }
-    
-    public static ExecutorService loadExecutor(Properties properties, 
-                                               int defaultMaxThreadPoolSize) {
-        String maxThreadPoolSizeValue = properties.getProperty("maxWorkerThreadPoolSize");
-        int maxThreadPoolSize = null==maxThreadPoolSizeValue ? 
-                                defaultMaxThreadPoolSize : 
-                                Integer.parseInt(maxThreadPoolSizeValue);
-        ExecutorService executor = null;
-        if (maxThreadPoolSize > 0) {
-            String taskCapacityValue = properties.getProperty("taskCapacity");
-            int taskCapacity = null==taskCapacityValue ? 
-                               DEFAULT_TASK_CAPACITY  : 
-                               Integer.parseInt(taskCapacityValue);
-            if (taskCapacity < 1) {
-                taskCapacity = DEFAULT_TASK_CAPACITY;
-            }
-            executor = loadExecutor(1, maxThreadPoolSize, 30, taskCapacity);
-        }
-        return executor;
-    }
-
-    public static ExecutorService loadExecutor(int corePoolSize, int maximumPoolSize,
-                                               long keepAliveSeconds, int taskQueueCapacity) {
-        return new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
-                                      keepAliveSeconds, TimeUnit.SECONDS,
-                                      new ArrayBlockingQueue<>(taskQueueCapacity),
-                                      Executors.defaultThreadFactory(),
-                                      new CallerWaitsPolicy());
-    }
 
     public static String substring(String string, String splitter) {
         int position = string.indexOf(splitter);
@@ -129,21 +70,6 @@ public class Helper {
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
-    private final static int DEFAULT_TASK_CAPACITY = 10;
-
-    public static class CallerWaitsPolicy implements RejectedExecutionHandler {
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            for (;;) {
-                try {
-                    executor.getQueue().put(r);
-                    return;
-                } catch (InterruptedException e) {
-
-                }
-            }
-        }
-    }
 
     private final static Log log = LogFactory.getLog(Helper.class);
 }
