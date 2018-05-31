@@ -1,5 +1,7 @@
 package databus.network.kafka;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -15,7 +17,7 @@ import databus.network.JsonEventParser;
 import databus.util.Helper;
 import databus.network.AbstractPublisher;
 
-public class KafkaPublisher extends AbstractPublisher {
+public class KafkaPublisher extends AbstractPublisher implements Closeable {
 
     public KafkaPublisher() {
         super();
@@ -58,7 +60,16 @@ public class KafkaPublisher extends AbstractPublisher {
     @Override
     public void stop() {
         super.stop();
-        producer.close();        
+        try {
+            close();
+        } catch (IOException e) {
+            //do nothing
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        producer.close();
     }
 
     public void setTopic(String topic) {
