@@ -87,7 +87,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
                         positionsCache.set(topic, partition, offset);
                     }
                     
-                    Event event = eventParser.toEvent(key, r.value());
+                    Event event = eventParser.toEvent(topic, key, r.value());
                     if (null == event) {
                         log.error("value can not be parser as an event " + logPrefix+ " : " +
                                   r.value());

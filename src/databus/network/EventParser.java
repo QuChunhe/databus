@@ -8,5 +8,5 @@ public interface EventParser {
 
     String toKey(Event event);
     
-    Event toEvent(String key, String message);
+    Event toEvent(String topic, String key, String message);
 }

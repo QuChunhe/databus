@@ -28,10 +28,16 @@ public class JsonEventParser implements EventParser {
     }
     
     @Override
-    public Event toEvent(String key, String message) {
+    public Event toEvent(String topic, String key, String message) {
         if (null == message) {
             log.error("Received value is null!");
             return null;
+        }
+        if (null != topic) {
+            Event event = toEvent0(topic, message);
+            if (null != event) {
+                return event;
+            }
         }
         if (null != key) {
             Event event = toEvent0(key, message);
@@ -46,13 +52,13 @@ public class JsonEventParser implements EventParser {
     public Event toEventFromMessage(String message) {
         String[] parts = SPLIT_PATTERN.split(message, 2);
         if (parts.length != 2) {
-            log.error(message + " cannot be splitted by '='!");
+            log.error(message + " can not be split by '='!");
             return null;
         }
 
         String key = parts[0].trim();
         String data = parts[1].trim();
-        return toEvent(key, data);
+        return toEvent0(key, data);
     }
 
     @Override
