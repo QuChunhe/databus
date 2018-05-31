@@ -1,7 +1,6 @@
 package databus.network.kafka;
 
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,7 +25,10 @@ public class KafkaPublisher extends AbstractPublisher {
         Properties properties = Helper.loadProperties(configFile);
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("compression.type", "gzip");
+
+        if (null == properties.getProperty("compression.type")) {
+            properties.put("compression.type", "gzip");
+        }
 
         producer = new KafkaProducer<>(properties);
     }
@@ -45,9 +47,9 @@ public class KafkaPublisher extends AbstractPublisher {
             log.error("topic is null!");
             return;
         }
-        topic =  SPECIAL_CHARACTER.matcher(topic).replaceAll("-");
-        String value = eventParser.toString(event);
-        String key = event.source().toString()+":"+event.type();
+
+        String value = eventParser.toMessage(event);
+        String key = eventParser.toKey(event);
         log.info(topic +" -- " + key + " : " +value);
         ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
         producer.send(record, new LogCallback(topic, key, value));
@@ -63,10 +65,17 @@ public class KafkaPublisher extends AbstractPublisher {
         this.topic = topic;
     }
 
+    public void setEventParser(JsonEventParser eventParser) {
+        this.eventParser = eventParser;
+    }
+
+    public void setProducer(KafkaProducer<String, String> producer) {
+        this.producer = producer;
+    }
+
     private final static Log log = LogFactory.getLog(KafkaPublisher.class);
-    private final static Pattern SPECIAL_CHARACTER = Pattern.compile("_|:|/|\\.");
-    private final static JsonEventParser eventParser = new JsonEventParser();
-    
+
+    private JsonEventParser eventParser = new JsonEventParser();
     private KafkaProducer<String, String> producer;
     private String topic = null;
 
@@ -88,8 +97,8 @@ public class KafkaPublisher extends AbstractPublisher {
             }
         }        
 
-        private String key;
-        private String value;
-        private String topic;
+        private final String key;
+        private final String value;
+        private final String topic;
     }    
 }

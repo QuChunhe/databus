@@ -1,9 +1,6 @@
 package databus.network;
 
 import java.text.DateFormat;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.regex.Pattern;
 
 import org.apache.commons.logging.Log;
@@ -18,21 +15,13 @@ import databus.core.Event;
 public class JsonEventParser implements EventParser { 
     
     public JsonEventParser() {
-        eventClasses = new HashMap<String,Class<? extends Event>>();
-        ServiceLoader<Event> serviceLoader = ServiceLoader.load(Event.class);
-        for(Event e : serviceLoader) {
-            Class<? extends Event> C = (Class<? extends Event>) e.getClass();
-            eventClasses.put(e.source().toString()+":"+e.type(), C);
-        }
-
-
         gson = new GsonBuilder().enableComplexMapKeySerialization() 
                                 .setDateFormat(DateFormat.LONG)                              
                                 .create();        
     }
     
     @Override
-    public String toString(Event event) {        
+    public String toMessage(Event event) {
         StringBuilder builder = new StringBuilder(2048);
         gson.toJson(event, builder);
         return builder.toString();
@@ -66,8 +55,17 @@ public class JsonEventParser implements EventParser {
         return toEvent(key, data);
     }
 
+    @Override
+    public String toKey(Event event) {
+        return keyMapper.toKey(event);
+    }
+
+    public void setKeyMapper(KeyMapper keyMapper) {
+        this.keyMapper = keyMapper;
+    }
+
     private Event toEvent0(String key, String data) {
-        Class<? extends Event> eventClass = eventClasses.get(key);
+        Class<? extends Event> eventClass = keyMapper.toEventClass(key);
         if (null == eventClass) {
             return null;
         }
@@ -85,7 +83,7 @@ public class JsonEventParser implements EventParser {
     private final static Log log = LogFactory.getLog(JsonEventParser.class);
     
     private final Gson gson;
-    private final Map<String,Class<? extends Event>> eventClasses;
     private final Pattern SPLIT_PATTERN = Pattern.compile("=");
 
+    private KeyMapper keyMapper = new DefaultKeyMapper();
 }

@@ -10,7 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import databus.core.Event;
-import databus.core.Receiver;
+import databus.network.EventParser;
 import databus.network.AbstractSubscriber;
 import databus.network.JsonEventParser;
 import databus.network.Transporter;
@@ -18,24 +18,13 @@ import databus.util.Helper;
 
 public class KafkaSubscriber extends AbstractSubscriber {
     
-    public KafkaSubscriber(String serverAddress) {
+    public KafkaSubscriber() {
         super();
-        this.serverAddress = serverAddress;
     }
-
-    @Override
-    public void register(String topic, Receiver receiver) {
-        String normalizedTopic = topic.replace('/', '-')
-                                      .replace('.', '-')
-                                      .replace(':', '-')
-                                      .replace('_', '-');
-        super.register(normalizedTopic, receiver);
-    }
-
 
     public void setConfigFile(String configFile) {
-        properties = Helper.loadProperties(configFile);
-        properties.put("bootstrap.servers", serverAddress);
+        Properties properties = Helper.loadProperties(configFile);
+
         if (null == properties.getProperty("group.id")) {
             properties.setProperty("group.id",
                                    "default-" + Math.round(Math.random()*1000000));
@@ -44,6 +33,11 @@ public class KafkaSubscriber extends AbstractSubscriber {
                                "org.apache.kafka.common.serialization.StringDeserializer");
         properties.setProperty("value.deserializer",
                                "org.apache.kafka.common.serialization.StringDeserializer");
+        consumer = new KafkaConsumer<>(properties);
+    }
+
+    public void setEventParser(EventParser eventParser) {
+        this.eventParser = eventParser;
     }
 
     public void setPollingTimeout(long pollingTimeout) {
@@ -56,14 +50,14 @@ public class KafkaSubscriber extends AbstractSubscriber {
     }
 
     private final static Log log = LogFactory.getLog(KafkaSubscriber.class);
-    private final static JsonEventParser eventParser = new JsonEventParser();
 
     private final PositionsCache positionsCache = new PositionsCache(1);
-    private final String serverAddress;
 
+    private KafkaConsumer<String, String> consumer;
+    private EventParser eventParser = new JsonEventParser();
     private long pollingTimeout = 2000;
-    private Properties properties;
-   
+
+
     private class PollingTransporter implements Transporter {
 
         public PollingTransporter() {
@@ -71,9 +65,9 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
         @Override
         public void initialize() {
-            consumer = new KafkaConsumer<>(properties);
-            consumer.subscribe(receiversMap.keySet(), new AutoRebalanceListener(serverAddress, consumer));
-            KafkaHelper.seekRightPositions(serverAddress, consumer, consumer.assignment());
+
+            consumer.subscribe(receiversMap.keySet(), new AutoRebalanceListener(consumer));
+            KafkaHelper.seekRightPositions( consumer, consumer.assignment());
         }
 
         @Override
@@ -85,13 +79,12 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     int partition = r.partition();
                     long offset = r.offset();
                     String key = r.key();
-                    String fullTopic = serverAddress + "/" + topic;
-                    String logPrefix = fullTopic+ "   " +key + " (" + partition + ", " + offset + ")";
-                    if (offset <= positionsCache.get(fullTopic, partition)) {
+                    String logPrefix = topic+ "   " +key + " (" + partition + ", " + offset + ")";
+                    if (offset <= positionsCache.get(topic, partition)) {
                         log.warn(logPrefix + " is processed ahead : " + r.value());
                         continue;
                     } else {
-                        positionsCache.set(fullTopic, partition, offset);
+                        positionsCache.set(topic, partition, offset);
                     }
                     
                     Event event = eventParser.toEvent(key, r.value());
@@ -133,8 +126,5 @@ public class KafkaSubscriber extends AbstractSubscriber {
         public void close() {
             consumer.close();
         }
-        
-        private KafkaConsumer<String, String> consumer;
-
     }
 }

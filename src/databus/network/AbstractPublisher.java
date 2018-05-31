@@ -1,5 +1,6 @@
 package databus.network;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -18,9 +19,17 @@ public abstract class AbstractPublisher implements Publisher {
         listenerSet = new HashSet<>();
     }
 
+    public AbstractPublisher(Collection<Listener> listeners) {
+        this();
+        for(Listener l : listeners) {
+            addListener(l);
+        }
+    }
+
     @Override
     public void addListener(Listener listener) {
         listenerSet.add(listener);
+        listener.setPublisher(this);
     }
 
     @Override
