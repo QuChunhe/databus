@@ -11,10 +11,14 @@ import databus.event.redis.RedisMessaging;
 /**
  * Created by Qu Chunhe on 2018-06-01.
  */
-public abstract class AbstractMysqlReceiver4Redis extends MysqlReceiver {
+public abstract class MysqlReceiver4Redis extends MysqlReceiver {
 
-    public AbstractMysqlReceiver4Redis() {
+    public MysqlReceiver4Redis() {
         super();
+    }
+
+    public void setMysqlBean(MysqlBean mysqlBean) {
+        this.mysqlBean = mysqlBean;
     }
 
     @Override
@@ -27,10 +31,11 @@ public abstract class AbstractMysqlReceiver4Redis extends MysqlReceiver {
         RedisMessaging redisMessaging = (RedisMessaging) event;
         String key = redisMessaging.key();
         String message = redisMessaging.message();
-        execute(conn, key, message);
+        mysqlBean.execute(conn, key, message);
     }
 
-    protected abstract void execute(Connection connection, String key, String message);
 
-    private final static Log log = LogFactory.getLog(AbstractMysqlReceiver4Redis.class);
+    private final static Log log = LogFactory.getLog(MysqlReceiver4Redis.class);
+
+    private MysqlBean mysqlBean;
 }
