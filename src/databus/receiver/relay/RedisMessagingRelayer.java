@@ -16,7 +16,7 @@ public class RedisMessagingRelayer extends KafkaRelayer {
         super();
     }
 
-    public void setMessageTransformerMap(Map<String, MessageTransformer> messageTransformerMap) {
+    public void setMessageTransformerMap(Map<String, EventTransformer> messageTransformerMap) {
         this.messageTransformerMap = messageTransformerMap;
     }
 
@@ -28,22 +28,21 @@ public class RedisMessagingRelayer extends KafkaRelayer {
             return;
         }
         RedisMessaging redisMessaging = (RedisMessaging) event;
-        String oldKey = redisMessaging.key();
-        MessageTransformer transformer = messageTransformerMap.get(oldKey);
+        EventTransformer transformer = messageTransformerMap.get(redisMessaging.key());
         if (null == transformer) {
-            log.error("Can not get Transformer for "+oldKey);
+            log.error("Can not get Transformer for "+redisMessaging.key());
             return;
         }
 
-        String newMessage = transformer.toMessage(redisMessaging.message());
-        if (null == newMessage) {
-            log.error("Can not transform message from : "+redisMessaging.message());
+        EventWrapper eventWrapper = transformer.transform(redisMessaging);
+        if (null == eventWrapper) {
+            log.error("Can not transform event from : "+redisMessaging.message());
             return;
         }
-        send(transformer.topic(), new RedisMessaging(redisMessaging.time(), oldKey, newMessage));
+        send(eventWrapper.getTopic(), eventWrapper.getEvent());
     }
 
     private final static Log log = LogFactory.getLog(RedisMessagingRelayer.class);
 
-    private Map<String, MessageTransformer> messageTransformerMap;
+    private Map<String, EventTransformer> messageTransformerMap;
 }
