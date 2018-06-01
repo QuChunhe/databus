@@ -5,8 +5,8 @@ import java.sql.Connection;
 /**
  * Created by Qu Chunhe on 2018-06-01.
  */
-public class MysqlReceiver4Redis extends AbstractMysqlReceiver4Redis {
-    public MysqlReceiver4Redis() {
+public class MysqlReceiver4SingleKey extends AbstractMysqlReceiver4Redis {
+    public MysqlReceiver4SingleKey() {
         super();
     }
 
