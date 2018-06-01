@@ -1,13 +1,12 @@
 package databus.network.kafka;
 
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.consumer.*;
 
 import databus.core.Event;
 import databus.network.EventParser;
@@ -15,6 +14,7 @@ import databus.network.AbstractSubscriber;
 import databus.network.JsonEventParser;
 import databus.network.Transporter;
 import databus.util.Helper;
+import org.apache.kafka.common.TopicPartition;
 
 public class KafkaSubscriber extends AbstractSubscriber {
     
@@ -65,9 +65,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
         @Override
         public void initialize() {
-
-            consumer.subscribe(receiversMap.keySet(), new AutoRebalanceListener(consumer));
-            KafkaHelper.seekRightPositions( consumer, consumer.assignment());
+            consumer.subscribe(receiversMap.keySet());
         }
 
         @Override
@@ -80,22 +78,28 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     long offset = r.offset();
                     String key = r.key();
                     String logPrefix = topic+ "   " +key + " (" + partition + ", " + offset + ")";
-                    if (offset <= positionsCache.get(topic, partition)) {
-                        log.warn(logPrefix + " is processed ahead : " + r.value());
-                        continue;
-                    } else {
-                        positionsCache.set(topic, partition, offset);
-                    }
-                    
+
+
                     Event event = eventParser.toEvent(topic, key, r.value());
                     if (null == event) {
-                        log.error("value can not be parser as an event " + logPrefix+ " : " +
+                        log.error("value can not be parser as an event : " +
                                   r.value());
                         continue;
                     } 
-                    log.info(logPrefix + " : " + event.toString());
+                    log.info( topic+ "   " +key + " (" + partition + ", " + offset + ")" + " : " +
+                             event.toString());
                     receive(topic, event);
                 }
+                consumer.commitAsync(new OffsetCommitCallback() {
+                    @Override
+                    public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+                                           Exception exception) {
+                        if (null != exception) {
+                            log.error("Can not commit offsets", exception);
+                        }
+
+                    }
+                });
             }            
         }
 
