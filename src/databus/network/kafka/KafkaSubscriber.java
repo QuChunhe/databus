@@ -51,8 +51,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
     private final static Log log = LogFactory.getLog(KafkaSubscriber.class);
 
-    private final PositionsCache positionsCache = new PositionsCache(1);
-
     private KafkaConsumer<String, String> consumer;
     private EventParser eventParser = new JsonEventParser();
     private long pollingTimeout = 2000;
@@ -65,7 +63,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
         @Override
         public void initialize() {
-            consumer.subscribe(receiversMap.keySet());
+            consumer.subscribe(receiversMap.keySet(), new AutoRebalanceListener(consumer));
         }
 
         @Override
@@ -77,8 +75,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     int partition = r.partition();
                     long offset = r.offset();
                     String key = r.key();
-                    String logPrefix = topic+ "   " +key + " (" + partition + ", " + offset + ")";
-
 
                     Event event = eventParser.toEvent(topic, key, r.value());
                     if (null == event) {
@@ -104,7 +100,12 @@ public class KafkaSubscriber extends AbstractSubscriber {
         }
 
         @Override
-        public void processFinally() {            
+        public void processFinally() {
+            try {
+                consumer.commitSync();
+            }catch (Exception e) {
+                log.error("Can not commitSync", e);
+            }
         }
 
         @Override
