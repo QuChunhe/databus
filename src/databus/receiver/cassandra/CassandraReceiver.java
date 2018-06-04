@@ -28,12 +28,15 @@ public abstract class CassandraReceiver implements Receiver {
     @Override
     public void receive(Event event) {
         try(CassandraConnection conn = new CassandraConnection(cluster.connect(), futureChecker)) {
-            receive(conn, event);
+            cassandraBean.execute(conn, event);
         } catch (Exception e) {
             log.error("Can not receive "+event.toString(), e);
         }
     }
 
+    public void setCassandraBean(CassandraBean cassandraBean) {
+        this.cassandraBean = cassandraBean;
+    }
 
     public void setConfigFile(String configFile) {
         Properties properties = Helper.loadProperties(configFile);
@@ -129,4 +132,5 @@ public abstract class CassandraReceiver implements Receiver {
 
     private Cluster cluster;
     private FutureChecker futureChecker;
+    private CassandraBean cassandraBean;
 }
