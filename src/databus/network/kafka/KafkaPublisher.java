@@ -32,6 +32,10 @@ public class KafkaPublisher extends AbstractPublisher implements Closeable {
             properties.put("compression.type", "gzip");
         }
 
+        if (null == properties.getProperty("partitioner.class")) {
+            properties.put("partitioner.class", "databus.network.kafka.RoundRobinPartitioner");
+        }
+
         producer = new KafkaProducer<>(properties);
     }
 

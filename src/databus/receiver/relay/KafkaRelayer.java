@@ -37,6 +37,10 @@ public abstract class KafkaRelayer implements Receiver {
             properties.put("compression.type", "gzip");
         }
 
+        if (null == properties.getProperty("partitioner.class")) {
+            properties.put("partitioner.class", "databus.network.kafka.RoundRobinPartitioner");
+        }
+
         kafkaProducer = new KafkaProducer<>(properties);
     }
 
