@@ -17,7 +17,7 @@ public abstract class MysqlReceiver4Redis extends MysqlReceiver {
         super();
     }
 
-    public void setMysqlBean(MysqlBean mysqlBean) {
+    public void setMysqlBean(MessageBean mysqlBean) {
         this.mysqlBean = mysqlBean;
     }
 
@@ -37,5 +37,5 @@ public abstract class MysqlReceiver4Redis extends MysqlReceiver {
 
     private final static Log log = LogFactory.getLog(MysqlReceiver4Redis.class);
 
-    private MysqlBean mysqlBean;
+    private MessageBean mysqlBean;
 }

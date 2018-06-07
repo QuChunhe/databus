@@ -9,15 +9,15 @@ import org.apache.commons.logging.LogFactory;
 /**
  * Created by Qu Chunhe on 2018-06-01.
  */
-public class MysqlBeachBatch implements MysqlBean {
+public class BatchMessageBean implements MessageBean {
 
-    public void setMessageBeanMap(Map<String, MysqlBean> messageBeanMap) {
+    public void setMessageBeanMap(Map<String, MessageBean> messageBeanMap) {
         this.messageBeanMap = messageBeanMap;
     }
 
     @Override
     public void execute(Connection connection, String key, String message) {
-        MysqlBean messageBean = messageBeanMap.get(key);
+        MessageBean messageBean = messageBeanMap.get(key);
         if (null == messageBean) {
             log.error("Can not get value bean for "+key);
             return;
@@ -25,7 +25,7 @@ public class MysqlBeachBatch implements MysqlBean {
         messageBean.execute(connection, key, message);
     }
 
-    private final static Log log = LogFactory.getLog(MysqlBeachBatch.class);
+    private final static Log log = LogFactory.getLog(BatchMessageBean.class);
 
-    private Map<String, MysqlBean> messageBeanMap;
+    private Map<String, MessageBean> messageBeanMap;
 }
