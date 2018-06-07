@@ -55,7 +55,7 @@ public class MysqlCassandraBean implements CassandraBean {
         if (null == sql) {
             log.error("Can not convert SQL from " + event.toString());
         } else {
-            conn.insertAsync(sql, new LogCallback(sql));
+            conn.insertAsync(sql, new LogFailureCallback(sql));
             log.info("Execute : "+sql);
         }
     }
@@ -175,22 +175,4 @@ public class MysqlCassandraBean implements CassandraBean {
     private String table = null;
     private Map<String, String> columnMap = new HashMap<>();
     private boolean doesDiscardUnspecifiedColumn = false;
-
-
-    private static class LogCallback implements Callback<ResultSet> {
-        public LogCallback(String sql) {
-            this.sql = sql;
-        }
-
-        @Override
-        public void onFailure(Throwable t) {
-            log.error("Can not execute "+sql, t);
-        }
-
-        @Override
-        public void onSuccess(ResultSet rows) {
-        }
-
-        private final String sql;
-    }
 }
