@@ -21,7 +21,7 @@ import databus.util.Backup;
 public class MysqlListener extends RunnableListener {
 
     public MysqlListener(Publisher publisher) {
-        super(publisher);
+        super(publisher, "MysqlListener");
     }
 
     @Override

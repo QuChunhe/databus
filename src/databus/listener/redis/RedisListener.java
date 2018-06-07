@@ -11,7 +11,7 @@ import databus.listener.RunnableListener;
 public abstract class RedisListener extends RunnableListener {
 
     public RedisListener(String name) {
-        super();
+        super(name);
     }
     
     public RedisListener() {
