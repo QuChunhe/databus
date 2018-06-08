@@ -19,7 +19,7 @@ import databus.util.Helper;
 /**
  * Created by Qu Chunhe on 2018-05-24.
  */
-public abstract class KafkaRelayer implements Receiver {
+public class KafkaRelayer implements Receiver {
     public KafkaRelayer() {
     }
 
