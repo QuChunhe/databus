@@ -30,7 +30,7 @@ public class Startup {
         }
     }
 
-    public void addEndpoint(Service service) {
+    public void addServices(Service service) {
         services.add(service);
     }
 
