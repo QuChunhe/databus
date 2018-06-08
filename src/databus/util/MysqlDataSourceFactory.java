@@ -10,10 +10,9 @@ import java.util.Properties;
 /**
  * Created by Qu Chunhe on 2018-05-31.
  */
-public class MysqlDataSourceFactory implements DataSourceFactory {
+public class MysqlDataSourceFactory {
 
-    @Override
-    public DataSource createDataSource(String configFile) {
+    public static DataSource create(String configFile) {
         Properties properties = Helper.loadProperties(configFile);
         DataSource dataSource = null;
         try {
@@ -23,6 +22,7 @@ public class MysqlDataSourceFactory implements DataSourceFactory {
         }
         return  dataSource;
     }
+
     private final static Log log = LogFactory.getLog(MysqlDataSourceFactory.class);
 
 }
