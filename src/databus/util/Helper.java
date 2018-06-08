@@ -8,6 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
 
@@ -52,6 +55,16 @@ public class Helper {
         ip |= Byte.toUnsignedLong(parts[3]);
      
         return ip;
+    }
+
+    public static ThreadPoolExecutor loadExecutor(int corePoolSize, int maximumPoolSize,
+                                                  long keepAliveSeconds, int taskCapacity) {
+        return new ThreadPoolExecutor(corePoolSize,
+                                      maximumPoolSize,
+                                      keepAliveSeconds,
+                                      TimeUnit.SECONDS,
+                                      new ArrayBlockingQueue<>(taskCapacity),
+                                      new CallerWaitsPolicy());
     }
 
     public static String replaceEscapeString(String sql) {
