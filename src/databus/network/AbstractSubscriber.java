@@ -31,7 +31,7 @@ public abstract class AbstractSubscriber extends RunnerHolder implements Subscri
         }
 
         setRunner(createTransporter());
-        start();
+        super.start();
     }
 
     @Override

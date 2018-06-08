@@ -21,21 +21,12 @@ public abstract class AbstractPublisher implements Publisher {
 
     public AbstractPublisher(Collection<Listener> listeners) {
         this();
-        for(Listener l : listeners) {
-            addListener(l);
-        }
+        listenerSet.addAll(listeners);
     }
 
     @Override
     public void addListener(Listener listener) {
         listenerSet.add(listener);
-        listener.setPublisher(this);
-    }
-
-    public void setListeners(Collection<Listener> listeners) {
-        for (Listener l : listeners) {
-            addListener(l);
-        }
     }
 
     @Override
