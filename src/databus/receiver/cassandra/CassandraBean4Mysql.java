@@ -7,23 +7,20 @@ import java.util.Map;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
-import com.datastax.driver.core.ResultSet;
-
 import databus.core.Event;
 import databus.event.mysql.Column;
 import databus.event.mysql.MysqlDeleteRow;
 import databus.event.mysql.MysqlInsertRow;
 import databus.event.mysql.MysqlUpdateRow;
 import databus.receiver.mysql.MysqlHelper;
-import databus.util.Callback;
 import databus.event.MysqlEvent;
 
 /**
  * Created by Qu Chunhe on 2018-05-30.
  */
-public class MysqlCassandraBean implements CassandraBean {
+public class CassandraBean4Mysql implements CassandraBean {
 
-    public MysqlCassandraBean() {
+    public CassandraBean4Mysql() {
     }
 
     public void setDoesDiscardUnspecifiedColumn(boolean doesDiscardUnspecifiedColumn) {
@@ -170,7 +167,7 @@ public class MysqlCassandraBean implements CassandraBean {
     }
 
 
-    private final static Log log = LogFactory.getLog(MysqlCassandraBean.class);
+    private final static Log log = LogFactory.getLog(CassandraBean4Mysql.class);
 
     private String table = null;
     private Map<String, String> columnMap = new HashMap<>();

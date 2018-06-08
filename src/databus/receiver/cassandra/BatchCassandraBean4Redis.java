@@ -6,12 +6,11 @@ import org.apache.commons.logging.LogFactory;
 import databus.core.Event;
 import databus.event.redis.RedisMessaging;
 
-
 /**
  * Created by Qu Chunhe on 2018-06-04.
  */
-public class RedisBatchCassandraBean extends BatchCassandraBean  {
-    public RedisBatchCassandraBean() {
+public class BatchCassandraBean4Redis extends BatchCassandraBean {
+    public BatchCassandraBean4Redis() {
     }
 
     @Override
@@ -24,6 +23,6 @@ public class RedisBatchCassandraBean extends BatchCassandraBean  {
         return null;
     }
 
-    private final static Log log = LogFactory.getLog(RedisBatchCassandraBean.class);
+    private final static Log log = LogFactory.getLog(BatchCassandraBean4Redis.class);
 
 }

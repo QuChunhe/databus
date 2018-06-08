@@ -16,7 +16,9 @@ import databus.util.Helper;
 /**
  * Created by Qu Chunhe on 2018-05-24.
  */
-public abstract class CassandraReceiver implements Receiver {
+public class CassandraReceiver implements Receiver {
+    public CassandraReceiver() {
+    }
 
     @Override
     public void close() throws IOException {
@@ -122,7 +124,6 @@ public abstract class CassandraReceiver implements Receiver {
         this.futureChecker = futureChecker;
     }
 
-    protected abstract void receive(CassandraConnection conn, Event event);
 
     private int parseInt(String value) {
         return Integer.parseUnsignedInt(value);

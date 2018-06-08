@@ -9,8 +9,8 @@ import databus.event.MysqlEvent;
 /**
  * Created by Qu Chunhe on 2018-06-01.
  */
-public class MysqlBatchCassandraBean extends BatchCassandraBean {
-    public MysqlBatchCassandraBean() {
+public class BatchCassandraBean4Mysql extends BatchCassandraBean {
+    public BatchCassandraBean4Mysql() {
         super();
     }
 
@@ -24,6 +24,6 @@ public class MysqlBatchCassandraBean extends BatchCassandraBean {
         return null;
     }
 
-    private final static Log log = LogFactory.getLog(MysqlBatchCassandraBean.class);
+    private final static Log log = LogFactory.getLog(BatchCassandraBean4Mysql.class);
 
 }
