@@ -7,15 +7,17 @@ import databus.core.Publisher;
 import databus.core.Runner;
 import databus.core.RunnerHolder;
 
-public abstract class RunnableListener extends AbstractListener {    
+public abstract class RunnableListener extends AbstractListener {
         
-    public RunnableListener(Publisher publisher) {
-        setPublisher(publisher);
-        holder = new RunnerHolder(createListeningRunner());
+    public RunnableListener(Publisher publisher, String name) {
+        if (null != publisher) {
+            setPublisher(publisher);
+        }
+        holder = new RunnerHolder(createListeningRunner(), name);
     }
     
-    public RunnableListener() {
-        this(null);
+    public RunnableListener(String name) {
+        this(null, name);
     }
 
     @Override
