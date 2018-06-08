@@ -24,6 +24,16 @@ public abstract class KafkaRelayer implements Receiver {
     }
 
     @Override
+    public void receive(Event event) {
+        EventWrapper eventWrapper = eventTransformer.transform(event);
+        if (null == eventWrapper) {
+            log.error("Can not transform event from : "+event.toString());
+            return;
+        }
+        send(eventWrapper.getTopic(), eventWrapper.getKey(), eventWrapper.getEvent());
+    }
+
+    @Override
     public void close() throws IOException {
         kafkaProducer.close();
     }
@@ -52,8 +62,19 @@ public abstract class KafkaRelayer implements Receiver {
         this.eventParser = eventParser;
     }
 
+    public void setEventTransformer(EventTransformer eventTransformer) {
+        this.eventTransformer = eventTransformer;
+    }
+
     protected void send(String topic, Event event) {
         send(topic, eventParser.toKey(event), eventParser.toMessage(event));
+    }
+
+    protected void send(String topic, String key, Event event) {
+        if (null == key) {
+            key = eventParser.toKey(event);
+        }
+        send(topic, key, eventParser.toMessage(event));
     }
 
     protected void send(String topic, String key, String value) {
@@ -75,4 +96,5 @@ public abstract class KafkaRelayer implements Receiver {
 
     private KafkaProducer<String, String> kafkaProducer;
     private JsonEventParser eventParser = new JsonEventParser();
+    private EventTransformer eventTransformer;
 }
