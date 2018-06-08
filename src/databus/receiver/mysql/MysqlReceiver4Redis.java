@@ -11,7 +11,7 @@ import databus.event.redis.RedisMessaging;
 /**
  * Created by Qu Chunhe on 2018-06-01.
  */
-public abstract class MysqlReceiver4Redis extends MysqlReceiver {
+public class MysqlReceiver4Redis extends MysqlReceiver {
 
     public MysqlReceiver4Redis() {
         super();
