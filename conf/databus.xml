@@ -13,7 +13,7 @@
         <constructor-arg value="100" />
     </bean>
 
-    <bean id="startup" class="databus.application.Startup" scope="singleton">
+    <bean id="startup" class="databus.boot.Startup" scope="singleton">
         <property name="services">
             <list>
                 <ref bean="publisher"/>

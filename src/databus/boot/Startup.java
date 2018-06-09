@@ -1,4 +1,4 @@
-package databus.application;
+package databus.boot;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

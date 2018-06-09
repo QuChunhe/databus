@@ -1,4 +1,4 @@
-package databus.application;
+package databus.boot;
 
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.apache.commons.logging.LogFactory;
