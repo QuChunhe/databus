@@ -19,7 +19,7 @@
         </property>
         <property name="deniedOperations">
             <list>
-                <value>INSERT</value>
+                <value>DELETE</value>
             </list>
         </property>
     </bean>

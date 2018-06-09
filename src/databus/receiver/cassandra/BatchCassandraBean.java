@@ -1,5 +1,6 @@
 package databus.receiver.cassandra;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -15,7 +16,7 @@ public abstract class BatchCassandraBean implements CassandraBean {
     }
 
     public void setCassandraBeanMap(Map<String, CassandraBean> cassandraBeanMap) {
-        this.cassandraBeanMap = cassandraBeanMap;
+        this.cassandraBeanMap.putAll(cassandraBeanMap);
     }
 
     @Override
@@ -37,5 +38,5 @@ public abstract class BatchCassandraBean implements CassandraBean {
 
     private final static Log log = LogFactory.getLog(BatchCassandraBean.class);
 
-    private Map<String, CassandraBean> cassandraBeanMap;
+    private Map<String, CassandraBean> cassandraBeanMap = new HashMap<>();
 }

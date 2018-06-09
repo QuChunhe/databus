@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+    <bean id="mysqlDataSource" class="databus.util.MysqlDataSourceFactory" factory-method="create">
+        <constructor-arg value="conf/mysql_receiver.properties" />
+    </bean>
+
+    <bean id="beaconBean" class="adm.stats.BeaconMysqlBean" scope="singleton">
+    </bean>
+    <bean id="trafficBean" class="adm.stats.TrafficMysqlBean" scope="singleton">
+    </bean>
+    <bean id="batchMysqlBean" class="databus.receiver.mysql.BatchMessageBean" scope="singleton">
+        <property name="messageBeanMap">
+            <map>
+                <entry key="adm:mq:beacon" value-ref="beaconBean"/>
+                <entry key="adm:mq:userInfo" value-ref="trafficBean"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="mysqlReceiver" class="databus.receiver.mysql.MysqlReceiver4Redis" scope="singleton">
+        <property name="dataSource" ref="mysqlDataSource"/>
+        <property name="mysqlBean" ref="batchMysqlBean"/>
+    </bean>
+
+</beans>

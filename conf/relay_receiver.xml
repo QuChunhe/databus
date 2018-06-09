@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+    <bean id="beaconTransformer" class="adm.stats.BeaconTransformer" scope="singleton">
+        <property name="clickTopic" value="logs"/>
+        <property name="impressionTopic" value="logs"/>
+    </bean>
+    <bean id="trafficTransformer" class="adm.stats.TrafficTransformer" scope="singleton">
+        <property name="topic" value="logs"/>
+    </bean>
+
+    <bean id="batchTransformer" class="databus.receiver.relay.BatchRedisMessagingTransformer" scope="singleton">
+        <property name="eventTransformerMap">
+            <map>
+                <entry key="adm:mq:beacon" value-ref="beaconTransformer"/>
+                <entry key="adm:mq:userInfo" value-ref="trafficTransformer"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="relayReceiver" class="databus.receiver.relay.KafkaRelayer" scope="singleton">
+        <property name="configFile" value="conf/kafka_publisher.properties"/>
+        <property name="eventTransformer" ref="batchTransformer"/>
+    </bean>
+
+</beans>

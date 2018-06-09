@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+    <bean id="redisListener" class="databus.listener.redis.RedisMessagingListener" scope="singleton">
+        <property name="topic" value="redis-messaging"/>
+        <property name="host" value="127.0.0.1"/>
+        <property name="port" value="6379"/>
+        <property name="timeout" value="2000"/>
+        <property name="keys">
+            <list>
+                <value>adm:mq:userInfo</value>
+                <value>adm:mq:beacon</value>
+            </list>
+        </property>
+        <property name="publisher" ref="publisher"/>
+    </bean>
+
+</beans>

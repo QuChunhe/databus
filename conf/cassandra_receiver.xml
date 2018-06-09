@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+    <bean name="trafficCassandraBean" class="adm.stats.TrafficCassandraBean">
+    </bean>
+    <bean name="impressionCassandraBean" class="adm.stats.ImpressionBeaconCassandraBean">
+    </bean>
+    <bean name="clickCassandraBean" class="adm.stats.ClickBeaconCassandraBean">
+    </bean>
+    <bean name="cassandraBean4Redis" class="databus.receiver.cassandra.BatchCassandraBean4Redis">
+        <property name="cassandraBeanMap">
+            <map>
+                <entry key="info:traffic" value-ref="trafficCassandraBean"/>
+                <entry key="info:beacon:impression" value-ref="impressionCassandraBean"/>
+                <entry key="info:beacon:click" value-ref="clickCassandraBean"/>
+            </map>
+        </property>
+    </bean>
+    <bean id="cassandraBeanDispatcher" class="databus.receiver.cassandra.CassandraBean4RedisAndMysql">
+        <property name="cassandraBean4Mysql" ref="cassandraBean4Redis"/>
+        <property name="cassandraBean4Redis" ref="cassandraBean4Redis"/>
+    </bean>
+
+    <bean id="cassandraReceiver" class="databus.receiver.cassandra.CassandraReceiver" scope="singleton">
+        <property name="configFile" value="conf/cassandra_receiver.properties"/>
+        <property name="cassandraBean" ref="cassandraBeanDispatcher"/>
+        <property name="futureChecker" ref="futureChecker"/>
+    </bean>
+
+</beans>

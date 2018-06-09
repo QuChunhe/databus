@@ -3,8 +3,11 @@
         "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
+    <bean id="mysqlDataSource" class="databus.util.MysqlDataSourceFactory" factory-method="create">
+        <constructor-arg value="conf/mysql_receiver.properties" />
+    </bean>
     <bean id="mysqlReceiver" class="databus.receiver.mysql.MysqlReplication" scope="singleton">
-        <property name="configFile" value="conf/mysql_receiver.properties"/>
+        <property name="dataSource" ref="mysqlDataSource"/>
     </bean>
 
 </beans>
