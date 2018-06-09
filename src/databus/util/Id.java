@@ -1,6 +1,7 @@
 package databus.util;
 
 import java.math.BigInteger;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -9,14 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Id {
 
     public Id() {
-        this(0, 22);
+        this(22);
     }
 
-    public Id(int initialValue, int bits) {
-        autoIncrementId = new AtomicInteger(initialValue);
+    public Id(int bits) {
         BITS = (bits>31) || (bits<1) ? 22 : bits;
         ID_BOUND = (1 << BITS) - 1;
         SERVICE_ID_MASK = (1 << (32 - BITS)) - 1;
+        autoIncrementId = new AtomicInteger(ThreadLocalRandom.current().nextInt(ID_BOUND));
     }
 
     public BigInteger next(long unixTime, int serviceId) {
