@@ -85,8 +85,8 @@ public class MysqlListener extends RunnableListener {
         this.topicMap = topicMap;
     }
 
-    public void setRecordingInterval(long recordingInterval) {
-        this.recordingInterval = recordingInterval;
+    public void setRecordingIntervalSeconds(long recordingIntervalSeconds) {
+        this.recordingIntervalSeconds = recordingIntervalSeconds;
     }
 
     public void setReplicatedTables(Collection<String> replicatedTables) {
@@ -99,7 +99,7 @@ public class MysqlListener extends RunnableListener {
 
     protected void saveBinlog(String binlogFileName, long binlogPosition) {
         long currentTime = System.currentTimeMillis();
-        if ((currentTime-prevRecordedTime)<recordingInterval) {
+        if ((currentTime-prevRecordedTime)< recordingIntervalSeconds) {
             return;
         }
         prevRecordedTime = currentTime;
@@ -154,7 +154,7 @@ public class MysqlListener extends RunnableListener {
     private String binlogFileName = null;
 
     private long prevRecordedTime = 0;
-    private long recordingInterval = 1000*10;
+    private long recordingIntervalSeconds = 0;
     private String recordedId = null;
 
     private BinlogEventProcessor binlogEventProcessor;
