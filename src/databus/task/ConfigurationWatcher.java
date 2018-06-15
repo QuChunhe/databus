@@ -27,7 +27,7 @@ public class ConfigurationWatcher extends AbstractService {
         try {
             watchService = FileSystems.getDefault().newWatchService();
         } catch (IOException e) {
-            log.error("Can not create WatchService!");
+            log.error("Can not create WatchService!", e);
             System.exit(1);
         }
         targetDirectoryMap = new HashMap<>();
