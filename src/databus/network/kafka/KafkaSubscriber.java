@@ -1,12 +1,12 @@
 package databus.network.kafka;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.clients.consumer.*;
 
 import databus.core.Event;
@@ -15,7 +15,6 @@ import databus.network.AbstractSubscriber;
 import databus.network.JsonEventParser;
 import databus.network.Transporter;
 import databus.util.Helper;
-import org.apache.kafka.common.TopicPartition;
 
 public class KafkaSubscriber extends AbstractSubscriber {
     
@@ -86,7 +85,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 }
                 consumer.seek(partition, o.longValue());
             }
-
         }
 
         @Override
@@ -116,7 +114,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
                         if (null != exception) {
                             log.error("Can not commit offsets", exception);
                         }
-
                     }
                 });
             }            
