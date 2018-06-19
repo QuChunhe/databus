@@ -23,10 +23,6 @@
         <property name="cassandraBean4Redis" ref="cassandraBean4Redis"/>
     </bean>
 
-    <bean id="cassandraCluster" class="databus.util.CassandraClusterBuilder" factory-method="build">
-        <constructor-arg value="conf/cassandra_receiver.properties" />
-    </bean>
-
     <bean id="cassandraReceiver" class="databus.receiver.cassandra.CassandraReceiver" scope="singleton">
         <property name="cluster" ref="cassandraCluster"/>
         <property name="cassandraBean" ref="cassandraBeanDispatcher"/>

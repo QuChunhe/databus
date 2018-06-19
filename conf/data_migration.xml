@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+    <import resource="cassandra.xml" />
+    <import resource="backends.xml" />
+
+    <bean id="multiMysql2Cassandra" class="databus.application.MultiMysql2Cassandra" scope="singleton">
+        <property name="cassandraCluster" ref="cassandraCluster"/>
+        <property name="tmpDirectory" value="/home/hadoop/" />
+        <property name="mysqlDataSources">
+            <list>
+                <ref bean="backend1DataSource"/>
+                <ref bean="backend2DataSource"/>
+                <ref bean="backend3DataSource"/>
+                <ref bean="backend4DataSource"/>
+            </list>
+        </property>
+    </bean>
+</beans>

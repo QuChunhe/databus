@@ -3,9 +3,11 @@
                        "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <import resource="redis_listener.xml" />
+    <import resource="mysql.xml" />
     <import resource="mysql_receiver.xml" />
     <import resource="relay_receiver.xml" />
     <import resource="executor.xml" />
+    <import resource="cassandra.xml" />
     <import resource="cassandra_receiver.xml" />
 
 
@@ -19,6 +21,7 @@
                 <ref bean="publisher"/>
                 <ref bean="subscriber"/>
                 <ref bean="futureChecker"/>
+                <ref bean="configurationWatcher"/>
             </list>
         </property>
     </bean>
@@ -47,7 +50,13 @@
         </property>
     </bean>
 
-
+    <bean id="configurationWatcher" class="databus.task.ConfigurationWatcher" scope="singleton">
+        <property name="targetFiles">
+            <list>
+                <value>conf/schedule_task.xml</value>
+            </list>
+        </property>
+    </bean>
 
 
 </beans>

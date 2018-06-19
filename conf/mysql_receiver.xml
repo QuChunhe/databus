@@ -3,10 +3,6 @@
         "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-    <bean id="mysqlDataSource" class="databus.util.MysqlDataSourceFactory" factory-method="create">
-        <constructor-arg value="conf/mysql_receiver.properties" />
-    </bean>
-
     <bean id="beaconBean" class="adm.stats.BeaconMysqlBean" scope="singleton">
     </bean>
     <bean id="trafficBean" class="adm.stats.TrafficMysqlBean" scope="singleton">

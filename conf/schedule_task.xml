@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+    <import resource="cassandra.xml" />
+    <import resource="mysql.xml" />
+
+    <bean id="bingKwReportMysql2Cassandra" class="databus.application.SingleMysql2Cassandra" scope="singleton">
+        <property name="mysqlTable" value="test.bing_keyword_performance_report"/>
+        <property name="cassandraTable" value="bing_reports.bing_keyword_performance_report"/>
+        <property name="cassandraCluster" ref="cassandraCluster"/>
+        <property name="tmpDirectory" value="/home/hadoop/" />
+        <property name="mysqlDataSource" ref="mysqlDataSource" />
+    </bean>
+
+
+    <bean id="bingKwReportMigration" class="adm.task.ReportMigration" scope="singleton">
+        <property name="mysql2Cassandra" ref="bingKwReportMysql2Cassandra" />
+    </bean>
+    <bean id="bingKwReportMigrationTask" class="databus.task.ScheduledTask" scope="singleton">
+        <constructor-arg index="0" value="2018-06-19T12:26:30+08:00[Asia/Shanghai]"/>
+        <constructor-arg index="1" value="1"/>
+        <constructor-arg index="2" value="DAYS"/>
+        <property name="command" ref="bingKwReportMigration"/>
+    </bean>
+    <bean id="taskScheduler" class="databus.task.TaskScheduler">
+        <constructor-arg value="1"/>
+        <property name="maximumPoolSize" value="5"/>
+        <property name="tasks">
+            <list>
+                <ref bean="bingKwReportMigrationTask"/>
+            </list>
+        </property>
+    </bean>
+
+
+</beans>

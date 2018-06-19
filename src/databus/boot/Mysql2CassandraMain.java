@@ -1,10 +1,12 @@
 package databus.boot;
 
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 
-public class DatabusMain {
-
+/**
+ * Created by Qu Chunhe on 2018-06-15.
+ */
+public class Mysql2CassandraMain {
     public static void main(String[] args) {
         String configFileName = "conf/databus.xml";
         if (args.length > 0) {
