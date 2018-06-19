@@ -101,7 +101,7 @@ public class FutureChecker extends AbstractService {
             if (futureRecorderQueue.size() == 0) {
                 synchronized (lock) {
                     if (futureRecorderQueue.size() == 0) {
-                        lock.wait();
+                        lock.wait(2000);
                     }
                 }
             }
