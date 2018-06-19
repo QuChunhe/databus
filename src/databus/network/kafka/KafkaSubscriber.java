@@ -1,5 +1,6 @@
 package databus.network.kafka;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -44,6 +45,10 @@ public class KafkaSubscriber extends AbstractSubscriber {
         this.pollingTimeout = pollingTimeout;
     }
 
+    public void setOffsetsMap(Map<String, Map<Integer, Long>> offsetsMap) {
+        this.offsetsMap = offsetsMap;
+    }
+
     @Override
     protected Transporter createTransporter() {
         return new PollingTransporter();
@@ -54,6 +59,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     private KafkaConsumer<String, String> consumer;
     private EventParser eventParser = new JsonEventParser();
     private long pollingTimeout = 2000;
+    private Map<String, Map<Integer, Long>> offsetsMap;
 
 
     private class PollingTransporter implements Transporter {
@@ -64,6 +70,23 @@ public class KafkaSubscriber extends AbstractSubscriber {
         @Override
         public void initialize() {
             consumer.subscribe(receiversMap.keySet(), new AutoRebalanceListener(consumer));
+            if (null == offsetsMap) {
+                return;
+            }
+            consumer.poll(0);
+            for(TopicPartition partition : consumer.assignment()) {
+                String t = partition.topic();
+                Map<Integer, Long> offset = offsetsMap.get(t);
+                if (null == offset){
+                    continue;
+                }
+                Long o = offset.get(partition.partition());
+                if (null == o) {
+                    continue;
+                }
+                consumer.seek(partition, o.longValue());
+            }
+
         }
 
         @Override
