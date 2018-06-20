@@ -144,6 +144,7 @@
             <artifactId>netty-handler</artifactId>
             <version>4.1.25.Final</version>
         </dependency>
+
     </dependencies>
 
     <repositories>    

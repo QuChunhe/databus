@@ -2,6 +2,7 @@ package databus.application;
 
 import javax.sql.DataSource;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -65,8 +66,12 @@ public abstract class Mysql2Cassandra {
         Set<String> mysqlColumns = getMysqlTableColumns(mysqlDataSource);
         exportMysql(mysqlDataSource, whereCondition, outFile, mysqlColumns);
         int cassandraRowCount = importCassandra(mysqlColumns, outFile);
-
         log.info("Cassandra import "+cassandraRowCount+" rows!");
+        try {
+            Files.deleteIfExists(Paths.get(outFile));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void exportMysql(DataSource mysqlDataSource, String whereCondition,

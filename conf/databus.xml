@@ -48,6 +48,15 @@
                 </entry>
             </map>
         </property>
+        <property name="offsetsMap">
+            <map>
+                <entry key="redis-messaging">
+                    <map>
+                        <entry key="0" value="100"/>
+                    </map>
+                </entry>
+            </map>
+        </property>
     </bean>
 
     <bean id="configurationWatcher" class="databus.task.ConfigurationWatcher" scope="singleton">
