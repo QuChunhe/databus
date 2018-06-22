@@ -1,5 +1,7 @@
 package databus.event.mysql;
 
+import databus.util.Helper;
+
 import java.sql.Types;
 
 public class Column {    
@@ -22,29 +24,7 @@ public class Column {
     }
     
     public boolean doesUseQuotation() {
-        boolean flag = false;
-        switch(type) {
-        case Types.CHAR:
-        case Types.VARCHAR:
-        case Types.NCHAR:
-        case Types.NVARCHAR:
-        case Types.LONGVARCHAR:
-        case Types.LONGNVARCHAR:
-            flag = true;
-            break;
-            
-        case Types.DATE:
-        case Types.TIME:
-        case Types.TIMESTAMP:
-        case Types.TIME_WITH_TIMEZONE:
-        case Types.TIMESTAMP_WITH_TIMEZONE:
-            flag = true;
-            break;
-            
-        default:
-            break;
-        }
-        return flag;
+        return Helper.doesUseQuotation(type);
     }
     
     @Override

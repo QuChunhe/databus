@@ -6,6 +6,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.sql.Types;
 import java.util.Properties;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -79,6 +80,32 @@ public class Helper {
     public static String substring(String string, String splitter) {
         int position = string.indexOf(splitter);
         return position<0 ? null : string.substring(position+splitter.length());
+    }
+
+    public static boolean doesUseQuotation(int type) {
+        boolean flag = false;
+        switch(type) {
+            case Types.CHAR:
+            case Types.VARCHAR:
+            case Types.NCHAR:
+            case Types.NVARCHAR:
+            case Types.LONGVARCHAR:
+            case Types.LONGNVARCHAR:
+                flag = true;
+                break;
+
+            case Types.DATE:
+            case Types.TIME:
+            case Types.TIMESTAMP:
+            case Types.TIME_WITH_TIMEZONE:
+            case Types.TIMESTAMP_WITH_TIMEZONE:
+                flag = true;
+                break;
+
+            default:
+                break;
+        }
+        return flag;
     }
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");

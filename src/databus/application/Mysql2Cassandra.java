@@ -1,15 +1,10 @@
 package databus.application;
 
 import javax.sql.DataSource;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Session;
@@ -17,22 +12,17 @@ import com.datastax.driver.core.Session;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.util.Helper;
+
 /**
  * Created by Qu Chunhe on 2018-06-10.
  */
 public abstract class Mysql2Cassandra {
 
     public Mysql2Cassandra() {
-        SQL = "SELECT {COLUMN_LIST}\n" +
-              "INTO OUTFILE '{OUT_FILE}'\n" +
-              "        FIELDS TERMINATED BY ','  \n" +
-              "               OPTIONALLY ENCLOSED BY \"'\"\n" +
-              "               ESCAPED BY \"'\"\n"+
-              "        LINES TERMINATED BY '\\n'\n" +
+        SQL = "SELECT * \n" +
               "FROM {MYSQL_TABLE} \n" +
               "WHERE {WHERE_CONDITION}";
-        CQL = "INSERT INTO {CASSANDRA_TABLE} {COLUMN_LIST}\n" +
-              "VALUES ({VALUE});";
     }
 
     public abstract void execute(String whereCondition);
@@ -62,121 +52,96 @@ public abstract class Mysql2Cassandra {
 
     protected void execute(DataSource mysqlDataSource, String whereCondition) {
         log.info("Begin migrate data from "+mysqlTable+" to "+cassandraTable);
-        String outFile = createOutFile();
-        Set<String> mysqlColumns = getMysqlTableColumns(mysqlDataSource);
-        exportMysql(mysqlDataSource, whereCondition, outFile, mysqlColumns);
-        int cassandraRowCount = importCassandra(mysqlColumns, outFile);
-        log.info("Cassandra import "+cassandraRowCount+" rows!");
-        try {
-            Files.deleteIfExists(Paths.get(outFile));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    protected void exportMysql(DataSource mysqlDataSource, String whereCondition,
-                               String outFile, Set<String> mysqlColumns) {
-        String sql = SQL.replace("{COLUMN_LIST}", toMysqlColumnString(mysqlColumns))
-                        .replace("{OUT_FILE}", outFile)
-                        .replace("{WHERE_CONDITION}", whereCondition)
+        String sql = SQL.replace("{WHERE_CONDITION}", whereCondition)
                         .replace("{MYSQL_TABLE}", mysqlTable);
+        log.info(sql);
 
-        try(Connection conn = mysqlDataSource.getConnection();
-            Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            log.error("Can not export data from MySQL", e);
-            return;
-        }
-    }
-
-    protected int importCassandra(Set<String> mysqlColumns, String inFile) {
-        String cassandraColumnString = toCassandraColumnString(toCassandraColumns(mysqlColumns));
-        String cqlTemplate = CQL.replace("{COLUMN_LIST}", cassandraColumnString)
-                                .replace("{CASSANDRA_TABLE}", cassandraTable);
-        int rowCount = 0;
+        int cassandraRowCount = 0;
+        int mysqlRowCount = 0;
         try (Session session = cassandraCluster.connect();
-             BufferedReader reader = Files.newBufferedReader(Paths.get(inFile), StandardCharsets.UTF_8)) {
-            String line;
-            while ((line=reader.readLine()) != null) {
-                String cql =  cqlTemplate.replace("{VALUE}", line);
+             Connection conn = mysqlDataSource.getConnection();
+             Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+                                                   ResultSet.CONCUR_READ_ONLY);
+             ResultSet rs = stmt.executeQuery(sql)) {
+            ResultSetMetaData metaData = rs.getMetaData();
+
+            int columnCount = metaData.getColumnCount();
+            int[] types = new int[columnCount + 1];
+            for (int i = 1; i <= columnCount; i++) {
+                types[i] = metaData.getColumnType(i);
+            }
+            String[] columnNames = new String[columnCount + 1];
+            for (int i = 1; i <= columnCount; i++) {
+                columnNames[i] = metaData.getColumnName(i);
+            }
+            String CQL = toCQL(columnNames);
+
+            while (rs.next()) {
+                mysqlRowCount++;
+                StringBuilder cql = new StringBuilder(CQL.length());
+                cql.append(CQL);
+                for (int i = 1; i <= columnCount; i++) {
+                    if (1 == i) {
+                        cql.append("(");
+                    } else {
+                        cql.append(", ");
+                    }
+                    String value = rs.getString(i);
+                    if (null == value) {
+                        cql.append("null");
+                    } else if (Helper.doesUseQuotation(types[i])) {
+                        cql.append("'")
+                           .append(QUOTE_PATTERN.matcher(value).replaceAll("''"))
+                           .append("'");
+                    } else {
+                        cql.append(value);
+                    }
+                }
+                cql.append(")");
+
                 try {
-                    session.execute(cql);
-                    rowCount++;
+                    session.execute(cql.toString());
+                    cassandraRowCount++;
                 } catch (Exception e) {
-                    log.error("Can not insert row :"+cql, e);
+                    log.error("Can not inset a row : "+cql.toString(), e);
                 }
             }
-        } catch (Exception e) {
-            log.error("Can not import data", e);
-        }
-        return rowCount;
-    }
 
-    protected String createOutFile() {
-        return tmpDirectory + mysqlTable + "_" + LocalDate.now().toString() + "_" +
-               ThreadLocalRandom.current().nextLong()+".csv";
-    }
-
-    private Set<String> getMysqlTableColumns(DataSource mysqlDataSource) {
-        HashSet<String> columns = new HashSet<>();
-        try (Connection conn = mysqlDataSource.getConnection()){
-            DatabaseMetaData metaData = conn.getMetaData();
-            try (ResultSet rs = metaData.getColumns(null, "%", mysqlTable, "%")) {
-                while (rs.next()) {
-                    columns.add(rs.getString("COLUMN_NAME").toLowerCase());
-                }
-            } catch (SQLException e) {
-                log.error("Can not get columns for " + mysqlTable, e);
-            }
         } catch (SQLException e) {
-            log.error("Can not get connection "+mysqlTable, e);
+            log.error("Select MySQL Error", e);
         }
-        return columns;
+
+        log.info("MySQL export "+mysqlRowCount+" rows, " +
+                 "Cassandra import "+cassandraRowCount+" rows!");
+
     }
 
-    private Set<String> toCassandraColumns(Set<String> mysqlColumns) {
-        HashSet<String> columns = new HashSet<>();
-        for(String c : mysqlColumns) {
-            String r = columnMap.get(c);
-            if (null == r) {
-                columns.add(c);
-            } else {
-                columns.add(r);
+    private String toCQL(String[] columnNames)  {
+        StringBuilder cql = new StringBuilder(256);
+        cql.append("INSERT INTO ").append(cassandraTable).append(" (");
+        for (int i=1; i< columnNames.length; i++) {
+            if (i > 1) {
+                cql.append(", ");
             }
+            cql.append(toCassandraColumn(columnNames[i].toLowerCase()));
         }
-        return columns;
+        cql.append(")\n")
+           .append("VALUES ");
+
+        return cql.toString();
     }
 
-    private String toCassandraColumnString(Set<String> columns) {
-        StringBuilder builder = new StringBuilder(128);
-        for(String c : columns) {
-            if (builder.length() == 0) {
-                builder.append("(");
-            } else {
-                builder.append(", ");
-            }
-            builder.append(c);
-        }
-        builder.append(")");
-        return builder.toString();
+
+    private String toCassandraColumn(String mysqlColumn) {
+        return columnMap.getOrDefault(mysqlColumn, mysqlColumn);
     }
 
-    private String toMysqlColumnString(Set<String> columns) {
-        StringBuilder builder = new StringBuilder(128);
-        for(String c : columns) {
-            if (builder.length() > 0) {
-                builder.append(", ");
-            }
-            builder.append(c);
-        }
-        return builder.toString();
-    }
 
     private final static Log log = LogFactory.getLog(Mysql2Cassandra.class);
 
     private final String SQL;
-    private final String CQL;
+    private final Pattern QUOTE_PATTERN = Pattern.compile("'");
 
     private String mysqlTable;
     private String cassandraTable;
