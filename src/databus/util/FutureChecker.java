@@ -125,15 +125,10 @@ public class FutureChecker extends AbstractService {
                 }
                 long interval = System.currentTimeMillis() - startTime;
                 if (interval < checkIntervalMilliSeconds) {
-                    FutureRecorder recorder = futureRecorderQueue.peek();
-                    if (null != recorder) {
-                        try {
-                            recorder.getFuture().get(checkIntervalMilliSeconds-interval,
-                                                     TimeUnit.MILLISECONDS);
-
-                        } catch (Exception e) {
-                            log.error("Wake up", e);
-                        }
+                    try {
+                        Thread.sleep(checkIntervalMilliSeconds-interval);
+                    } catch (InterruptedException e) {
+                        log.error("Interrupt sleep", e);
                     }
                 }
             }

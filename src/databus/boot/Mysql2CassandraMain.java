@@ -11,6 +11,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 public class Mysql2CassandraMain {
     public static void main(String[] args) {
         System.out.println(Arrays.toString(args));
+        System.out.println("----------------------");
         if (args.length < 3) {
             System.out.println("Must has 3 parameters. The first is MySQL table, " +
                                "the second is Cassandra table, and the third is condition.");

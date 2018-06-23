@@ -7,12 +7,16 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.util.Helper;
+import databus.util.Callback;
+import databus.util.FutureChecker;
+import databus.util.OperationCounter;
 
 /**
  * Created by Qu Chunhe on 2018-06-10.
@@ -43,11 +47,12 @@ public abstract class Mysql2Cassandra {
         this.columnMap.putAll(columnMap);
     }
 
-    public void setTmpDirectory(String tmpDirectory) {
-        if (!tmpDirectory.endsWith("/")) {
-            tmpDirectory = tmpDirectory+"/";
-        }
-        this.tmpDirectory = tmpDirectory;
+    public void setFetchSize(int fetchSize) {
+        this.fetchSize = fetchSize;
+    }
+
+    public void setFutureChecker(FutureChecker futureChecker) {
+        this.futureChecker = futureChecker;
     }
 
     protected void execute(DataSource mysqlDataSource, String whereCondition) {
@@ -55,15 +60,14 @@ public abstract class Mysql2Cassandra {
 
         String sql = SQL.replace("{WHERE_CONDITION}", whereCondition)
                         .replace("{MYSQL_TABLE}", mysqlTable);
-        log.info(sql);
 
-        int cassandraRowCount = 0;
-        int mysqlRowCount = 0;
+        OperationCounter counter = new OperationCounter();
         try (Session session = cassandraCluster.connect();
              Connection conn = mysqlDataSource.getConnection();
              Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
                                                    ResultSet.CONCUR_READ_ONLY);
              ResultSet rs = stmt.executeQuery(sql)) {
+            rs.setFetchSize(fetchSize);
             ResultSetMetaData metaData = rs.getMetaData();
 
             int columnCount = metaData.getColumnCount();
@@ -76,9 +80,7 @@ public abstract class Mysql2Cassandra {
                 columnNames[i] = metaData.getColumnName(i);
             }
             String CQL = toCQL(columnNames);
-
             while (rs.next()) {
-                mysqlRowCount++;
                 StringBuilder cql = new StringBuilder(CQL.length());
                 cql.append(CQL);
                 for (int i = 1; i <= columnCount; i++) {
@@ -99,12 +101,29 @@ public abstract class Mysql2Cassandra {
                     }
                 }
                 cql.append(")");
+                counter.addTotalCount(1);
+                if (null == futureChecker) {
+                    try {
+                        session.execute(cql.toString());
+                        counter.addSuccessCount(1);
+                    } catch (Exception e) {
+                        log.error("Can not inset a row : "+cql.toString(), e);
+                        counter.addFailureCount(1);
+                    }
+                } else {
+                    ResultSetFuture future = session.executeAsync(cql.toString());
+                    futureChecker.check(future, new Callback<com.datastax.driver.core.ResultSet>() {
+                        @Override
+                        public void onFailure(Throwable t) {
+                            log.error("Can not inset a row : "+cql.toString(), t);
+                            counter.addFailureCount(1);
+                        }
 
-                try {
-                    session.execute(cql.toString());
-                    cassandraRowCount++;
-                } catch (Exception e) {
-                    log.error("Can not inset a row : "+cql.toString(), e);
+                        @Override
+                        public void onSuccess(com.datastax.driver.core.ResultSet rows) {
+                            counter.addSuccessCount(1);
+                        }
+                    });
                 }
             }
 
@@ -112,9 +131,15 @@ public abstract class Mysql2Cassandra {
             log.error("Select MySQL Error", e);
         }
 
-        log.info("MySQL export "+mysqlRowCount+" rows, " +
-                 "Cassandra import "+cassandraRowCount+" rows!");
+        try {
+            counter.waitOnCompletion(60000);
 
+        }catch (InterruptedException e) {
+            log.error("Can not wait on completion!", e);
+        }
+        log.info("MySQL export "+counter.getTotalCount()+" rows, " +
+                 "Cassandra import "+counter.getSuccessCount()+" rows, " +
+                 ", failed insertion "+counter.getFailureCount()+" rows");
     }
 
     private String toCQL(String[] columnNames)  {
@@ -145,10 +170,8 @@ public abstract class Mysql2Cassandra {
 
     private String mysqlTable;
     private String cassandraTable;
-
     private Cluster cassandraCluster;
-
-    private String tmpDirectory = "/tmp/";
-
+    private int fetchSize = 10000;
     private Map<String, String> columnMap = new HashMap<>();
+    private FutureChecker futureChecker;
 }

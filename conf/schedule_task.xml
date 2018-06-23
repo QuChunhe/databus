@@ -5,11 +5,16 @@
     <import resource="cassandra.xml" />
     <import resource="backends.xml" />
 
+    <bean id="futureChecker" class="databus.util.FutureChecker" scope="singleton"
+          init-method="start"
+          destroy-method="stop">
+        <constructor-arg value="1000" />
+    </bean>
+
     <bean id="bingKwReportMysql2Cassandra" class="databus.application.MultiMysql2Cassandra" scope="singleton">
         <property name="mysqlTable" value="test.bing_keyword_performance_report"/>
         <property name="cassandraTable" value="bing_reports.bing_keyword_performance_report"/>
         <property name="cassandraCluster" ref="cassandraCluster"/>
-        <property name="tmpDirectory" value="/home/hadoop/" />
         <property name="mysqlDataSources">
             <list>
                 <ref bean="backend1DataSource"/>

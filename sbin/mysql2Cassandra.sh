@@ -5,14 +5,5 @@ OPTS="-server -Xms512m -Xmx4096m -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCDa
 #OPTS="-server -Xms512m -Xmx4096m"
 
 MAIN_CLASS="databus.boot.Mysql2CassandraMain"
-if [ $# -ge 1 ]
-then CONFIG_FILE=$1
-else CONFIG_FILE="conf/databus.xml"
-fi
 
-if [ $# -ge 2 ]
-then PID_FILE=$2
-else PID_FILE="data/databus.pid"
-fi
-
-java $OPTS -cp $CP $MAIN_CLASS $1 $2 $3
+java $OPTS -cp $CP $MAIN_CLASS $@
