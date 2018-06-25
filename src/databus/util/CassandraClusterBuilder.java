@@ -2,9 +2,7 @@ package databus.util;
 
 import java.util.Properties;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.HostDistance;
-import com.datastax.driver.core.PoolingOptions;
+import com.datastax.driver.core.*;
 
 /**
  * Created by Qu Chunhe on 2018-06-10.
@@ -87,6 +85,7 @@ public class CassandraClusterBuilder {
         return Cluster.builder()
                       .addContactPoints(contactPoints)
                       .withPoolingOptions(poolingOptions)
+                      .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.LOCAL_ONE))
                       .build();
     }
 

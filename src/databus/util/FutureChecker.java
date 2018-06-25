@@ -2,10 +2,11 @@ package databus.util;
 
 import java.util.concurrent.*;
 
-import databus.core.AbstractService;
-import databus.core.Runner;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import databus.core.AbstractService;
+import databus.core.Runner;
 
 /**
  * Created by Qu Chunhe on 2018-05-28.
@@ -35,11 +36,9 @@ public class FutureChecker extends AbstractService {
             } else {
                 futureRecorderQueue.put(new FutureRecorder<V>(future, callback));
             }
-
         } catch (InterruptedException e) {
             log.error("Can not put FutureRecorder!", e);
         }
-
     }
 
     public void setTimeoutMilliSeconds(long timeoutMilliSeconds) {
@@ -132,7 +131,6 @@ public class FutureChecker extends AbstractService {
                     }
                 }
             }
-
         }
 
         @Override
@@ -142,17 +140,14 @@ public class FutureChecker extends AbstractService {
 
         @Override
         public void processFinally() {
-
         }
 
         @Override
         public void stop(Thread owner) {
-
         }
 
         @Override
         public void close() {
-
         }
 
         private <V> void executeCallback(Future<V> future, Callback<V> callback) {
