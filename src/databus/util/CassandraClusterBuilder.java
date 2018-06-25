@@ -3,6 +3,9 @@ package databus.util;
 import java.util.Properties;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.core.policies.RetryPolicy;
+
+import static com.datastax.driver.core.policies.RetryPolicy.RetryDecision.Type.RETRY;
 
 /**
  * Created by Qu Chunhe on 2018-06-10.
@@ -11,6 +14,7 @@ public class CassandraClusterBuilder {
 
     public static Cluster build(String configFile) {
         Properties properties = Helper.loadProperties(configFile);
+
 
         String contactPointsValue = properties.getProperty("contactPoints");
         if ((null==contactPointsValue) || contactPointsValue.length()==0) {
@@ -82,10 +86,21 @@ public class CassandraClusterBuilder {
             poolingOptions.setHeartbeatIntervalSeconds(parseInt(heartbeatIntervalSeconds));
         }
 
+        SocketOptions socketOptions = new SocketOptions();
+
+        String connectTimeoutMillis = properties.getProperty("connectTimeoutMillis", "60000");
+        socketOptions.setConnectTimeoutMillis(parseInt(connectTimeoutMillis));
+
+        String readTimeoutMillis = properties.getProperty("readTimeoutMillis", "40000");
+        socketOptions.setReadTimeoutMillis(parseInt(readTimeoutMillis));
+
+        socketOptions.setTcpNoDelay(true);
+
         return Cluster.builder()
                       .addContactPoints(contactPoints)
                       .withPoolingOptions(poolingOptions)
                       .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.LOCAL_ONE))
+                      .withSocketOptions(socketOptions)
                       .build();
     }
 
