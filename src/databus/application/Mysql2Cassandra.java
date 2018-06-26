@@ -137,9 +137,15 @@ public abstract class Mysql2Cassandra {
         }catch (InterruptedException e) {
             log.error("Can not wait on completion!", e);
         }
-        log.info("MySQL export "+counter.getTotalCount()+" rows, " +
-                 "Cassandra import "+counter.getSuccessCount()+" rows, " +
-                 ", failed insertion "+counter.getFailureCount()+" rows");
+        if (counter.getTotalCount() == (counter.getSuccessCount()+counter.getFailureCount())) {
+            log.info("MySQL export "+counter.getTotalCount()+" rows, " +
+                     "Cassandra import "+counter.getSuccessCount()+" rows.");
+        } else {
+            log.info("MySQL export "+counter.getTotalCount()+" rows, " +
+                     "Cassandra import "+counter.getSuccessCount()+" rows." +
+                     "but failed insertion "+counter.getFailureCount()+" rows");
+        }
+
     }
 
     private String toCQL(String[] columnNames)  {
