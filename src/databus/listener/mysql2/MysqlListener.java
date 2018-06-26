@@ -28,6 +28,7 @@ public class MysqlListener extends RunnableListener {
     public void onEvent(Event event) {
         if (null == topicMap) {
             super.onEvent(event);
+            return;
         }
         MysqlEvent mysqlEven = (MysqlEvent) event;
         String fullName = mysqlEven.database()+"."+mysqlEven.table();
