@@ -13,7 +13,7 @@
             <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY" />
         </RollingFile>
 
-        <RollingFile name="InfoFile" createOnDemand="true" fileName="logs/databus.log" filePattern="logs/databus-%d{yyyy-MM-dd}.log">
+        <RollingFile name="InfoFile" createOnDemand="true" fileName="logs/databus.log" filePattern="logs/databus-%d{yyyy-MM-dd-HH}.log">
            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %l – %msg%n"/>
            <Policies>
                 <TimeBasedTriggeringPolicy modulate="true" interval="24"/>  

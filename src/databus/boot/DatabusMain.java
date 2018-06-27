@@ -1,9 +1,18 @@
 package databus.boot;
 
+import java.io.File;
+
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.apache.commons.logging.LogFactory;
 
 public class DatabusMain {
+
+    static {
+        final String LOG_CONFIG_FILE =  System.getProperty("user.dir") + "/conf/log4j2.xml";
+        if (new File(LOG_CONFIG_FILE).exists()) {
+            System.setProperty("log4j.configurationFile", LOG_CONFIG_FILE);
+        }
+    }
 
     public static void main(String[] args) {
         String configFileName = "conf/databus.xml";

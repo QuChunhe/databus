@@ -2,7 +2,6 @@ package databus.boot;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.charset.StandardCharsets;
@@ -23,12 +22,6 @@ import databus.core.Service;
 
 public class Startup {
 
-    static {
-        final String LOG_CONFIG_FILE =  System.getProperty("user.dir") + "/conf/log4j2.xml";
-        if (new File(LOG_CONFIG_FILE).exists()) {
-            System.setProperty("log4j.configurationFile", LOG_CONFIG_FILE);
-        }
-    }
 
     public void addServices(Service service) {
         services.add(service);
