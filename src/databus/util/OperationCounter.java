@@ -43,10 +43,8 @@ public class OperationCounter {
             return;
         }
         synchronized (lock) {
-            if ((getSuccessCount()+getFailureCount()) >= getTotalCount()) {
-                return;
-            } else {
-                wait(timeoutMSec);
+            if ((getSuccessCount()+getFailureCount()) < getTotalCount()) {
+                lock.wait(timeoutMSec);
             }
         }
     }

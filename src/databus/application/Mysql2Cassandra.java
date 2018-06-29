@@ -67,10 +67,9 @@ public abstract class Mysql2Cassandra {
              Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
                                                    ResultSet.CONCUR_READ_ONLY)) {
             stmt.setFetchSize(fetchSize);
-            try (ResultSet rs = stmt.executeQuery(sql)) {
-                rs.setFetchSize(fetchSize);
-                ResultSetMetaData metaData = rs.getMetaData();
 
+            try (ResultSet rs = stmt.executeQuery(sql)) {
+                ResultSetMetaData metaData = rs.getMetaData();
                 int columnCount = metaData.getColumnCount();
                 int[] types = new int[columnCount + 1];
                 for (int i = 1; i <= columnCount; i++) {
@@ -80,6 +79,7 @@ public abstract class Mysql2Cassandra {
                 for (int i = 1; i <= columnCount; i++) {
                     columnNames[i] = metaData.getColumnName(i);
                 }
+
                 String CQL = toCQL(columnNames);
                 while (rs.next()) {
                     StringBuilder cql = new StringBuilder(CQL.length());
@@ -134,9 +134,10 @@ public abstract class Mysql2Cassandra {
 
         try {
             counter.waitOnCompletion(60000);
-
-        }catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             log.error("Can not wait on completion!", e);
+        } catch (Exception e) {
+            log.error("Has meet Errors!", e);
         }
         if (counter.getTotalCount() == (counter.getSuccessCount()+counter.getFailureCount())) {
             log.info("MySQL export "+counter.getTotalCount()+" rows, " +
@@ -146,7 +147,6 @@ public abstract class Mysql2Cassandra {
                      "Cassandra import "+counter.getSuccessCount()+" rows." +
                      "but failed insertion "+counter.getFailureCount()+" rows");
         }
-
     }
 
     private String toCQL(String[] columnNames)  {
@@ -178,7 +178,7 @@ public abstract class Mysql2Cassandra {
     private String mysqlTable;
     private String cassandraTable;
     private Cluster cassandraCluster;
-    private int fetchSize = 10000;
+    private int fetchSize = 1000;
     private Map<String, String> columnMap = new HashMap<>();
     private FutureChecker futureChecker;
 }

@@ -3,7 +3,7 @@
         "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <import resource="cassandra.xml" />
-    <import resource="backends.xml" />
+    <import resource="mysql.xml" />
 
     <bean id="futureChecker" class="databus.util.FutureChecker" scope="singleton"
                                                                 init-method="start"
@@ -11,16 +11,9 @@
         <constructor-arg value="1000" />
     </bean>
 
-    <bean id="mysql2Cassandra" class="databus.application.MultiMysql2Cassandra" scope="singleton">
+    <bean id="mysql2Cassandra" class="databus.application.SingleMysql2Cassandra" scope="singleton">
         <property name="cassandraCluster" ref="cassandraCluster"/>
         <property name="futureChecker" ref="futureChecker" />
-        <property name="mysqlDataSources">
-            <list>
-                <ref bean="backend1DataSource"/>
-                <ref bean="backend2DataSource"/>
-                <ref bean="backend3DataSource"/>
-                <ref bean="backend4DataSource"/>
-            </list>
-        </property>
+        <property name="mysqlDataSource" ref="mysqlDataSource" />
     </bean>
 </beans>

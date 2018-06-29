@@ -1,6 +1,6 @@
 package databus.boot;
 
-import databus.application.MultiMysql2Cassandra;
+import databus.application.Mysql2Cassandra;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
@@ -9,23 +9,24 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 public class Mysql2CassandraMain {
     public static void main(String[] args) {
         System.out.println("--------------------------------------");
-        if (args.length < 3) {
+        if (args.length < 4) {
             System.out.println("Must has 3 parameters. The first is MySQL table, " +
                                "the second is Cassandra table, and the third is condition.");
             System.exit(1);
         }
-        String mysqlTable = args[0];
-        String cassandraTable = args[1];
-        String condition = args[2];
-        for(int i=3; i< args.length; i++) {
+
+        String configFileName = args[0];
+        String mysqlTable = args[1];
+        String cassandraTable = args[2];
+
+        String condition = args[3];
+        for(int i=4; i< args.length; i++) {
             condition += " AND " + args[i];
         }
 
-        String configFileName = "conf/data_migration.xml";
-
         FileSystemXmlApplicationContext context = new FileSystemXmlApplicationContext(configFileName);
-        MultiMysql2Cassandra mysql2Cassandra = context.getBean("multiMysql2Cassandra",
-                                                               MultiMysql2Cassandra.class);
+        Mysql2Cassandra mysql2Cassandra = context.getBean("mysql2Cassandra",
+                                                               Mysql2Cassandra.class);
         mysql2Cassandra.setMysqlTable(mysqlTable);
         mysql2Cassandra.setCassandraTable(cassandraTable);
         mysql2Cassandra.execute(condition);

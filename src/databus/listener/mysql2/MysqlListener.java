@@ -73,13 +73,14 @@ public class MysqlListener extends RunnableListener {
     }
 
     public void setBinlog(long binlogPosition) {
-        saveBinlog(this.binlogFileName, binlogPosition);
+        this.binlogPosition =  binlogPosition;
+        saveBinlog();
     }
 
     public void setBinlog(String binlogFileName, long binlogPosition) {
         this.binlogFileName = binlogFileName;
         this.binlogPosition = binlogPosition;
-        saveBinlog(binlogFileName, binlogPosition);
+        saveBinlog();
     }
 
     public void setTopicMap(Map<String, String> topicMap) {
@@ -98,16 +99,16 @@ public class MysqlListener extends RunnableListener {
         deniedOperationSet.addAll(deniedOperations);
     }
 
-    protected void saveBinlog(String binlogFileName, long binlogPosition) {
+    protected void saveBinlog() {
         long currentTime = System.currentTimeMillis();
         if ((currentTime-prevRecordedTime)< recordingIntervalMillis) {
             return;
         }
         prevRecordedTime = currentTime;
-        saveBinlog0(binlogFileName,binlogPosition);
+        saveBinlog0();
     }
 
-    protected void saveBinlog0(String binlogFileName, long binlogPosition) {
+    protected void saveBinlog0() {
         Backup.instance()
               .store(getRecordedId(),
                      "mysql.binlogFileName", binlogFileName,
@@ -180,8 +181,6 @@ public class MysqlListener extends RunnableListener {
                 log.info(backup.toString());
                 String backupBinLogFileName =  backup.get("mysql.binlogFileName");
                 String backupPositionValue = backup.get("mysql.position");
-                log.info(backupBinLogFileName);
-                log.info(backupPositionValue);
                 if ((null!=backupBinLogFileName) && (null!=backupPositionValue)) {
                     long backupPosition = Long.parseUnsignedLong(backupPositionValue);
                     String[] parts = binlogFileName.split("\\.");
@@ -191,6 +190,7 @@ public class MysqlListener extends RunnableListener {
                     if ((num<backNum) || (num==backNum && binlogPosition<backupPosition)) {
                         binlogFileName = backupBinLogFileName;
                         binlogPosition = backupPosition;
+                        log.info(binlogFileName+" : "+binlogPosition);
                     }
                 }
             }
@@ -204,7 +204,7 @@ public class MysqlListener extends RunnableListener {
 
         @Override
         public void processFinally() {
-            saveBinlog0(binlogFileName, binlogPosition);
+            saveBinlog0();
         }
 
         @Override
