@@ -99,15 +99,16 @@ public class CassandraBean4Mysql implements CassandraBean {
     }
 
     private String toUpdateSql(MysqlUpdateRow event) {
-        StringBuilder sqlBuilder = new StringBuilder(128);
-        appendSetEqual(sqlBuilder, event.row());
-        if (sqlBuilder.length() == 0) {
+        StringBuilder setBuilder = new StringBuilder(64);
+        appendSetEqual(setBuilder, event.row());
+        if (setBuilder.length() == 0) {
             return null;
         }
-
+        StringBuilder sqlBuilder = new StringBuilder(128);
         sqlBuilder.append("UPDATE ");
         sqlBuilder.append(toCassandraTable(event));
         sqlBuilder.append(" SET ");
+        sqlBuilder.append(setBuilder);
         sqlBuilder.append(" WHERE ");
         appendWhereEqual(sqlBuilder, event.primaryKeys());
         return sqlBuilder.toString();
