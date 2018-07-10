@@ -18,8 +18,43 @@
             </map>
         </property>
     </bean>
-    <bean id="cassandraBeanDispatcher" class="databus.receiver.cassandra.CassandraBean4RedisAndMysql">
-        <property name="cassandraBean4Mysql" ref="cassandraBean4Redis"/>
+
+
+
+    <bean name="admTable" class="databus.receiver.cassandra.CassandraBean4Mysql" scope="singleton">
+    </bean>
+    <bean name="bingAdgroupBidHisTable" class="databus.receiver.cassandra.CassandraBean4Mysql" scope="singleton">
+        <property name="table" value="history.bing_adgroup_bid_history" />
+    </bean>
+    <bean name="bingCmpbudgetHisTable" class="databus.receiver.cassandra.CassandraBean4Mysql" scope="singleton">
+        <property name="table" value="history.bing_campaign_budget_history" />
+    </bean>
+    <bean name="googleAdgroupBidHisTable" class="databus.receiver.cassandra.CassandraBean4Mysql" scope="singleton">
+        <property name="table" value="history.google_adgroup_bid_history" />
+    </bean>
+    <bean name="googleCmpbudgetHisTable" class="databus.receiver.cassandra.CassandraBean4Mysql" scope="singleton">
+        <property name="table" value="history.google_campaign_budget_history" />
+    </bean>
+    <bean name="cassandraBean4Mysql" class="databus.receiver.cassandra.BatchCassandraBean4Mysql" scope="singleton">
+        <property name="cassandraBeanMap">
+            <map>
+                <entry key="adm.promotions" value-ref="admTable"/>
+                <entry key="adm.linkpairs" value-ref="admTable"/>
+                <entry key="adm.ad_pages" value-ref="admTable"/>
+                <entry key="adm.accounts" value-ref="admTable"/>
+                <entry key="adm.fixedsubid_trigger_history" value-ref="admTable"/>
+                <entry key="adm.linkpair_campaign_association" value-ref="admTable"/>
+                <entry key="adm.linkpair_adset_association" value-ref="admTable"/>
+
+                <entry key="adm.bing_adgroup_bid_history" value-ref="bingAdgroupBidHisTable"/>
+                <entry key="adm.bing_campaign_budget_history" value-ref="bingCmpbudgetHisTable"/>
+                <entry key="adm.google_adgroup_bid_history" value-ref="googleAdgroupBidHisTable"/>
+                <entry key="adm.google_campaign_budget_history" value-ref="googleCmpbudgetHisTable"/>
+            </map>
+        </property>
+    </bean>
+    <bean id="cassandraBeanDispatcher" class="databus.receiver.cassandra.CassandraBean4RedisAndMysql" scope="singleton">
+        <property name="cassandraBean4Mysql" ref="cassandraBean4Mysql"/>
         <property name="cassandraBean4Redis" ref="cassandraBean4Redis"/>
     </bean>
 

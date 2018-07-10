@@ -3,6 +3,7 @@ package databus.network.kafka;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -53,12 +54,18 @@ public class KafkaPublisher extends AbstractPublisher implements Closeable {
             log.error("topic is null!");
             return;
         }
+        final String topic0 = topic;
+        if (null == executorService) {
+            publish0(topic0, event);
+        } else {
+            executorService.execute(new Runnable() {
+                @Override
+                public void run() {
+                    publish0(topic0, event);
+                }
+            });
+        }
 
-        String value = eventParser.toMessage(event);
-        String key = eventParser.toKey(event);
-        log.info(topic +" -- " + key + " : " +value);
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
-        producer.send(record, new LogCallback(topic, key, value));
     }
 
     @Override
@@ -88,11 +95,24 @@ public class KafkaPublisher extends AbstractPublisher implements Closeable {
         this.producer = producer;
     }
 
+    public void setExecutorService(ExecutorService executorService) {
+        this.executorService = executorService;
+    }
+
+    private void publish0(final String topic, final Event event) {
+        String value = eventParser.toMessage(event);
+        String key = eventParser.toKey(event);
+        log.info(topic +" -- " + key + " : " +value);
+        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+        producer.send(record, new LogCallback(topic, key, value));
+    }
+
     private final static Log log = LogFactory.getLog(KafkaPublisher.class);
 
     private JsonEventParser eventParser = new JsonEventParser();
     private KafkaProducer<String, String> producer;
     private String topic = null;
+    private ExecutorService executorService = null;
 
     private static class LogCallback implements Callback {        
         
