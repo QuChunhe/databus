@@ -65,7 +65,6 @@ public class KafkaPublisher extends AbstractPublisher implements Closeable {
                 }
             });
         }
-
     }
 
     @Override
