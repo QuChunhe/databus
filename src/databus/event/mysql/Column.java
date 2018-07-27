@@ -36,7 +36,7 @@ public class Column {
     public boolean equals(Object other) {
         if (other instanceof Column) {
             Column o = (Column) other;
-            return (type==o.type) && value.equals(o.value) && name.equals(o.name);
+            return (type==o.type) && ((value==o.value) ||value.equals(o.value)) && name.equals(o.name);
         }
         return false;
     }

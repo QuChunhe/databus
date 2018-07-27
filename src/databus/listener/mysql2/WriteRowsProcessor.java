@@ -14,6 +14,9 @@ import java.util.Date;
 public class WriteRowsProcessor {
 
     protected String toString(Serializable value,  int type) {
+        if (null == value) {
+            return null;
+        }
         if (Types.TIMESTAMP == type) {
             if (value instanceof Timestamp) {
                 return SIMPLE_DATE_FORMAT.format((Date) value);

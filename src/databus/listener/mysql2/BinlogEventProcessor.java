@@ -1,7 +1,6 @@
 package databus.listener.mysql2;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import databus.event.MysqlEvent;
