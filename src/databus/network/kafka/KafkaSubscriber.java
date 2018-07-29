@@ -1,5 +1,7 @@
 package databus.network.kafka;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -44,8 +46,8 @@ public class KafkaSubscriber extends AbstractSubscriber {
         this.pollingTimeout = pollingTimeout;
     }
 
-    public void setOffsetsMap(Map<String, Map<Integer, Long>> offsetsMap) {
-        this.offsetsMap = offsetsMap;
+    public void setStartOffsetsMap(Map<String, Map<Integer, Long>> startOffsetsMap) {
+        this.startOffsetsMap = startOffsetsMap;
     }
 
     @Override
@@ -58,7 +60,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     private KafkaConsumer<String, String> consumer;
     private EventParser eventParser = new JsonEventParser();
     private long pollingTimeout = 2000;
-    private Map<String, Map<Integer, Long>> offsetsMap;
+    private Map<String, Map<Integer, Long>> startOffsetsMap;
 
 
     private class PollingTransporter implements Transporter {
@@ -69,13 +71,13 @@ public class KafkaSubscriber extends AbstractSubscriber {
         @Override
         public void initialize() {
             consumer.subscribe(receiversMap.keySet(), new AutoRebalanceListener(consumer));
-            if (null == offsetsMap) {
+            if (null == startOffsetsMap) {
                 return;
             }
             consumer.poll(0);
             for(TopicPartition partition : consumer.assignment()) {
                 String t = partition.topic();
-                Map<Integer, Long> offset = offsetsMap.get(t);
+                Map<Integer, Long> offset = startOffsetsMap.get(t);
                 if (null == offset){
                     continue;
                 }
@@ -90,12 +92,24 @@ public class KafkaSubscriber extends AbstractSubscriber {
         @Override
         public void runOnce() throws Exception {
             ConsumerRecords<String, String> records = consumer.poll(pollingTimeout);
-            if ((null!=records) && (!records.isEmpty())) {               
+            if ((null!=records) && (!records.isEmpty())) {
                 for (ConsumerRecord<String, String> r : records) {
                     String topic = r.topic();
                     int partition = r.partition();
                     long offset = r.offset();
                     String key = r.key();
+
+                    TopicPartition topicPartition = new TopicPartition(topic, partition);
+                    Long previousOffset = previousOffsetsMap.get(topicPartition);
+                    if (null == previousOffset) {
+                        previousOffsetsMap.put(topicPartition, offset);
+                    } else if (previousOffset.longValue() >= offset) {
+                        log.error(topic + " (" + partition+ "," +offset + ")  has received before");
+                        continue;
+                    } else {
+                        previousOffsetsMap.put(topicPartition, offset);
+                    }
+                    commitAsync(topicPartition, offset);
 
                     Event event = eventParser.toEvent(topic, key, r.value());
                     if (null == event) {
@@ -103,29 +117,15 @@ public class KafkaSubscriber extends AbstractSubscriber {
                                   r.value());
                         continue;
                     } 
-                    log.info( topic+ "   " +key + " (" + partition + ", " + offset + ")" + " : " +
+                    log.info(topic+ "   " +key + " (" + partition + ", " + offset + ")" + " : " +
                              event.toString());
                     receive(topic, event);
                 }
-                consumer.commitAsync(new OffsetCommitCallback() {
-                    @Override
-                    public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
-                                           Exception exception) {
-                        if (null != exception) {
-                            log.error("Can not commit offsets", exception);
-                        }
-                    }
-                });
             }            
         }
 
         @Override
         public void processFinally() {
-            try {
-                consumer.commitSync();
-            }catch (Exception e) {
-                log.error("Can not commitSync", e);
-            }
         }
 
         @Override
@@ -149,7 +149,32 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
         @Override
         public void close() {
-            consumer.close();
+            try {
+                consumer.commitSync();
+            }catch (Exception e) {
+                log.error("Can not commitSync", e);
+            } finally {
+                consumer.close();
+            }
         }
+
+        private void commitAsync(TopicPartition topicPartition, long currentOffset) {
+            consumer.commitAsync(Collections.singletonMap(topicPartition,
+                                                          new OffsetAndMetadata(currentOffset+1)),
+                                 OFFSET_COMMIT_CALLBACK);
+        }
+
+        private final Map<TopicPartition, Long> previousOffsetsMap = new HashMap<>();
+
+        private final OffsetCommitCallback OFFSET_COMMIT_CALLBACK =
+                new OffsetCommitCallback() {
+                    @Override
+                    public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets,
+                                           Exception exception) {
+                        if (null != exception) {
+                            log.error("Can not commit offsets : "+offsets.toString(), exception);
+                        }
+                    }
+                };
     }
 }
