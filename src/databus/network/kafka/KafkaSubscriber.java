@@ -1,7 +1,5 @@
 package databus.network.kafka;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -93,23 +91,13 @@ public class KafkaSubscriber extends AbstractSubscriber {
         public void runOnce() throws Exception {
             ConsumerRecords<String, String> records = consumer.poll(pollingTimeout);
             if ((null!=records) && (!records.isEmpty())) {
+                consumer.commitAsync(OFFSET_COMMIT_CALLBACK);
+                //ensure to process every record
                 for (ConsumerRecord<String, String> r : records) {
                     String topic = r.topic();
                     int partition = r.partition();
                     long offset = r.offset();
                     String key = r.key();
-
-                    TopicPartition topicPartition = new TopicPartition(topic, partition);
-                    Long previousOffset = previousOffsetsMap.get(topicPartition);
-                    if (null == previousOffset) {
-                        previousOffsetsMap.put(topicPartition, offset);
-                    } else if (previousOffset.longValue() >= offset) {
-                        log.error(topic + " (" + partition+ "," +offset + ")  has received before");
-                        continue;
-                    } else {
-                        previousOffsetsMap.put(topicPartition, offset);
-                    }
-                    commitAsync(topicPartition, offset);
 
                     Event event = eventParser.toEvent(topic, key, r.value());
                     if (null == event) {
@@ -135,16 +123,8 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
         @Override
         public void stop(Thread owner) {
-            while (owner.isAlive()) {
-                log.info("Wake up consumer!");
-                consumer.wakeup();
-                log.info("Waiting consumer to finish!");
-                try {
-                    owner.join(1000);
-                } catch (InterruptedException e) {
-                    //do nothing
-                }                
-            }
+            log.info("Wake up consumer!");
+            consumer.wakeup();
         }
 
         @Override
@@ -157,14 +137,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 consumer.close();
             }
         }
-
-        private void commitAsync(TopicPartition topicPartition, long currentOffset) {
-            consumer.commitAsync(Collections.singletonMap(topicPartition,
-                                                          new OffsetAndMetadata(currentOffset+1)),
-                                 OFFSET_COMMIT_CALLBACK);
-        }
-
-        private final Map<TopicPartition, Long> previousOffsetsMap = new HashMap<>();
 
         private final OffsetCommitCallback OFFSET_COMMIT_CALLBACK =
                 new OffsetCommitCallback() {
