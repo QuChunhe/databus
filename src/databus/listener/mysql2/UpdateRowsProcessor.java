@@ -46,7 +46,7 @@ public class UpdateRowsProcessor extends WriteRowsProcessor {
                 Serializable afterColumn = after[i];
                 String name = columns[i];
                 ColumnAttribute attribute = attributes[i];
-                if ((beforeColumn!=afterColumn) && !beforeColumn.equals(afterColumn)) {
+                if ((beforeColumn!=afterColumn) && (null==beforeColumn || !beforeColumn.equals(afterColumn))) {
                     Column column = new Column(name, toString(afterColumn,attribute.type()), attribute.type());
                     event.addColumn(column);
                 }

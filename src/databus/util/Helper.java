@@ -107,6 +107,29 @@ public class Helper {
         }
         return flag;
     }
+
+    public static String getDigit(String value, String defaultValue) {
+        if (null == value) {
+            return defaultValue;
+        }
+        value = value.trim();
+        if ("".equals(value)) {
+            return defaultValue;
+        }
+        int i = 0;
+        for( ; i<value.length(); i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                break;
+            }
+        }
+
+        if (0 == i) {
+            return defaultValue;
+        } else if (i < value.length()) {
+            return value.substring(0, i);
+        }
+        return value;
+    }
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
