@@ -3,9 +3,6 @@ package databus.util;
 import java.util.Properties;
 
 import com.datastax.driver.core.*;
-import com.datastax.driver.core.policies.RetryPolicy;
-
-import static com.datastax.driver.core.policies.RetryPolicy.RetryDecision.Type.RETRY;
 
 /**
  * Created by Qu Chunhe on 2018-06-10.

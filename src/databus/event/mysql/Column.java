@@ -2,8 +2,6 @@ package databus.event.mysql;
 
 import databus.util.Helper;
 
-import java.sql.Types;
-
 public class Column {    
     public Column(String name, String value, int type) {
         this.name = name;
