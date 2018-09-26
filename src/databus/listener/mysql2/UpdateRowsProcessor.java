@@ -3,10 +3,10 @@ package databus.listener.mysql2;
 import java.io.Serializable;
 import java.util.*;
 
-import databus.event.MysqlEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import databus.event.MysqlEvent;
 import databus.event.mysql.Column;
 import databus.event.mysql.ColumnAttribute;
 import databus.event.mysql.MysqlUpdateRow;
@@ -47,11 +47,11 @@ public class UpdateRowsProcessor extends WriteRowsProcessor {
                 String name = columns[i];
                 ColumnAttribute attribute = attributes[i];
                 if ((beforeColumn!=afterColumn) && (null==beforeColumn || !beforeColumn.equals(afterColumn))) {
-                    Column column = new Column(name, toString(afterColumn,attribute.type()), attribute.type());
+                    Column column = new Column(name, toString(afterColumn,attribute), attribute.type());
                     event.addColumn(column);
                 }
                 if (primaryKeysSet.contains(name)) {
-                    Column column = new Column(name, toString(beforeColumn,attribute.type()), attribute.type());
+                    Column column = new Column(name, toString(beforeColumn,attribute), attribute.type());
                     event.addPrimaryKey(column);
                 }
             }

@@ -5,11 +5,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import databus.event.MysqlEvent;
-import databus.event.mysql.*;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import databus.event.MysqlEvent;
+import databus.event.mysql.*;
 
 public class InsertRowsProcessor extends WriteRowsProcessor {
     
@@ -38,7 +38,7 @@ public class InsertRowsProcessor extends WriteRowsProcessor {
                 Serializable value = r[i];
                 String name = columns[i];
                 ColumnAttribute attribute = attributes[i];
-                Column column = new Column(name, toString(value,attribute.type()), attribute.type());
+                Column column = new Column(name, toString(value,attribute), attribute.type());
                 event.addColumn(column);
                 if (primaryKeysSet.contains(name)) {
                     event.addPrimaryKey(column);
