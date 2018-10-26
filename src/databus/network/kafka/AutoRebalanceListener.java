@@ -20,10 +20,26 @@ public class AutoRebalanceListener implements ConsumerRebalanceListener{
 
     @Override
     public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-        try {
-            consumer.commitSync();
-        }catch (Exception e) {
-            log.error("Can not commitSync", e);
+        int waitingTime = 0;
+        boolean doesCommitOffset = false;
+        while (!doesCommitOffset && (waitingTime<=30)) {
+            if (waitingTime > 0) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    log.error("Has waked up", e);
+                }
+            }
+            try {
+                consumer.commitSync();
+                doesCommitOffset = true;
+            } catch (Exception e) {
+                log.error("Can not commitSync", e);
+            }
+            waitingTime++;
+        }
+        if (!doesCommitOffset) {
+            log.fatal("Can not commit offset");
         }
     }
 
