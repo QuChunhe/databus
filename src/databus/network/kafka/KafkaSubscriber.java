@@ -151,8 +151,13 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 partitionMap = new HashMap<>();
                 previousPositionMap.put(topic, partitionMap);
             }
-            long previousPosition = partitionMap.get(partition);
-            return position <= previousPosition;
+            Long previousPosition = partitionMap.get(partition);
+            if ((null==previousPosition) || (position>previousPosition.longValue())) {
+                partitionMap.put(partition, position);
+                return false;
+            }
+
+            return true;
         }
 
 
