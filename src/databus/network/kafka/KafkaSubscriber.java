@@ -1,5 +1,6 @@
 package databus.network.kafka;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -98,6 +99,12 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     int partition = r.partition();
                     long offset = r.offset();
                     String key = r.key();
+                    // for bad network
+                    if (hasReceivedBefore(topic, partition, offset)) {
+                        log.error("Has Received before : " + topic + "   " +
+                                  key + " (" + partition + ", " + offset + ")" );
+                        continue;
+                    }
 
                     Event event = eventParser.toEvent(topic, key, r.value());
                     if (null == event) {
@@ -137,6 +144,19 @@ public class KafkaSubscriber extends AbstractSubscriber {
                 consumer.close();
             }
         }
+
+        private boolean hasReceivedBefore(String topic, int partition, long position) {
+            Map<Integer, Long> partitionMap = previousPositionMap.get(topic);
+            if (null == partitionMap) {
+                partitionMap = new HashMap<>();
+                previousPositionMap.put(topic, partitionMap);
+            }
+            long previousPosition = partitionMap.get(partition);
+            return position <= previousPosition;
+        }
+
+
+        private final Map<String, Map<Integer, Long>> previousPositionMap = new HashMap<>();
 
         private final OffsetCommitCallback OFFSET_COMMIT_CALLBACK =
                 new OffsetCommitCallback() {
