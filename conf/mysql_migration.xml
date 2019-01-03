@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+                       "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+    <import resource="to_mysql.xml" />
+    <import resource="backends.xml" />
+
+    <bean id="mysql2Mysql" class="databus.application.MultiMysql2Mysql" scope="singleton">
+        <property name="toDataSource" ref="toDataSource"/>
+        <property name="fetchSize" value="1000" />
+        <property name="fromDataSources">
+            <list>
+                <ref bean="backend1DataSource"/>
+                <ref bean="backend2DataSource"/>
+                <ref bean="backend3DataSource"/>
+                <ref bean="backend4DataSource"/>
+            </list>
+        </property>
+    </bean>
+</beans>

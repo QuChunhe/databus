@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+    <import resource="to_mysql.xml" />
+    <import resource="from_mysql.xml" />
+
+    <bean id="mysql2Mysql" class="databus.application.SingleMysql2Mysql" scope="singleton">
+        <property name="toDataSource" ref="toDataSource"/>
+        <property name="fetchSize" value="1000" />
+        <property name="fromDataSource" ref="fromDataSource"/>
+    </bean>
+</beans>
