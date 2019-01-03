@@ -160,7 +160,6 @@ public class KafkaSubscriber extends AbstractSubscriber {
             return true;
         }
 
-
         private final Map<String, Map<Integer, Long>> previousPositionMap = new HashMap<>();
 
         private final OffsetCommitCallback OFFSET_COMMIT_CALLBACK =

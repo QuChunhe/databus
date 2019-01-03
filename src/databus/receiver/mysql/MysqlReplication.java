@@ -38,9 +38,13 @@ public class MysqlReplication extends MysqlReceiver {
         }
     }
 
+    protected String getPrefixInsertSql() {
+        return "INSERT INTO ";
+    }
+
     private String getInsertSql(MysqlInsertRow event) {
         StringBuilder sqlBuilder = new StringBuilder(128);
-        sqlBuilder.append("INSERT INTO ");
+        sqlBuilder.append(getPrefixInsertSql());
         sqlBuilder.append(event.table());
         sqlBuilder.append(" (");
         StringBuilder valuesBuilder = new StringBuilder(64);
