@@ -15,6 +15,7 @@ public class OffsetCommitterBasedFile<K, V> extends OffsetCommitter<K, V> {
 
     public OffsetCommitterBasedFile(String file,int writePerFlush) {
         offsetCache = new OffsetCache(file, writePerFlush);
+        this.writePerFlush = writePerFlush;
     }
 
     @Override
@@ -33,7 +34,10 @@ public class OffsetCommitterBasedFile<K, V> extends OffsetCommitter<K, V> {
 
     @Override
     void beforePolling() {
-        offsetCache.save();
+        if (writePerFlush < 1) {
+            offsetCache.save();
+        }
+
     }
 
     @Override
@@ -67,4 +71,5 @@ public class OffsetCommitterBasedFile<K, V> extends OffsetCommitter<K, V> {
     }
 
     private final OffsetCache offsetCache;
+    private final int writePerFlush;
 }
