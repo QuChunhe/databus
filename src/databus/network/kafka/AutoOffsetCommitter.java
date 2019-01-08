@@ -12,6 +12,9 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * Created by Qu Chunhe on 2019-01-07.
+ */
 public class AutoOffsetCommitter<K, V> extends OffsetCommitter<K, V> {
 
     @Override
@@ -42,12 +45,12 @@ public class AutoOffsetCommitter<K, V> extends OffsetCommitter<K, V> {
     }
 
     @Override
-    boolean beforeProcessing(String topic, int partition, long position) {
-        return !hasReceivedBefore(topic, partition, position);
+    boolean beforeProcessing(String topic, int partition, long offset) {
+        return !hasReceivedBefore(topic, partition, offset);
     }
 
     @Override
-    public void afterProcessing(String topic, int partition, long position) {
+    public void afterProcessing(String topic, int partition, long offset) {
     }
 
     @Override
@@ -76,15 +79,15 @@ public class AutoOffsetCommitter<K, V> extends OffsetCommitter<K, V> {
         this.startOffsetsMap = startOffsetsMap;
     }
 
-    private boolean hasReceivedBefore(String topic, int partition, long position) {
-        Map<Integer, Long> partitionMap = previousPositionMap.get(topic);
+    private boolean hasReceivedBefore(String topic, int partition, long offset) {
+        Map<Integer, Long> partitionMap = previousOffsetMap.get(topic);
         if (null == partitionMap) {
             partitionMap = new HashMap<>();
-            previousPositionMap.put(topic, partitionMap);
+            previousOffsetMap.put(topic, partitionMap);
         }
-        Long previousPosition = partitionMap.get(partition);
-        if ((null==previousPosition) || (position>previousPosition.longValue())) {
-            partitionMap.put(partition, position);
+        Long previousOffset = partitionMap.get(partition);
+        if ((null==previousOffset) || (offset>previousOffset.longValue())) {
+            partitionMap.put(partition, offset);
             return false;
         }
 
@@ -104,6 +107,6 @@ public class AutoOffsetCommitter<K, V> extends OffsetCommitter<K, V> {
 
     private final static Log log = LogFactory.getLog(AutoOffsetCommitter.class);
 
-    private final Map<String, Map<Integer, Long>> previousPositionMap = new HashMap<>();
+    private final Map<String, Map<Integer, Long>> previousOffsetMap = new HashMap<>();
     private Map<String, Map<Integer, Long>> startOffsetsMap;
 }
