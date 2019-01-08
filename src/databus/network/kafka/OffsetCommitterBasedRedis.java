@@ -28,12 +28,11 @@ public class OffsetCommitterBasedRedis<K, V> extends OffsetCommitter<K, V> {
 
     @Override
     void afterPolling() {
-
     }
 
     @Override
     boolean beforeProcessing(String topic, int partition, long offset) {
-        return false;
+        return true;
     }
 
     @Override
@@ -47,7 +46,6 @@ public class OffsetCommitterBasedRedis<K, V> extends OffsetCommitter<K, V> {
 
     @Override
     void beforePolling() {
-
     }
 
     @Override
@@ -57,7 +55,6 @@ public class OffsetCommitterBasedRedis<K, V> extends OffsetCommitter<K, V> {
 
     @Override
     public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-
     }
 
     @Override
