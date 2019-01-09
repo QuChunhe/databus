@@ -3,6 +3,7 @@ package databus.receiver.cassandra;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
@@ -12,7 +13,6 @@ import databus.event.mysql.Column;
 import databus.event.mysql.MysqlDeleteRow;
 import databus.event.mysql.MysqlInsertRow;
 import databus.event.mysql.MysqlUpdateRow;
-import databus.receiver.mysql.MysqlHelper;
 import databus.event.MysqlEvent;
 
 /**
@@ -151,7 +151,7 @@ public class CassandraBean4Mysql implements CassandraBean {
                 builder.append("NULL");
             } else {
                 builder.append("'");
-                builder.append(MysqlHelper.quoteReplacement(column.value()));
+                builder.append(QUOTE_PATTERN.matcher(column.value()).replaceAll("''"));
                 builder.append("'");
             }
         } else {
@@ -170,6 +170,7 @@ public class CassandraBean4Mysql implements CassandraBean {
 
     private final static Log log = LogFactory.getLog(CassandraBean4Mysql.class);
 
+    private final Pattern QUOTE_PATTERN = Pattern.compile("'");
     private String table = null;
     private Map<String, String> columnMap = new HashMap<>();
     private boolean doesDiscardUnspecifiedColumn = false;
