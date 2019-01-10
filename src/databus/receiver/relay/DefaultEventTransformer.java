@@ -9,6 +9,9 @@ import databus.network.KeyMapper;
  */
 public class DefaultEventTransformer implements EventTransformer {
 
+    public DefaultEventTransformer() {
+    }
+
     public void setTopic(String topic) {
         this.topic = topic;
     }
@@ -22,6 +25,7 @@ public class DefaultEventTransformer implements EventTransformer {
         return new EventWrapper(topic, keyMapper.toKey(event), event);
     }
 
+    protected KeyMapper keyMapper = new DefaultKeyMapper();
+
     private String topic;
-    private KeyMapper keyMapper = new DefaultKeyMapper();
 }
