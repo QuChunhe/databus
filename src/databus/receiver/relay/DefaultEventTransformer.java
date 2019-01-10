@@ -19,7 +19,7 @@ public class DefaultEventTransformer implements EventTransformer {
 
     @Override
     public EventWrapper transform(Event event) {
-        return new EventWrapper(topic,keyMapper.toKey(event),event);
+        return new EventWrapper(topic, keyMapper.toKey(event), event);
     }
 
     private String topic;
