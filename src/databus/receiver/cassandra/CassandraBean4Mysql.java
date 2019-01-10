@@ -144,7 +144,6 @@ public class CassandraBean4Mysql implements CassandraBean {
         appendEqual(builder, row, " AND ");
     }
 
-
     private void appendValue(StringBuilder builder, Column column) {
         if (column.doesUseQuotation()) {
             if (null == column.value()) {
@@ -166,7 +165,6 @@ public class CassandraBean4Mysql implements CassandraBean {
         }
         return true;
     }
-
 
     private final static Log log = LogFactory.getLog(CassandraBean4Mysql.class);
 
