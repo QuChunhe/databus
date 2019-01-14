@@ -28,9 +28,13 @@ public class OffsetCache {
     
     public OffsetCache set(String topic, int partition, long offset) {
         String key = toKey(topic, partition);
-        String value = Long.toString(offset);
-        while (get(topic, partition) < offset) {
-            Backup.instance().getRecordCache(file).cache(key, value);
+        long oldOffset;
+        while ((oldOffset=get(topic, partition)) < offset) {
+            if (Backup.instance()
+                      .getRecordCache(file)
+                      .cache(key, Long.toString(oldOffset), Long.toString(offset))) {
+                break;
+            }
         }
         long c = counter.addAndGet(1);
         if ((writePerFlush>0) && (c%writePerFlush==0)) {

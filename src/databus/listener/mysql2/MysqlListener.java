@@ -211,7 +211,6 @@ public class MysqlListener extends RunnableListener {
         public void stop(Thread owner) {
             try {
                 client.disconnect();
-
             } catch (IOException e) {
                 log.error("Cannot close MysqlListener", e);
             }

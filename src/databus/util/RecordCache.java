@@ -15,6 +15,10 @@ public class RecordCache {
         cache.put(key, value);
         return this;
     }
+
+    public boolean cache(String key, String oldValue, String newValue) {
+        return cache.replace(key, oldValue, newValue);
+    }
     
     public RecordCache cache(Map<String, String> data) {
         cache.putAll(data);
@@ -36,5 +40,4 @@ public class RecordCache {
 
     private ConcurrentHashMap<String, String> cache;
     private Recorder recorder;
-
 }
