@@ -30,9 +30,9 @@ public class OffsetCache {
         String key = toKey(topic, partition);
         long oldOffset;
         while ((oldOffset=get(topic, partition)) < offset) {
-            if (Backup.instance()
-                      .getRecordCache(file)
-                      .cache(key, Long.toString(oldOffset), Long.toString(offset))) {
+            if ((offset<0) || Backup.instance()
+                                    .getRecordCache(file)
+                                    .cache(key, Long.toString(oldOffset), Long.toString(offset))) {
                 break;
             }
         }
