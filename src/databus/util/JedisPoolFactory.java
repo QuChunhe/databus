@@ -15,7 +15,7 @@ public class JedisPoolFactory {
         String host = properties.getProperty("host", "127.0.0.1");
         int port = Integer.parseInt(properties.getProperty("port", "6379"));
         int timeout = Integer.parseInt(properties.getProperty("timeout","60"));
-        String password = properties.getProperty("password", "");
+        String password = properties.getProperty("password");
         int database = Integer.parseInt(properties.getProperty("database","0"));
         int maxTotal = Integer.parseInt(properties.getProperty("maxTotal","5"));
         int maxIdle = Integer.parseInt(properties.getProperty("maxIdle","3"));
