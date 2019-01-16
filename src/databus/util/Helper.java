@@ -2,7 +2,9 @@ package databus.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -108,6 +110,20 @@ public class Helper {
         return flag;
     }
 
+    public static String decodeUrl(String parameter) {
+        if ((null==parameter) || (parameter.length()==0)) {
+            return parameter;
+        }
+        String decodedValue = parameter;
+        try {
+            decodedValue = URLDecoder.decode(parameter, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Can not decode "+parameter, e);
+        } catch (Exception e) {
+        }
+        return decodedValue;
+    }
+
     public static String getDigit(String value, String defaultValue) {
         if (null == value) {
             return defaultValue;
@@ -133,6 +149,7 @@ public class Helper {
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
+
 
     private final static Log log = LogFactory.getLog(Helper.class);
 }
