@@ -110,18 +110,33 @@ public class Helper {
         return flag;
     }
 
-    public static String decodeUrl(String parameter) {
-        if ((null==parameter) || (parameter.length()==0)) {
-            return parameter;
+    public static String normalizeKeyword(final String keyword) {
+        if ((null==keyword) || (keyword.length()==0)) {
+            return keyword;
         }
-        String decodedValue = parameter;
+        String value = keyword;
+        int i1 = keyword.indexOf('(');
+        if (i1 > 0) {
+            int i2 = keyword.indexOf(')', i1);
+            if (i2 > 0) {
+                if (keyword.substring(i1, i2+1).contains("site")) {
+                    String tmp = value.substring(0, i1);
+                    if ((i2+1) < value.length()) {
+                        tmp = tmp + value.substring(i2+1);
+                    }
+                    value = tmp;
+                }
+            }
+        }
+
         try {
-            decodedValue = URLDecoder.decode(parameter, "UTF-8");
+            value = URLDecoder.decode(value, "UTF-8");
         } catch (UnsupportedEncodingException e) {
-            log.error("Can not decode "+parameter, e);
+            log.error("Can not decode "+keyword, e);
         } catch (Exception e) {
         }
-        return decodedValue;
+        value = WHITE_SPACE_PATTERN.matcher(value).replaceAll(" ");
+        return value.trim();
     }
 
     public static String getDigit(String value, String defaultValue) {
@@ -149,7 +164,7 @@ public class Helper {
     
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
-
+    private final static Pattern WHITE_SPACE_PATTERN = Pattern.compile("\\s{2,}");
 
     private final static Log log = LogFactory.getLog(Helper.class);
 }

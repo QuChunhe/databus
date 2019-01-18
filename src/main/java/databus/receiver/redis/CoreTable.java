@@ -16,18 +16,18 @@ public class CoreTable extends Table{
     }
 
     @Override
-    public String insert(Jedis jedis, List<Column> primaryKeys,List<Column> row) {
-        return super.insert(jedis, primaryKeys, row);
+    public void insert(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+        super.insert(jedis, primaryKeys, row);
     }
 
     @Override
-    public String delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        return super.delete(jedis, primaryKeys, row);
+    public void delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+        super.delete(jedis, primaryKeys, row);
     }
 
     @Override
-    public String update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        return super.update(jedis, primaryKeys, row);
+    public void update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+        super.update(jedis, primaryKeys, row);
     }
     
     public void insertFields(Jedis jedis, Map<String, String> coreTablePrimaryKeys, 
@@ -47,7 +47,6 @@ public class CoreTable extends Table{
         String[] fields = associationTableFields.keySet().toArray(STRING_ARRAY);
         jedis.hdel(redisKey, fields);
     }
-    
     
     private String getCoreTableRedisKey(Map<String, String> coreTablePrimaryKeys) {
         String[] orderedPrimaryKeys = coreTablePrimaryKeys.keySet().toArray(STRING_ARRAY);

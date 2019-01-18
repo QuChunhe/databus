@@ -13,7 +13,8 @@ databus.iml
 target/
 out/
 src/META-INF/MANIFEST.MF
-src/adm
+src/main/java/adm
+src/main/java/test
 databus.jar
 lib/
-adm/
+

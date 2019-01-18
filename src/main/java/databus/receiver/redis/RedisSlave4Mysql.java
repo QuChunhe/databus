@@ -13,7 +13,6 @@ import databus.event.mysql.Column;
 import databus.event.mysql.MysqlDeleteRow;
 import databus.event.mysql.MysqlInsertRow;
 import databus.event.mysql.MysqlUpdateRow;
-import databus.util.Benchmark;
 
 public class RedisSlave4Mysql extends RedisReceiver {
 
@@ -28,39 +27,53 @@ public class RedisSlave4Mysql extends RedisReceiver {
         }
     }
 
+    public void setSystem(String system) {
+        this.system = system;
+    }
+
     @Override
     protected void receive(Jedis jedis, Event event) {
         if (event instanceof AbstractMysqlWriteRow) {
-            Benchmark benchmark = new Benchmark();
             AbstractMysqlWriteRow e = (AbstractMysqlWriteRow) event;
-            String tableName = e.table().toLowerCase();
-            Table table = tableMap.get(tableName);
+            Table table = getTable(e.table().toLowerCase());
             if (null == table) {
-                log.warn("Has not information about "+tableName);
                 return;
             }
             List<Column> primaryKeyColumns = e.primaryKeys();
             List<Column> row = e.row();
-            String command = null;
             if (e instanceof MysqlUpdateRow) {
-                command = table.update(jedis, primaryKeyColumns, row);
+                table.update(jedis, primaryKeyColumns, row);
             } else if (e instanceof MysqlInsertRow) {
-                command = table.insert(jedis, primaryKeyColumns, row);
+                table.insert(jedis, primaryKeyColumns, row);
             } else if (e instanceof MysqlDeleteRow) {
-                command = table.delete(jedis, primaryKeyColumns, row);
+                table.delete(jedis, primaryKeyColumns, row);
             } else {
                 log.info(event.toString());
-            }
-            if (null != command) {
-                log.info(benchmark.elapsedMsec(3) +"ms execute : "+command);
             }
         } else {
             log.warn(event.getClass().getName()+" is not AbstractMysqlWriteRow : " +
                      event.toString());
         }
-    }    
+    }
+
+    protected Table getTable(String tableName) {
+        Table table = tableMap.get(tableName);
+        if (null == table) {
+            synchronized (lock) {
+                table = tableMap.get(tableName);
+                if (null == table) {
+                    table = new Table(system, tableName);
+                    tableMap.put(tableName, table);
+                }
+            }
+        }
+        return table;
+    }
 
     private final static Log log = LogFactory.getLog(RedisSlave4Mysql.class);
 
     private final Map<String, Table> tableMap;
+    private final Object lock = new Object();
+
+    private String system = "database";
 }
