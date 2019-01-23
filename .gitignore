@@ -3,8 +3,6 @@ bin/
 .git
 .project
 .settings
-test/
-adm/
 logs/
 data/
 databus.iml
