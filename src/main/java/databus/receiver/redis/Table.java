@@ -7,6 +7,7 @@ import redis.clients.jedis.Transaction;
 
 import databus.event.mysql.Column;
 import databus.event.mysql.ColumnComparator;
+import databus.util.Tuple2;
 
 public class Table {
 
@@ -31,7 +32,7 @@ public class Table {
 
     public void insert(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
         Transaction transaction = jedis.multi();
-        insert(transaction, primaryKeys, toMap(row));
+        insert(transaction, primaryKeys, transform(row).first);
         transaction.exec();
     }
     
@@ -42,7 +43,7 @@ public class Table {
     }
     
     public void update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        Set<String> primaryKeyNameSet = toMap(primaryKeys).keySet();
+        Set<String> primaryKeyNameSet = toNameSet(primaryKeys);
         List<Column> newPrimaryKeys = new LinkedList();
         for(Column c : row) {
             if (primaryKeyNameSet.contains(c.name())) {
@@ -51,7 +52,7 @@ public class Table {
         }
 
         if (newPrimaryKeys.size() > 0) {
-            Set<String> newPrimaryKeyNameSet = toMap(newPrimaryKeys).keySet();
+            Set<String> newPrimaryKeyNameSet = toNameSet(newPrimaryKeys);
             for(Column c : primaryKeys) {
                 if (!newPrimaryKeyNameSet.contains(c.name())) {
                     newPrimaryKeys.add(c);
@@ -61,15 +62,20 @@ public class Table {
             Map<String, String> oldRow = jedis.hgetAll(getRedisKey(primaryKeys));
             Map<String, String> newRow = new HashMap(oldRow);
             for(Column c : row) {
-                if (null==replicatedColumns || replicatedColumns.contains(c.name().toLowerCase())) {
-                    newRow.put(c.name(), null==c.value() ? "" : c.value());
+                if (null==replicatedColumns || replicatedColumns.contains(c.name())) {
+                    if (null != c.value()) {
+                        newRow.put(c.name(), c.value());
+                    } else {
+                        newRow.remove(c.name());
+                    }
                 }
             }
             Transaction transaction = jedis.multi();
             replace(transaction, primaryKeys, oldRow, newPrimaryKeys, newRow);
             transaction.exec();
         } else {
-            update(jedis, primaryKeys, toMap(row));
+            Tuple2<Map<String, String>, List<String>> result = transform(row);
+            update(jedis, primaryKeys, result.first, result.second);
         }
     }
     
@@ -83,10 +89,12 @@ public class Table {
                .append(name)
                .append(":");
         for(Column c : sortedPrimaryKeys) {
-            builder.append(c.name())
-                   .append("=")
-                   .append(c.value()==null ? "" : c.value())
-                   .append("&");
+            if (null != c.value()) {
+                builder.append(c.name())
+                        .append("=")
+                        .append(c.value())
+                        .append("&");
+            }
         }
         
         return builder.substring(0, builder.length()-1);
@@ -96,16 +104,28 @@ public class Table {
         return name;
     }
 
-    protected Map<String, String> toMap(List<Column> row) {
-        HashMap<String, String> columns = new HashMap(row.size());
+    protected Tuple2<Map<String, String>, List<String>> transform(List<Column> row) {
+        HashMap<String, String> columnMap = new HashMap(row.size());
+        List<String> nullColumns = new LinkedList<>();
         for(Column c : row) {
-            if (null==replicatedColumns || replicatedColumns.contains(c.name().toLowerCase())) {
-                String value = null!=c.value() ? c.value() : "";
-                columns.put(c.name(), value);
+            if (null==replicatedColumns || replicatedColumns.contains(c.name())) {
+                if (null == c.value()) {
+                    nullColumns.add(c.name());
+                } else {
+                    columnMap.put(c.name(), c.value());
+                }
             }
         }
         
-        return columns;
+        return new Tuple2<>(columnMap, nullColumns);
+    }
+
+    protected Set<String> toNameSet(List<Column> columns) {
+        Set nameSet = new HashSet();
+        for(Column c : columns) {
+            nameSet.add(c.name());
+        }
+        return nameSet;
     }
 
     protected void insert(Transaction transaction, List<Column> primaryKeys,
@@ -124,10 +144,22 @@ public class Table {
         transaction.hmset(getRedisKey(newPrimaryKeys), newRow);
     }
 
-    protected void update(Jedis jedis, List<Column> primaryKeys, Map<String, String> value) {
-        if (value.size() > 0) {
-            jedis.hmset(getRedisKey(primaryKeys), value);
+    protected void update(Transaction transaction, String redisKey,
+                          Map<String, String> columnMap, List<String> nullColumns) {
+        if (columnMap.size() > 0) {
+            transaction.hmset(redisKey, columnMap);
         }
+        if (nullColumns.size() > 0) {
+            transaction.hdel(redisKey, nullColumns.toArray(new String[nullColumns.size()]));
+        }
+    }
+
+    protected void update(Jedis jedis, List<Column> primaryKeys, Map<String, String> columnMap,
+                          List<String> nullColumns) {
+        Transaction transaction = jedis.multi();
+        String key = getRedisKey(primaryKeys);
+        update(transaction, key, columnMap, nullColumns);
+        transaction.exec();
     }
 
     protected static final ColumnComparator COLUMN_COMPARATOR = new ColumnComparator();

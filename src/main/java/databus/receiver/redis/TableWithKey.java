@@ -2,11 +2,9 @@ package databus.receiver.redis;
 
 import java.util.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
+
 import databus.event.mysql.Column;
 
 /**
@@ -37,7 +35,7 @@ public class TableWithKey extends Table {
 
     @Override
     protected void delete(Transaction transaction, List<Column> primaryKeys, List<Column> row) {
-        delete(transaction, primaryKeys, toMap(row));
+        delete(transaction, primaryKeys, transform(row).first);
     }
 
     @Override
@@ -49,38 +47,41 @@ public class TableWithKey extends Table {
     }
 
     @Override
-    protected void update(Jedis jedis, List<Column> primaryKeys, Map<String, String> columnMap) {
-        super.update(jedis, primaryKeys, columnMap);
-        Map<String, String> newKeyMap = new HashMap();
+    protected void update(Jedis jedis, List<Column> primaryKeys,  Map<String, String> columnMap,
+                          List<String> nullColumns) {
+        Map<String, String> updatedKeyMap = new HashMap();
         for(Map.Entry<String, String> e : columnMap.entrySet()) {
             if (keySet.contains(e.getKey())) {
-                newKeyMap.put(e.getKey(), e.getValue());
+                updatedKeyMap.put(e.getKey(), e.getValue());
             }
         }
-        Map<String, String> oldKeyMap = null;
-        if (newKeyMap.size() > 0) {
-            List<String> valueList = jedis.hmget(getRedisKey(primaryKeys), keyArray);
-            oldKeyMap = new HashMap();
-            for(int i=0, len=keyArray.length; i<len; i++){
-                oldKeyMap.put(keyArray[i], valueList.get(i));
+        for(String c : nullColumns) {
+            if (keySet.contains(c)) {
+                updatedKeyMap.put(c, null);
             }
-            for(String k : keyArray) {
-                if (null == newKeyMap.get(k)) {
-                    String v = oldKeyMap.get(k);
-                    newKeyMap.put(k,  null==v ? "" : v);
+        }
+        String redisKey = getRedisKey(primaryKeys);
+        Map<String, String> oldKeyMap = null;
+        if (updatedKeyMap.size() > 0) {
+            List<String> valueList = jedis.hmget(redisKey, keyArray);
+            oldKeyMap = new HashMap();
+            Set<String> updatedKeySet = updatedKeyMap.keySet();
+            for(int i=0, len=keyArray.length; i<len; i++){
+                String k = keyArray[i];
+                String v = valueList.get(i);
+                oldKeyMap.put(k, v);
+                if (!updatedKeySet.contains(k)) {
+                    updatedKeyMap.put(k, v);
                 }
             }
         }
 
         Transaction transaction = jedis.multi();
-        if (columnMap.size() > 0) {
-            transaction.hmset(getRedisKey(primaryKeys), columnMap);
-        }
-        if (newKeyMap.size() > 0) {
+        super.update(transaction, redisKey, columnMap, nullColumns);
+        if (updatedKeyMap.size() > 0) {
             String value = getRedisValue(primaryKeys);
             transaction.srem(getRedisKeyFromRow(oldKeyMap), value);
-            transaction.sadd(getRedisKeyFromRow(newKeyMap), value);
-
+            transaction.sadd(getRedisKeyFromRow(updatedKeyMap), value);
         }
         transaction.exec();
     }
@@ -90,12 +91,14 @@ public class TableWithKey extends Table {
         Arrays.sort(sortedPrimaryKeys, COLUMN_COMPARATOR);
         StringBuilder builder = new StringBuilder(128);
         for(Column c : sortedPrimaryKeys) {
-            builder.append(c.name())
-                   .append("=")
-                   .append(c.value()==null ? "" : c.value())
-                   .append("&");
+            if (c.value()!=null) {
+                builder.append(c.name())
+                        .append("=")
+                        .append(c.value())
+                        .append("<&>");
+            }
         }
-        return builder.substring(0, builder.length()-1);
+        return builder.length()>0 ? builder.substring(0, builder.length()-3) : "";
     }
 
     private void delete(Transaction transaction, List<Column> primaryKeys,
@@ -112,21 +115,20 @@ public class TableWithKey extends Table {
                .append(":");
         for(String k : keyArray) {
             String v = row.get(k);
-            if (null == v) {
-                log.error("Key "+k+" is NULL");
+            if (null != v) {
+                builder.append(k)
+                       .append("=")
+                       .append(v)
+                       .append("&");
             }
-
-            builder.append(k)
-                   .append("=")
-                   .append(v==null ? "" : v)
-                   .append("&");
         }
 
-        return builder.substring(0, builder.length()-1);
+        return builder.charAt(builder.length()-1)=='&' ?
+                builder.substring(0, builder.length()-1) :
+                builder.toString();
 
     }
 
-    private final static Log log = LogFactory.getLog(TableWithKey.class);
     private Set<String> keySet;
     private String[] keyArray;
 }
