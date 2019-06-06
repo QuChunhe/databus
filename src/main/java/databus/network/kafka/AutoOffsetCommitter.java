@@ -1,5 +1,6 @@
 package databus.network.kafka;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class AutoOffsetCommitter<K, V> extends OffsetCommitter<K, V> {
         if (null == startOffsetsMap) {
             return;
         }
-        consumer.poll(0);
+        consumer.poll(Duration.ZERO);
         for(TopicPartition partition : consumer.assignment()) {
             String t = partition.topic();
             Map<Integer, Long> offset = startOffsetsMap.get(t);

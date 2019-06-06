@@ -1,5 +1,6 @@
 package databus.network.kafka;
 
+import java.time.Duration;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -39,7 +40,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
     }
 
     public void setPollingTimeout(long pollingTimeout) {
-        this.pollingTimeout = pollingTimeout;
+        this.pollingTimeout = Duration.ofMillis(pollingTimeout);
     }
 
     public void setOffsetCommitter(OffsetCommitter<String, String> offsetCommitter) {
@@ -55,7 +56,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
 
     private KafkaConsumer<String, String> consumer;
     private EventParser eventParser = new JsonEventParser();
-    private long pollingTimeout = 2000;
+    private Duration pollingTimeout = Duration.ofMillis(2000);
     private OffsetCommitter<String, String> offsetCommitter = new AutoOffsetCommitter<>();
 
 
