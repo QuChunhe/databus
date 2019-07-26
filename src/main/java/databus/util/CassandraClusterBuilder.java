@@ -93,6 +93,17 @@ public class CassandraClusterBuilder {
 
         socketOptions.setTcpNoDelay(true);
 
+        String username = properties.getProperty("username");
+        String password = properties.getProperty("password");
+        if ((null!=username) && (null!=password)) {        	
+        	return Cluster.builder()
+                    .addContactPoints(contactPoints)
+                    .withPoolingOptions(poolingOptions)
+                    .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.LOCAL_ONE))
+                    .withSocketOptions(socketOptions)
+                    .withCredentials(username.trim(), password.trim())
+                    .build();
+        }
         return Cluster.builder()
                       .addContactPoints(contactPoints)
                       .withPoolingOptions(poolingOptions)
