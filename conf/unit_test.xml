@@ -5,5 +5,12 @@
     <bean id="jedisPool" class="databus.util.JedisPoolFactory" factory-method="create" scope="singleton">
         <constructor-arg value="conf/redis_receiver.properties" />
     </bean>
-
+<!--
+    <bean id="redisClientPool" class="databus.util.JedisClientPool" factory-method="create" scope="singleton">
+        <constructor-arg value="conf/redis_receiver.properties" />
+    </bean>
+-->
+    <bean id="redisClientPool" class="databus.util.JedisClusterClientPool" factory-method="create" scope="singleton">
+        <constructor-arg value="conf/redis_cluster_receiver.properties" />
+    </bean>
 </beans>

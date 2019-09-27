@@ -126,7 +126,6 @@ public class TableWithKey extends Table {
         return builder.charAt(builder.length()-1)=='&' ?
                 builder.substring(0, builder.length()-1) :
                 builder.toString();
-
     }
 
     private Set<String> keySet;

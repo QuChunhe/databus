@@ -1,14 +1,17 @@
-package databus.receiver.redis;
+package databus.receiver.redis2;
 
 import java.util.*;
 
-import redis.clients.jedis.Jedis;
+import databus.util.RedisClient;
 import redis.clients.jedis.Transaction;
 
 import databus.event.mysql.Column;
 import databus.event.mysql.ColumnComparator;
 import databus.util.Tuple2;
 
+/**
+ * Created by Qu Chunhe on 2019-09-24.
+ */
 public class Table {
 
     public Table(String name) {
@@ -30,19 +33,27 @@ public class Table {
         this.system =  system.toLowerCase();
     }
 
-    public void insert(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        Transaction transaction = jedis.multi();
-        insert(transaction, primaryKeys, transform(row).first);
-        transaction.exec();
+    public void insert(RedisClient redisClient, List<Column> primaryKeys, List<Column> row) {
+        if (redisClient.doesSupportTransaction()) {
+            Transaction transaction = redisClient.multi();
+            insert0(transaction, primaryKeys, transform(row).first);
+            transaction.exec();
+        } else {
+            insert0(redisClient, primaryKeys, transform(row).first);
+        }
     }
     
-    public void delete(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
-        Transaction transaction = jedis.multi();
-        delete(transaction, primaryKeys, row);
-        transaction.exec();
+    public void delete(RedisClient redisClient, List<Column> primaryKeys, List<Column> row) {
+        if (redisClient.doesSupportTransaction()) {
+            Transaction transaction = redisClient.multi();
+            delete0(transaction, primaryKeys, row);
+            transaction.exec();
+        } else {
+            delete0(redisClient, primaryKeys, row);;
+        }
     }
     
-    public void update(Jedis jedis, List<Column> primaryKeys, List<Column> row) {
+    public void update(RedisClient redisClient, List<Column> primaryKeys, List<Column> row) {
         Set<String> primaryKeyNameSet = toNameSet(primaryKeys);
         List<Column> newPrimaryKeys = new LinkedList();
         for(Column c : row) {
@@ -59,7 +70,7 @@ public class Table {
                 }
             }
 
-            Map<String, String> oldRow = jedis.hgetAll(getRedisKey(primaryKeys));
+            Map<String, String> oldRow = redisClient.hgetAll(getRedisKey(primaryKeys));
             Map<String, String> newRow = new HashMap(oldRow);
             for(Column c : row) {
                 if (null==replicatedColumns || replicatedColumns.contains(c.name())) {
@@ -70,12 +81,17 @@ public class Table {
                     }
                 }
             }
-            Transaction transaction = jedis.multi();
-            replace(transaction, primaryKeys, oldRow, newPrimaryKeys, newRow);
-            transaction.exec();
+            if (redisClient.doesSupportTransaction()) {
+                Transaction transaction = redisClient.multi();
+                updateWithPrimaryKeys(transaction, primaryKeys, oldRow, newPrimaryKeys, newRow);
+                transaction.exec();
+            } else {
+                updateWithPrimaryKeys(redisClient, primaryKeys, oldRow, newPrimaryKeys, newRow);
+            }
+
         } else {
             Tuple2<Map<String, String>, List<String>> result = transform(row);
-            update(jedis, primaryKeys, result.first, result.second);
+            updateWithoutPrimaryKeys(redisClient, primaryKeys, result.first, result.second);
         }
     }
     
@@ -128,24 +144,40 @@ public class Table {
         return nameSet;
     }
 
-    protected void insert(Transaction transaction, List<Column> primaryKeys,
-                          Map<String, String> row) {
+    protected void insert0(Transaction transaction, List<Column> primaryKeys,
+                           Map<String, String> row) {
         transaction.hmset(getRedisKey(primaryKeys), row);
     }
 
-    protected void delete(Transaction transaction, List<Column> primaryKeys, List<Column> row) {
+    protected void insert0(RedisClient redisClient, List<Column> primaryKeys,
+                           Map<String, String> row) {
+        redisClient.hmset(getRedisKey(primaryKeys), row);
+    }
+
+    protected void delete0(Transaction transaction, List<Column> primaryKeys, List<Column> row) {
         transaction.del(getRedisKey(primaryKeys));
     }
 
-    protected void replace(Transaction transaction,
-                           List<Column> oldPrimaryKeys, Map<String, String> oldRow,
-                           List<Column> newPrimaryKeys, Map<String, String> newRow) {
+    protected void delete0(RedisClient redisClient, List<Column> primaryKeys, List<Column> row) {
+        redisClient.del(getRedisKey(primaryKeys));
+    }
+
+    protected void updateWithPrimaryKeys(Transaction transaction,
+                                         List<Column> oldPrimaryKeys, Map<String, String> oldRow,
+                                         List<Column> newPrimaryKeys, Map<String, String> newRow) {
         transaction.del(getRedisKey(oldPrimaryKeys));
         transaction.hmset(getRedisKey(newPrimaryKeys), newRow);
     }
 
-    protected void update(Transaction transaction, String redisKey,
-                          Map<String, String> columnMap, List<String> nullColumns) {
+    protected void updateWithPrimaryKeys(RedisClient redisClient,
+                                         List<Column> oldPrimaryKeys, Map<String, String> oldRow,
+                                         List<Column> newPrimaryKeys, Map<String, String> newRow) {
+        redisClient.del(getRedisKey(oldPrimaryKeys));
+        redisClient.hmset(getRedisKey(newPrimaryKeys), newRow);
+    }
+
+    protected void updateRow(Transaction transaction, String redisKey,
+                             Map<String, String> columnMap, List<String> nullColumns) {
         if (columnMap.size() > 0) {
             transaction.hmset(redisKey, columnMap);
         }
@@ -154,12 +186,26 @@ public class Table {
         }
     }
 
-    protected void update(Jedis jedis, List<Column> primaryKeys, Map<String, String> columnMap,
-                          List<String> nullColumns) {
-        Transaction transaction = jedis.multi();
-        String key = getRedisKey(primaryKeys);
-        update(transaction, key, columnMap, nullColumns);
-        transaction.exec();
+    protected void updateRow(RedisClient redisClient, String redisKey,
+                             Map<String, String> columnMap, List<String> nullColumns) {
+        if (columnMap.size() > 0) {
+            redisClient.hmset(redisKey, columnMap);
+        }
+        if (nullColumns.size() > 0) {
+            redisClient.hdel(redisKey, nullColumns.toArray(new String[nullColumns.size()]));
+        }
+    }
+
+    protected void updateWithoutPrimaryKeys(RedisClient redisClient, List<Column> primaryKeys, Map<String,
+                                            String> columnMap, List<String> nullColumns) {
+        if (redisClient.doesSupportTransaction()) {
+            Transaction transaction = redisClient.multi();
+            updateRow(transaction, getRedisKey(primaryKeys), columnMap, nullColumns);
+            transaction.exec();
+        } else {
+            updateRow(redisClient, getRedisKey(primaryKeys), columnMap, nullColumns);
+        }
+
     }
 
     protected static final ColumnComparator COLUMN_COMPARATOR = new ColumnComparator();
