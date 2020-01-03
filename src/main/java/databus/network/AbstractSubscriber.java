@@ -38,14 +38,21 @@ public abstract class AbstractSubscriber extends RunnerHolder implements Subscri
     public void stop() {
         super.stop();
         
-        if ((null!= executorService) && (!executorService.isTerminated())) {
+        if ((null!= executorService) && !executorService.isShutdown()) {
             log.info("Waiting ExecutorService termination!");
-            try {
-                executorService.shutdown();
-                executorService.awaitTermination(10, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                log.error("Can't wait the termination of ExecutorService", e);
-            }            
+            executorService.shutdown();
+            while (!executorService.isTerminated()) {
+                try {
+                    if (executorService.awaitTermination(1, TimeUnit.SECONDS)) {
+                        log.info("ExecutorService has shut down!");
+                    } else {
+                        log.warn("Waiting ExecutorService shutdown!");
+                    }
+                } catch (InterruptedException e) {
+                    log.error("ExecutorService has been interrupted", e);
+                }
+            }
+
         }
 
         for(Receiver receiver : getReceiverSet()) {

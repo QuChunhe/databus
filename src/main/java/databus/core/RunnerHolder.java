@@ -32,11 +32,15 @@ public class RunnerHolder implements Startable, Stoppable, Joinable {
 
         log.info(thread.getName() + " will stop");
         thread.getRunner().stop(thread);
-        if (thread.isAlive()) {
+        while (thread.isAlive()) {
             log.info(thread.getName() + " has not stopped!");
-        } else {
-            log.info(thread.getName() + " has finished!");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                log.error("Can not sleep one second", e);
+            }
         }
+        log.info(thread.getName() + " has finished!");
     }
 
     public void setRunner(Runner runner) {
