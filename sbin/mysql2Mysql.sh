@@ -6,4 +6,4 @@ OPTS="-server -Xms512m -Xmx4096m -XX:+UseG1GC -XX:+PrintGCDetails -XX:+PrintGCDa
 
 MAIN_CLASS="databus.boot.Mysql2MysqlMain"
 
-java $OPTS -cp $CP $MAIN_CLASS $@
+java $OPTS -Dlog4j.configurationFile=./conf/log4j2.xml -cp $CP $MAIN_CLASS $@
