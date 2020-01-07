@@ -1,7 +1,6 @@
 package databus.receiver.redis2;
 
 import databus.event.mysql.Column;
-import databus.util.CommonObjectPool;
 import databus.util.ObjectPool;
 import databus.util.RedisClient;
 import org.apache.commons.logging.Log;

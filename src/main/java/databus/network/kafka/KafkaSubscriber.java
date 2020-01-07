@@ -84,6 +84,7 @@ public class KafkaSubscriber extends AbstractSubscriber {
                     String key = r.key();
 
                     if (!offsetCommitter.beforeProcessing(topic, partition, offset)) {
+                        log.error("Has received "+topic+" ("+partition+", "+offset+")");
                         continue;
                     }
 
