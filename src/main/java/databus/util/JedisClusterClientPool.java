@@ -13,6 +13,7 @@ import java.util.Set;
  * Created by Qu Chunhe on 2019-09-27.
  */
 public class JedisClusterClientPool implements ObjectPool<RedisClient> {
+
     public JedisClusterClientPool(JedisClusterClient jedisClusterClient) {
         this.jedisClusterClient = jedisClusterClient;
     }
@@ -25,7 +26,7 @@ public class JedisClusterClientPool implements ObjectPool<RedisClient> {
         Set<HostAndPort> jedisClusterNode = new HashSet<>();
         for(String n : nodes) {
             String[] parts = n.split(":");
-            String host = parts[0];
+            String host = parts[0].trim();
             int port = null==parts[1] ? 6379 : Integer.parseInt(parts[1]);
             jedisClusterNode.add(new HostAndPort(host, port));
         }

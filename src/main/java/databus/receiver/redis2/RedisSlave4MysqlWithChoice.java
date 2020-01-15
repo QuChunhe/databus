@@ -8,6 +8,7 @@ import java.util.Set;
  * Created by Qu Chunhe on 2019-01-10.
  */
 public class RedisSlave4MysqlWithChoice extends RedisSlave4Mysql {
+
     public RedisSlave4MysqlWithChoice() {
         super();
     }
