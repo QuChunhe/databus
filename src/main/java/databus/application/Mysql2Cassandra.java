@@ -4,6 +4,8 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 import com.datastax.driver.core.Cluster;
@@ -14,8 +16,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import databus.util.Helper;
-import databus.util.Callback;
-import databus.util.FutureChecker;
 import databus.util.OperationCounter;
 
 /**
@@ -51,17 +51,13 @@ public abstract class Mysql2Cassandra {
         this.fetchSize = fetchSize;
     }
 
-    public void setFutureChecker(FutureChecker futureChecker) {
-        this.futureChecker = futureChecker;
-    }
-
     protected void execute(DataSource mysqlDataSource, String whereCondition) {
         log.info("Begin migrate data from "+mysqlTable+" to "+cassandraTable);
 
         String sql = SQL.replace("{WHERE_CONDITION}", whereCondition)
                         .replace("{MYSQL_TABLE}", mysqlTable);
 
-        OperationCounter counter = new OperationCounter();
+        final OperationCounter counter = new OperationCounter();
         try (Session session = cassandraCluster.connect();
              Connection conn = mysqlDataSource.getConnection();
              Statement stmt = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
@@ -103,29 +99,20 @@ public abstract class Mysql2Cassandra {
                     }
                     cql.append(")");
                     counter.addTotalCount(1);
-                    if (null == futureChecker) {
-                        try {
-                            session.execute(cql.toString());
-                            counter.addSuccessCount(1);
-                        } catch (Exception e) {
-                            log.error("Can not inset a row : " + cql.toString(), e);
-                            counter.addFailureCount(1);
-                        }
-                    } else {
-                        ResultSetFuture future = session.executeAsync(cql.toString());
-                        futureChecker.check(future, new Callback<com.datastax.driver.core.ResultSet>() {
-                            @Override
-                            public void onFailure(Throwable t) {
-                                log.error("Can not inset a row : " + cql.toString(), t);
+                    ResultSetFuture future = session.executeAsync(cql.toString());
+                    future.addListener(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                future.get();
+                                counter.addSuccessCount(1);
+                            } catch (Exception e) {
+                                log.error("CQL execution meet some errors : "+cql, e);
                                 counter.addFailureCount(1);
                             }
+                        }
+                    }, executor);
 
-                            @Override
-                            public void onSuccess(com.datastax.driver.core.ResultSet rows) {
-                                counter.addSuccessCount(1);
-                            }
-                        });
-                    }
                 }
             }
         } catch (SQLException e) {
@@ -174,11 +161,11 @@ public abstract class Mysql2Cassandra {
 
     private final String SQL;
     private final Pattern QUOTE_PATTERN = Pattern.compile("'");
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private String mysqlTable;
     private String cassandraTable;
     private Cluster cassandraCluster;
     private int fetchSize = 1000;
     private Map<String, String> columnMap = new HashMap<>();
-    private FutureChecker futureChecker;
 }
