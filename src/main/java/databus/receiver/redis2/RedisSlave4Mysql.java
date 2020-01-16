@@ -29,6 +29,10 @@ public class RedisSlave4Mysql extends RedisReceiver {
         this.system = system;
     }
 
+    public void setDoesDiscardUnkownTableEvent(boolean doesDiscardUnknownTableEvent) {
+        this.doesDiscardUnknownTableEvent = doesDiscardUnknownTableEvent;
+    }
+
     @Override
     public void receive(final RedisClient redisClient, final Event event) {
         if (event instanceof AbstractMysqlWriteRow) {
@@ -56,7 +60,7 @@ public class RedisSlave4Mysql extends RedisReceiver {
 
     protected Table getTable(String tableName) {
         Table table = tableMap.get(tableName);
-        if (null == table) {
+        if (null==table && !doesDiscardUnknownTableEvent) {
             synchronized (lock) {
                 table = tableMap.get(tableName);
                 if (null == table) {
@@ -74,4 +78,5 @@ public class RedisSlave4Mysql extends RedisReceiver {
     private final Object lock = new Object();
 
     private String system = "database";
+    private boolean doesDiscardUnknownTableEvent = true;
 }
