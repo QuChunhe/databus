@@ -19,18 +19,21 @@ public class RedisSlave4Mysql extends RedisReceiver {
         tableMap = new HashMap<>();
     }
 
-    public void setTables(Collection<Table> tables) {
+    public RedisSlave4Mysql setTables(Collection<Table> tables) {
         for(Table t : tables) {
             tableMap.put(t.name(), t);
         }
+        return this;
     }
 
-    public void setSystem(String system) {
+    public RedisSlave4Mysql setSystem(String system) {
         this.system = system;
+        return this;
     }
 
-    public void setDoesDiscardUnkownTableEvent(boolean doesDiscardUnknownTableEvent) {
+    public RedisSlave4Mysql setDoesDiscardUnkownTableEvent(boolean doesDiscardUnknownTableEvent) {
         this.doesDiscardUnknownTableEvent = doesDiscardUnknownTableEvent;
+        return this;
     }
 
     @Override
