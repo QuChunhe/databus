@@ -83,11 +83,12 @@ public class SchemaCache {
                             attribute.toArray(new ColumnAttribute[attribute.size()]));
 
                     HashSet<String> keys = new HashSet<>();
-                    ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName);
-                    while(resultSet2.next()) {
-                        keys.add(resultSet2.getString("COLUMN_NAME").toLowerCase());
+                    try (ResultSet resultSet2 = metaData.getPrimaryKeys(null, null, tableName)) {
+                        while(resultSet2.next()) {
+                            keys.add(resultSet2.getString("COLUMN_NAME").toLowerCase());
+                        }
+                        primaryKeysMap.put(fullName, keys);
                     }
-                    primaryKeysMap.put(fullName, keys);
                 }
             } catch (SQLException e) {
                 log.error("Cannot load the schema of "+fullName, e);
