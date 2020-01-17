@@ -59,7 +59,7 @@
     </bean>
 
     <bean id="cassandraReceiver" class="databus.receiver.cassandra.CassandraReceiver" scope="singleton">
-        <property name="cluster" ref="cassandraCluster"/>
+        <property name="cqlSession" ref="cassandraCluster"/>
         <property name="cassandraBean" ref="cassandraBeanDispatcher"/>
         <property name="futureChecker" ref="futureChecker"/>
     </bean>

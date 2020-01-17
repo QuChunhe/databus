@@ -21,7 +21,7 @@ public class TableWithKey extends Table {
     }
 
     public void setKeys(Collection<String> keys) {
-        keySet = new HashSet<>(keys);
+        keySet = keys instanceof HashSet ? (HashSet) keys : new HashSet<>(keys);
         keyArray = keySet.toArray(new String[keys.size()]);
         Arrays.sort(keyArray);
     }
@@ -30,24 +30,24 @@ public class TableWithKey extends Table {
     protected void insert0(Transaction transaction, List<Column> primaryKeys,
                            Map<String, String> row) {
         super.insert0(transaction, primaryKeys, row);
-        transaction.sadd(getRedisKeyFromRow(row), getRedisValue(primaryKeys));
+        transaction.sadd(getIndexRedisKeyFromRow(row), getRedisValue(primaryKeys));
     }
 
     protected void insert0(RedisClient redisClient, List<Column> primaryKeys,
                            Map<String, String> row) {
         super.insert0(redisClient, primaryKeys, row);
-        redisClient.sadd(getRedisKeyFromRow(row), getRedisValue(primaryKeys));
+        redisClient.sadd(getIndexRedisKeyFromRow(row), getRedisValue(primaryKeys));
     }
 
     @Override
     protected void delete0(Transaction transaction, List<Column> primaryKeys, List<Column> row) {
         super.delete0(transaction, primaryKeys, row);
-        transaction.srem(getRedisKeyFromRow(transform(row).first), getRedisValue(primaryKeys));
+        transaction.srem(getIndexRedisKeyFromRow(transform(row).first), getRedisValue(primaryKeys));
     }
 
     protected void delete0(RedisClient redisClient, List<Column> primaryKeys, List<Column> row) {
         super.delete0(redisClient, primaryKeys, row);
-        redisClient.srem(getRedisKeyFromRow(transform(row).first), getRedisValue(primaryKeys));
+        redisClient.srem(getIndexRedisKeyFromRow(transform(row).first), getRedisValue(primaryKeys));
     }
 
     @Override
@@ -62,8 +62,8 @@ public class TableWithKey extends Table {
     protected void updateWithPrimaryKeys(RedisClient redisClient,
                                          List<Column> oldPrimaryKeys, Map<String, String> oldRow,
                                          List<Column> newPrimaryKeys, Map<String, String> newRow) {
-        redisClient.del(getRedisKey(oldPrimaryKeys));
-        redisClient.srem(getRedisKeyFromRow(oldRow), getRedisValue(oldPrimaryKeys));
+        redisClient.del(getTableRedisKey(oldPrimaryKeys));
+        redisClient.srem(getIndexRedisKeyFromRow(oldRow), getRedisValue(oldPrimaryKeys));
         insert0(redisClient, newPrimaryKeys, newRow);
     }
 
@@ -81,7 +81,7 @@ public class TableWithKey extends Table {
                 updatedKeyMap.put(c, null);
             }
         }
-        String redisKey = getRedisKey(primaryKeys);
+        String redisKey = getTableRedisKey(primaryKeys);
         Map<String, String> oldKeyMap = null;
         if (updatedKeyMap.size() > 0) {
             List<String> valueList = redisClient.hmget(redisKey, keyArray);
@@ -102,16 +102,16 @@ public class TableWithKey extends Table {
             super.updateRow(transaction, redisKey, columnMap, nullColumns);
             if (updatedKeyMap.size() > 0) {
                 String value = getRedisValue(primaryKeys);
-                transaction.srem(getRedisKeyFromRow(oldKeyMap), value);
-                transaction.sadd(getRedisKeyFromRow(updatedKeyMap), value);
+                transaction.srem(getIndexRedisKeyFromRow(oldKeyMap), value);
+                transaction.sadd(getIndexRedisKeyFromRow(updatedKeyMap), value);
             }
             transaction.exec();
         } else {
             super.updateRow(redisClient, redisKey, columnMap, nullColumns);
             if (updatedKeyMap.size() > 0) {
                 String value = getRedisValue(primaryKeys);
-                redisClient.srem(getRedisKeyFromRow(oldKeyMap), value);
-                redisClient.sadd(getRedisKeyFromRow(updatedKeyMap), value);
+                redisClient.srem(getIndexRedisKeyFromRow(oldKeyMap), value);
+                redisClient.sadd(getIndexRedisKeyFromRow(updatedKeyMap), value);
             }
         }
     }
@@ -133,11 +133,11 @@ public class TableWithKey extends Table {
 
     private void deleteOldRow(Transaction transaction, List<Column> primaryKeys,
                               Map<String, String> row) {
-        transaction.del(getRedisKey(primaryKeys));
-        transaction.srem(getRedisKeyFromRow(row), getRedisValue(primaryKeys));
+        transaction.del(getTableRedisKey(primaryKeys));
+        transaction.srem(getIndexRedisKeyFromRow(row), getRedisValue(primaryKeys));
     }
 
-    private String getRedisKeyFromRow(Map<String, String> row) {
+    private String getIndexRedisKeyFromRow(Map<String, String> row) {
         StringBuilder builder = new StringBuilder(128);
         builder.append(system)
                .append(":")
@@ -152,9 +152,9 @@ public class TableWithKey extends Table {
                        .append("&");
             }
         }
-
-        return builder.charAt(builder.length()-1)=='&' ? builder.substring(0, builder.length()-1) :
-                                                         builder.toString();
+        return builder.deleteCharAt(builder.length()-1)
+                      .append(":index")
+                      .toString();
     }
 
     private Set<String> keySet;

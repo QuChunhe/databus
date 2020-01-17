@@ -1,8 +1,8 @@
 package databus.receiver.redis2;
 
 import databus.event.mysql.Column;
-import databus.util.ObjectPool;
 import databus.util.RedisClient;
+import databus.util.RedisClientPool;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,7 +38,7 @@ class TableTest {
 
     @Test
     public void testInsertWithOnePrimaryKey() {
-        try(RedisClient redisClient = redisPool.getResource()) {
+        try(RedisClient redisClient = redisPool.getRedisClient()) {
             List<Column> primaryKeys = new LinkedList<>();
             List<Column> row = new LinkedList<>();
             primaryKeys.add(new Column("id", "3", 1));
@@ -67,7 +67,7 @@ class TableTest {
 
     @Test
     public void testInsertWithThreePrimaryKeys() {
-        try(RedisClient redisClient = redisPool.getResource()) {
+        try(RedisClient redisClient = redisPool.getRedisClient()) {
             List<Column> primaryKeys = new LinkedList<>();
             List<Column> row = new LinkedList<>();
             primaryKeys.add(new Column("id3", "3", 1));
@@ -102,7 +102,7 @@ class TableTest {
 
     @Test
     public void testDeleteWithOnePrimaryKey() {
-            try(RedisClient redisClient = redisPool.getResource()) {
+            try(RedisClient redisClient = redisPool.getRedisClient()) {
             List<Column> primaryKeys = new LinkedList<>();
             List<Column> row = new LinkedList<>();
             primaryKeys.add(new Column("id", "3", 1));
@@ -128,7 +128,7 @@ class TableTest {
 
     @Test
     public void testDeleteWithThreePrimaryKeys() {
-        try(RedisClient redisClient = redisPool.getResource()) {
+        try(RedisClient redisClient = redisPool.getRedisClient()) {
             List<Column> primaryKeys = new LinkedList<>();
             List<Column> row = new LinkedList<>();
             primaryKeys.add(new Column("id3", "3", 1));
@@ -158,7 +158,7 @@ class TableTest {
 
     @Test
     public void testUpdateWithOnePrimaryKey() {
-        try(RedisClient redisClient = redisPool.getResource()) {
+        try(RedisClient redisClient = redisPool.getRedisClient()) {
             String key = system+":"+name+":id=3";
             redisClient.del(key);
 
@@ -205,7 +205,7 @@ class TableTest {
 
     @Test
     public void testReplaceWithOnePrimaryKey() {
-        try(RedisClient redisClient = redisPool.getResource()) {
+        try(RedisClient redisClient = redisPool.getRedisClient()) {
             String keyBeforeUpdate = system+":"+name+":id=3";
             String keyAfterUpdate = system+":"+name+":id=10";
             redisClient.del(keyBeforeUpdate);
@@ -258,7 +258,7 @@ class TableTest {
 
     @Test
     public void testReplaceWithThreePrimaryKeys() {
-        try(RedisClient redisClient = redisPool.getResource()) {
+        try(RedisClient redisClient = redisPool.getRedisClient()) {
             String keyBeforeUpdate = system+":"+name+":id1=3&id2=test";
             String keyAfterUpdate = system+":"+name+":id1=3&id3=ok";
             redisClient.del(keyBeforeUpdate);
@@ -319,7 +319,7 @@ class TableTest {
 
     @Test
     public void testUpdateWithThreePrimaryKeys() {
-        try(RedisClient redisClient = redisPool.getResource()) {
+        try(RedisClient redisClient = redisPool.getRedisClient()) {
             String key = system+":"+name+":id1=3&id2=test";
             redisClient.del(key);
 
@@ -372,7 +372,7 @@ class TableTest {
     }
 
     @Autowired
-    protected ObjectPool<RedisClient> redisPool;
+    protected RedisClientPool redisPool;
 
     protected String system = "unit_test";
     protected String name = "test";

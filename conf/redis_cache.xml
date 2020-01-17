@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+
+    <bean id="redisClientPool" class="databus.util.JedisClusterClientPool" factory-method="create" scope="singleton">
+        <constructor-arg value="conf/redis_cluster_receiver.properties" />
+    </bean>
+
+    <bean id="adpage" class="databus.receiver.redis2.TableWithKey" scope="singleton">
+        <constructor-arg index="0">
+            <value>adm</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>ad_pages</value>
+        </constructor-arg>
+        <property name="keys">
+            <list>
+                <value>id_linkpair</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="linkpairs" class="databus.receiver.redis2.TableWithKey" scope="singleton">
+        <constructor-arg index="0">
+            <value>adm</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>linkpairs</value>
+        </constructor-arg>
+        <property name="keys">
+            <list>
+                <value>promotion_id</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="promotions" class="databus.receiver.redis2.Table" scope="singleton">
+        <constructor-arg index="0">
+            <value>adm</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>promotions</value>
+        </constructor-arg>
+    </bean>
+
+    <bean id="redisReceiver" class="databus.receiver.redis2.RedisSlave4Mysql" scope="singleton">
+        <property name="redisClientPool" ref="redisClientPool"/>
+        <property name="tables">
+            <list>
+                <ref bean="adpage"></ref>
+                <ref bean="linkpairs"></ref>
+                <ref bean="promotions"></ref>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="mysqlDataSource" class="databus.util.MysqlDataSourceFactory" factory-method="create">
+        <constructor-arg value="conf/mysql.properties" />
+    </bean>
+
+    <bean id="mysql2Redis" class="databus.application.Mysql2Redis" scope="singleton">
+        <property name="dataSource" ref="mysqlDataSource"/>
+        <property name="redisReceiver" ref="redisReceiver"/>
+    </bean>
+</beans>

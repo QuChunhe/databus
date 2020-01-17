@@ -24,14 +24,14 @@ public class RedisCache4Mysql {
 
     public Map<String, String> getRowByPrimaryKeys(String table,
                                                    Map<String, String> primaryKeys) {
-        return redisClient.hgetAll(toRedisKey(table, primaryKeys));
+        return redisClient.hgetAll(toTableRedisKey(table, primaryKeys));
     }
 
     public Map<String, String> getRowByKeys(String table, Map<String, String> keys) {
-        Set<String> primaryKeySet = redisClient.smembers(toRedisKey(table, keys));
+        Set<String> primaryKeySet = redisClient.smembers(toIndexRedisKey(table, keys));
         if(null != primaryKeySet) {
             for (String primaryKey : primaryKeySet) {
-                Map<String, String> row = redisClient.hgetAll(toRedisKey(table, primaryKey));
+                Map<String, String> row = redisClient.hgetAll(toTableRedisKey(table, primaryKey));
                 if(!row.isEmpty()) {
                     return row;
                 }
@@ -43,11 +43,11 @@ public class RedisCache4Mysql {
     public Collection<Map<String, String>> getRowsByKeys(String table,
                                                          Map<String, String> keys, int limit) {
         Collection<Map<String,String>> rows =  new LinkedList<>();
-        Set<String> primaryKeySet = redisClient.smembers(toRedisKey(table, keys));
+        Set<String> primaryKeySet = redisClient.smembers(toIndexRedisKey(table, keys));
         if(null != primaryKeySet) {
             int count = 0;
             for (String primaryKey : primaryKeySet) {
-                Map<String, String> row = redisClient.hgetAll(toRedisKey(table, primaryKey));
+                Map<String, String> row = redisClient.hgetAll(toTableRedisKey(table, primaryKey));
                 if(!row.isEmpty()) {
                     count++;
                     rows.add(row);
@@ -62,22 +62,22 @@ public class RedisCache4Mysql {
 
     public String[] getValuesByPrimaryKeys(String table, Map<String,String> primaryKeys,
                                            String[] columns) {
-        List<String> value = redisClient.hmget(toRedisKey(table, primaryKeys), columns);
+        List<String> value = redisClient.hmget(toTableRedisKey(table, primaryKeys), columns);
         return null==value || value.size()==0 ? null : value.toArray(new String[columns.length]);
     }
 
     public String getValueByPrimaryKeys(String table, Map<String, String> primaryKeys,
                                          String column) {
-        return redisClient.hget(toRedisKey(table, primaryKeys), column);
+        return redisClient.hget(toTableRedisKey(table, primaryKeys), column);
     }
 
     public Collection<String[]> getValuesByKeys(String table, Map<String,String> keys,
                                                 String[] columns) {
         Collection<String[]> values = new LinkedList<>();
-        Set<String> primaryKeySet = redisClient.smembers(toRedisKey(table, keys));
+        Set<String> primaryKeySet = redisClient.smembers(toIndexRedisKey(table, keys));
         if(null != primaryKeySet) {
             for (String primaryKey : primaryKeySet) {
-                List<String> v = redisClient.hmget(toRedisKey(table, primaryKey), columns);
+                List<String> v = redisClient.hmget(toTableRedisKey(table, primaryKey), columns);
                 if(null!=v && v.size()>0) {
                     values.add(v.toArray(new String[columns.length]));
                 }
@@ -87,10 +87,10 @@ public class RedisCache4Mysql {
     }
 
     public String getValueByKeys(String table, Map<String, String> keys, String column) {
-        Set<String> primaryKeySet = redisClient.smembers(toRedisKey(table, keys));
+        Set<String> primaryKeySet = redisClient.smembers(toIndexRedisKey(table, keys));
         if(null != primaryKeySet) {
             for (String primaryKey : primaryKeySet) {
-                String value = redisClient.hget(toRedisKey(table, primaryKey), column);
+                String value = redisClient.hget(toTableRedisKey(table, primaryKey), column);
                 if(null != value) {
                     return value;
                 }
@@ -99,7 +99,7 @@ public class RedisCache4Mysql {
         return null;
     }
 
-    private String toRedisKey(String table, Map<String, String> keys) {
+    private String toTableRedisKey(String table, Map<String, String> keys) {
         StringBuilder builder = new StringBuilder(128);
         builder.append(system)
                .append(":")
@@ -122,7 +122,11 @@ public class RedisCache4Mysql {
                builder.toString();
     }
 
-    private String toRedisKey(String table, String keys) {
+    private String toIndexRedisKey(String table, Map<String, String> keys) {
+        return toTableRedisKey(table, keys)+":index";
+    }
+
+    private String toTableRedisKey(String table, String keys) {
         StringBuilder builder = new StringBuilder(128);
         builder.append(system)
                .append(":")
