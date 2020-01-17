@@ -13,4 +13,58 @@
     <bean id="redisClientPool" class="databus.util.JedisClusterClientPool" factory-method="create" scope="singleton">
         <constructor-arg value="conf/redis_cluster_receiver.properties" />
     </bean>
+<!--
+    <bean id="jedis" class="redis.clients.jedis.Jedis"  scope="singleton">
+        <constructor-arg index="0">
+            <value>127.0.0.1</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>6379</value>
+        </constructor-arg>
+    </bean>
+ -->
+    <bean id="node1" class="redis.clients.jedis.HostAndPort"  scope="singleton">
+        <constructor-arg index="0">
+            <value>127.0.0.1</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>6370</value>
+        </constructor-arg>
+    </bean>
+    <bean id="node2" class="redis.clients.jedis.HostAndPort"  scope="singleton">
+        <constructor-arg index="0">
+            <value>127.0.0.1</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>6380</value>
+        </constructor-arg>
+    </bean>
+    <bean id="node3" class="redis.clients.jedis.HostAndPort"  scope="singleton">
+        <constructor-arg index="0">
+            <value>127.0.0.1</value>
+        </constructor-arg>
+        <constructor-arg index="1">
+            <value>6380</value>
+        </constructor-arg>
+    </bean>
+
+    <bean id="jedisCluster" class="redis.clients.jedis.JedisCluster"  scope="singleton">
+        <constructor-arg>
+            <set>
+                <ref bean="node1"/>
+                <ref bean="node2"/>
+                <ref bean="node3"/>
+            </set>
+        </constructor-arg>
+    </bean>
+
+    <bean id="redisClient" class="databus.util.JedisClusterClient" scope="singleton">
+        <constructor-arg>
+            <ref bean="jedisCluster"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="redisCache" class="databus.util.RedisCache4Mysql" scope="singleton">
+        <property name="redisClient" ref="redisClient"/>
+    </bean>
 </beans>
