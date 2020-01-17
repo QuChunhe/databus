@@ -188,7 +188,7 @@
             <id>central</id>    
             <name>Maven Repository Switchboard</name>    
             <layout>default</layout>    
-            <url>http://repo1.maven.org/maven2</url> 
+            <url>https://repo1.maven.org/maven2</url>
             <releases>
                 <enabled>true</enabled>
             </releases>   
@@ -202,7 +202,7 @@
         <pluginRepository>
             <id>central</id>
             <name>Central Repository</name>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
             <layout>default</layout>
             <snapshots>
                 <enabled>false</enabled>
