@@ -1,17 +1,15 @@
 package databus.util;
 
-import java.io.IOException;
-import java.util.*;
-
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import java.nio.charset.Charset;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import redis.clients.jedis.*;
 import redis.clients.jedis.params.GeoRadiusParam;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.params.ZAddParams;
 import redis.clients.jedis.params.ZIncrByParams;
-
-import redis.clients.jedis.util.SafeEncoder;
 
 /**
  * Created by Qu Chunhe on 2019-09-24.
@@ -32,8 +30,7 @@ public class JedisClusterClient implements RedisClient {
         return false;
     }
 
-    @Override
-    public void close() throws IOException {
+    public void close() {
     }
 
     @Override
@@ -43,7 +40,7 @@ public class JedisClusterClient implements RedisClient {
 
     @Override
     public String set(String key, String value, SetParams params) {
-        return jedisCluster.set(key,value, params);
+        return jedisCluster.set(key, value, params);
     }
 
     @Override
@@ -73,7 +70,7 @@ public class JedisClusterClient implements RedisClient {
 
     @Override
     public String restore(String key, int ttl, byte[] serializedValue) {
-        return jedisCluster.restore(key,ttl, serializedValue);
+        return jedisCluster.restore(key, ttl, serializedValue);
     }
 
     @Override
@@ -213,7 +210,7 @@ public class JedisClusterClient implements RedisClient {
 
     @Override
     public Long hsetnx(String key, String field, String value) {
-        return jedisCluster.hsetnx(key, field,value);
+        return jedisCluster.hsetnx(key, field, value);
     }
 
     @Override
@@ -233,7 +230,7 @@ public class JedisClusterClient implements RedisClient {
 
     @Override
     public Double hincrByFloat(String key, String field, double value) {
-        return jedisCluster.hincrByFloat(SafeEncoder.encode(key), SafeEncoder.encode(field), value);
+        return jedisCluster.hincrByFloat(key.getBytes(UTF8), field.getBytes(UTF8), value);
     }
 
     @Override
@@ -439,6 +436,26 @@ public class JedisClusterClient implements RedisClient {
     @Override
     public Double zscore(String key, String member) {
         return jedisCluster.zscore(key, member);
+    }
+
+    @Override
+    public Tuple zpopmax(String key) {
+        return null;
+    }
+
+    @Override
+    public Set<Tuple> zpopmax(String key, int count) {
+        return null;
+    }
+
+    @Override
+    public Tuple zpopmin(String key) {
+        return null;
+    }
+
+    @Override
+    public Set<Tuple> zpopmin(String key, int count) {
+        return null;
     }
 
     @Override
@@ -673,7 +690,7 @@ public class JedisClusterClient implements RedisClient {
 
     @Override
     public ScanResult<Tuple> zscan(String key, String cursor, ScanParams params) {
-        return jedisCluster.zscan(SafeEncoder.encode(key), SafeEncoder.encode(cursor), params);
+        return jedisCluster.zscan(key.getBytes(UTF8), cursor.getBytes(UTF8), params);
     }
 
     @Override
@@ -722,22 +739,26 @@ public class JedisClusterClient implements RedisClient {
     }
 
     @Override
-    public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit) {
+    public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude,
+                                             double radius, GeoUnit unit) {
         return jedisCluster.georadius(key, longitude, latitude, radius, unit);
     }
 
     @Override
-    public List<GeoRadiusResponse> georadiusReadonly(String key, double longitude, double latitude, double radius, GeoUnit unit) {
+    public List<GeoRadiusResponse> georadiusReadonly(String key, double longitude, double latitude,
+                                                     double radius, GeoUnit unit) {
         return jedisCluster.georadiusReadonly(key, longitude, latitude, radius, unit);
     }
 
     @Override
-    public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+    public List<GeoRadiusResponse> georadius(String key, double longitude, double latitude,
+                                             double radius, GeoUnit unit, GeoRadiusParam param) {
         return jedisCluster.georadius(key, longitude, latitude, radius, unit, param);
     }
 
     @Override
-    public List<GeoRadiusResponse> georadiusReadonly(String key, double longitude, double latitude, double radius, GeoUnit unit, GeoRadiusParam param) {
+    public List<GeoRadiusResponse> georadiusReadonly(String key, double longitude, double latitude,
+                                                     double radius, GeoUnit unit, GeoRadiusParam param) {
         return jedisCluster.georadiusReadonly(key, longitude, latitude, radius, unit, param);
     }
 
@@ -752,12 +773,14 @@ public class JedisClusterClient implements RedisClient {
     }
 
     @Override
-    public List<GeoRadiusResponse> georadiusByMember(String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
+    public List<GeoRadiusResponse> georadiusByMember(String key, String member,
+                                                     double radius, GeoUnit unit, GeoRadiusParam param) {
         return jedisCluster.georadiusByMember(key, member, radius, unit, param);
     }
 
     @Override
-    public List<GeoRadiusResponse> georadiusByMemberReadonly(String key, String member, double radius, GeoUnit unit, GeoRadiusParam param) {
+    public List<GeoRadiusResponse> georadiusByMemberReadonly(String key, String member, double radius,
+                                                             GeoUnit unit, GeoRadiusParam param) {
         return jedisCluster.georadiusByMemberReadonly(key, member, radius, unit, param);
     }
 
@@ -771,6 +794,83 @@ public class JedisClusterClient implements RedisClient {
         return jedisCluster.hstrlen(key, field);
     }
 
+    @Override
+    public StreamEntryID xadd(String key, StreamEntryID id, Map<String, String> hash) {
+        return jedisCluster.xadd(key, id, hash);
+    }
+
+    @Override
+    public StreamEntryID xadd(String key, StreamEntryID id, Map<String, String> hash, long maxLen,
+                              boolean approximateLength) {
+        return jedisCluster.xadd(key, id, hash, maxLen, approximateLength);
+    }
+
+    @Override
+    public Long xlen(String key) {
+        return jedisCluster.xlen(key);
+    }
+
+    @Override
+    public List<StreamEntry> xrange(String key, StreamEntryID start, StreamEntryID end, int count) {
+        return jedisCluster.xrange(key, start, end, count);
+    }
+
+    @Override
+    public List<StreamEntry> xrevrange(String key, StreamEntryID end, StreamEntryID start, int count) {
+        return jedisCluster.xrevrange(key, end, start, count);
+    }
+
+    @Override
+    public long xack(String key, String group, StreamEntryID... ids) {
+        return jedisCluster.xack(key, group, ids);
+    }
+
+    @Override
+    public String xgroupCreate(String key, String groupname, StreamEntryID id, boolean makeStream) {
+        return jedisCluster.xgroupCreate(key, groupname, id, makeStream);
+    }
+
+    @Override
+    public String xgroupSetID(String key, String groupname, StreamEntryID id) {
+        return jedisCluster.xgroupSetID(key, groupname, id);
+    }
+
+    @Override
+    public long xgroupDestroy(String key, String groupname) {
+        return jedisCluster.xgroupDestroy(key, groupname);
+    }
+
+    @Override
+    public String xgroupDelConsumer(String key, String groupname, String consumername) {
+        return null;
+    }
+
+    @Override
+    public List<StreamPendingEntry> xpending(String key, String groupname, StreamEntryID start,
+                                             StreamEntryID end, int count, String consumername) {
+        return jedisCluster.xpending(key, groupname, start, end, count, consumername);
+    }
+
+    @Override
+    public long xdel(String key, StreamEntryID... ids) {
+        return jedisCluster.xdel(key, ids);
+    }
+
+    @Override
+    public long xtrim(String key, long maxLen, boolean approximate) {
+        return jedisCluster.xtrim(key, maxLen, approximate);
+    }
+
+    @Override
+    public List<StreamEntry> xclaim(String key, String group, String consumername,
+                                    long minIdleTime, long newIdleTime, int retries,
+                                    boolean force, StreamEntryID... ids) {
+        return jedisCluster.xclaim(key, group, consumername, minIdleTime,
+                                   newIdleTime, retries, force, ids);
+    }
+
 
     private final JedisCluster jedisCluster;
+
+    private final Charset UTF8 = Charset.forName("UTF-8");
 }

@@ -5,10 +5,11 @@ import java.io.IOException;
 import databus.core.Event;
 import databus.core.Receiver;
 
+import databus.util.RedisClientPool;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import databus.util.CommonObjectPool;
+
 import databus.util.RedisClient;
 
 /**
@@ -20,13 +21,13 @@ public abstract class RedisReceiver implements Receiver {
         super();
     }
 
-    public void setRedisClientPool(CommonObjectPool<RedisClient> redisClientPool) {
+    public void setRedisClientPool(RedisClientPool redisClientPool) {
         this.redisClientPool = redisClientPool;
     }
 
     @Override
     public void receive(final Event event) {
-        try (RedisClient redisClient = redisClientPool.getResource()) {
+        try (RedisClient redisClient = redisClientPool.getRedisClient()) {
             receive(redisClient, event);
         } catch(Exception e) {
             log.error("Redis can not save "+event.toString(), e);
@@ -42,5 +43,5 @@ public abstract class RedisReceiver implements Receiver {
 
     private final static Log log = LogFactory.getLog(RedisReceiver.class);
 
-    protected CommonObjectPool<RedisClient> redisClientPool;
+    protected RedisClientPool redisClientPool;
 }

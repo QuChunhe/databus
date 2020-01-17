@@ -13,4 +13,5 @@ public interface RedisClient extends JedisCommands, Closeable {
     Transaction multi();
 
     boolean doesSupportTransaction();
+
 }

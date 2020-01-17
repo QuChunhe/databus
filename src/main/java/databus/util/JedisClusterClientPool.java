@@ -1,18 +1,19 @@
 package databus.util;
 
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.JedisCluster;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import redis.clients.jedis.HostAndPort;
+import redis.clients.jedis.JedisCluster;
+
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+
 /**
  * Created by Qu Chunhe on 2019-09-27.
  */
-public class JedisClusterClientPool implements ObjectPool<RedisClient> {
+public class JedisClusterClientPool implements RedisClientPool {
 
     public JedisClusterClientPool(JedisClusterClient jedisClusterClient) {
         this.jedisClusterClient = jedisClusterClient;
@@ -53,16 +54,9 @@ public class JedisClusterClientPool implements ObjectPool<RedisClient> {
                                                                                   poolConfig)));
     }
 
-    @Override
-    public void returnBrokenResource(RedisClient resource) throws Exception {
-    }
 
     @Override
-    public void returnResource(RedisClient  resource) {
-    }
-
-    @Override
-    public RedisClient getResource() {
+    public RedisClient getRedisClient() {
         return jedisClusterClient;
     }
 

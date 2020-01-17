@@ -50,7 +50,7 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>3.0.1</version>
+            <version>3.2.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -87,6 +87,12 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.25</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -137,10 +143,11 @@
             <artifactId>cassandra-driver-extras</artifactId>
             <version>${cassandra.driver.version}</version>
         </dependency>
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>25.0-jre</version>
+            <version>28.1-jre</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
@@ -232,6 +239,7 @@
                 <version>3.1.0</version>
                 <configuration>
                     <archive>
+                        <addMavenDescriptor>true</addMavenDescriptor>
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
@@ -277,7 +285,7 @@
         <scriptSourceDirectory>script</scriptSourceDirectory>
         <resources>
             <resource>
-                <directory>src</directory>
+                <directory>src/main/java/resources</directory>
             </resource>
         </resources>
         <finalName>databus</finalName>

@@ -31,7 +31,7 @@ public class RedisSlave4Mysql extends RedisReceiver {
         return this;
     }
 
-    public RedisSlave4Mysql setDoesDiscardUnkownTableEvent(boolean doesDiscardUnknownTableEvent) {
+    public RedisSlave4Mysql setDoesDiscardUnknownTableEvent(boolean doesDiscardUnknownTableEvent) {
         this.doesDiscardUnknownTableEvent = doesDiscardUnknownTableEvent;
         return this;
     }

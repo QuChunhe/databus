@@ -70,7 +70,7 @@ public class Table {
                 }
             }
 
-            Map<String, String> oldRow = redisClient.hgetAll(getRedisKey(primaryKeys));
+            Map<String, String> oldRow = redisClient.hgetAll(getTableRedisKey(primaryKeys));
             Map<String, String> newRow = new HashMap(oldRow);
             for(Column c : row) {
                 if (null==replicatedColumns || replicatedColumns.contains(c.name())) {
@@ -95,7 +95,7 @@ public class Table {
         }
     }
     
-    protected String getRedisKey(List<Column> primaryKeys) {
+    protected String getTableRedisKey(List<Column> primaryKeys) {
         Column[] sortedPrimaryKeys = primaryKeys.toArray(new Column[primaryKeys.size()]);
         Arrays.sort(sortedPrimaryKeys, COLUMN_COMPARATOR);
         
@@ -146,34 +146,34 @@ public class Table {
 
     protected void insert0(Transaction transaction, List<Column> primaryKeys,
                            Map<String, String> row) {
-        transaction.hmset(getRedisKey(primaryKeys), row);
+        transaction.hmset(getTableRedisKey(primaryKeys), row);
     }
 
     protected void insert0(RedisClient redisClient, List<Column> primaryKeys,
                            Map<String, String> row) {
-        redisClient.hmset(getRedisKey(primaryKeys), row);
+        redisClient.hmset(getTableRedisKey(primaryKeys), row);
     }
 
     protected void delete0(Transaction transaction, List<Column> primaryKeys, List<Column> row) {
-        transaction.del(getRedisKey(primaryKeys));
+        transaction.del(getTableRedisKey(primaryKeys));
     }
 
     protected void delete0(RedisClient redisClient, List<Column> primaryKeys, List<Column> row) {
-        redisClient.del(getRedisKey(primaryKeys));
+        redisClient.del(getTableRedisKey(primaryKeys));
     }
 
     protected void updateWithPrimaryKeys(Transaction transaction,
                                          List<Column> oldPrimaryKeys, Map<String, String> oldRow,
                                          List<Column> newPrimaryKeys, Map<String, String> newRow) {
-        transaction.del(getRedisKey(oldPrimaryKeys));
-        transaction.hmset(getRedisKey(newPrimaryKeys), newRow);
+        transaction.del(getTableRedisKey(oldPrimaryKeys));
+        transaction.hmset(getTableRedisKey(newPrimaryKeys), newRow);
     }
 
     protected void updateWithPrimaryKeys(RedisClient redisClient,
                                          List<Column> oldPrimaryKeys, Map<String, String> oldRow,
                                          List<Column> newPrimaryKeys, Map<String, String> newRow) {
-        redisClient.del(getRedisKey(oldPrimaryKeys));
-        redisClient.hmset(getRedisKey(newPrimaryKeys), newRow);
+        redisClient.del(getTableRedisKey(oldPrimaryKeys));
+        redisClient.hmset(getTableRedisKey(newPrimaryKeys), newRow);
     }
 
     protected void updateRow(Transaction transaction, String redisKey,
@@ -200,10 +200,10 @@ public class Table {
                                             String> columnMap, List<String> nullColumns) {
         if (redisClient.doesSupportTransaction()) {
             Transaction transaction = redisClient.multi();
-            updateRow(transaction, getRedisKey(primaryKeys), columnMap, nullColumns);
+            updateRow(transaction, getTableRedisKey(primaryKeys), columnMap, nullColumns);
             transaction.exec();
         } else {
-            updateRow(redisClient, getRedisKey(primaryKeys), columnMap, nullColumns);
+            updateRow(redisClient, getTableRedisKey(primaryKeys), columnMap, nullColumns);
         }
 
     }
