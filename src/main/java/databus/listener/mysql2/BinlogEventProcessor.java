@@ -24,7 +24,7 @@ public class BinlogEventProcessor implements BinaryLogClient.EventListener{
 
     @Override
     public void onEvent(Event event) {
-        EventHeaderV4 eventHeader = (EventHeaderV4)event.getHeader();
+        EventHeaderV4 eventHeader = event.getHeader();
         EventData eventData = event.getData();
         switch (eventHeader.getEventType()) {
             case ROTATE:

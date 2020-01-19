@@ -31,6 +31,9 @@ public class WriteRowsProcessor {
                 return DATE_TIME_FORMATTER.format(((Date) value).toInstant());
             }
         }
+        if (type == Types.LONGVARCHAR) {
+            return new String((byte[]) value);
+        }
         if (attribute.isUnsigned() && isNegative(value.toString())) {
             BigInteger i = new BigInteger(value.toString());
             switch (type) {
