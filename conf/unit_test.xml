@@ -2,27 +2,25 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
         "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
-    <bean id="jedisPool" class="databus.util.JedisPoolFactory" factory-method="create" scope="singleton">
-        <constructor-arg value="conf/redis_receiver.properties" />
-    </bean>
-<!--
+
+
     <bean id="redisClientPool" class="databus.util.JedisClientPool" factory-method="create" scope="singleton">
         <constructor-arg value="conf/redis_receiver.properties" />
     </bean>
--->
-    <bean id="redisClientPool" class="databus.util.JedisClusterClientPool" factory-method="create" scope="singleton">
-        <constructor-arg value="conf/redis_cluster_receiver.properties" />
+
+    <bean id="jedisPool" class="databus.util.JedisPoolFactory" factory-method="create" scope="singleton">
+        <constructor-arg value="conf/redis_receiver.properties" />
     </bean>
-<!--
-    <bean id="jedis" class="redis.clients.jedis.Jedis"  scope="singleton">
-        <constructor-arg index="0">
+
+    <bean id="redisClient" class="databus.util.JedisClient"  scope="singleton">
+        <constructor-arg index="0" type="String">
             <value>127.0.0.1</value>
         </constructor-arg>
-        <constructor-arg index="1">
+        <constructor-arg index="1" type="int">
             <value>6379</value>
         </constructor-arg>
     </bean>
- -->
+
     <bean id="node1" class="redis.clients.jedis.HostAndPort"  scope="singleton">
         <constructor-arg index="0">
             <value>127.0.0.1</value>
@@ -58,11 +56,14 @@
         </constructor-arg>
     </bean>
 
-    <bean id="redisClient" class="databus.util.JedisClusterClient" scope="singleton">
+
+    <bean id="redisClientCluster" class="databus.util.JedisClusterClient" scope="singleton">
         <constructor-arg>
             <ref bean="jedisCluster"/>
         </constructor-arg>
     </bean>
+
+
 
     <bean id="redisCache" class="databus.util.RedisCache4Mysql" scope="singleton">
         <property name="redisClient" ref="redisClient"/>

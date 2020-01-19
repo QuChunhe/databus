@@ -1,10 +1,8 @@
 package databus.util;
 
 import java.util.Properties;
-
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-
 
 /**
  * Created by Qu Chunhe on 2019-09-27.
@@ -26,7 +24,7 @@ public class JedisClientPool implements RedisClientPool {
         config.setMaxIdle(maxIdle);
         config.setMinIdle(minIdle);
 
-        String host = properties.getProperty("host", "127.0.0.1");
+        String host = properties.getProperty("host", "127.0.0.1").trim();
         int port = Integer.parseInt(properties.getProperty("port", "6379"));
         String password = properties.getProperty("password");
         int database = Integer.parseInt(properties.getProperty("database","0"));
