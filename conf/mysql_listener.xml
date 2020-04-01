@@ -10,12 +10,12 @@
         <property name="username" value="root"/>
         <property name="password" value="quchunhe"/>
         <property name="serverId" value="1090"/>
-        <property name="binlogFileName" value="master-bin.000179"/>
-        <property name="binlogPosition" value="665778279"/>
+        <property name="binlogFileName" value="master-bin.000275"/>
+        <property name="binlogPosition" value="599"/>
         <property name="replicatedTables">
             <list>
                 <value>test.user</value>
-                <value>test.white_ips</value>
+                <value>test.automation_configuration</value>
             </list>
         </property>
         <property name="deniedOperations">

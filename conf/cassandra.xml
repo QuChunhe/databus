@@ -3,7 +3,7 @@
         "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-    <bean id="cassandraCluster" class="databus.util.CassandraClusterBuilder" factory-method="build" scope="singleton">
+    <bean id="cassandraCluster" class="databus.util.CassandraSessionBuilder" factory-method="build" scope="singleton">
         <constructor-arg value="conf/cassandra.properties" />
     </bean>
 
