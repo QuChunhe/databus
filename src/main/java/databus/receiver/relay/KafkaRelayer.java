@@ -1,7 +1,6 @@
 package databus.receiver.relay;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,7 +13,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import databus.core.Receiver;
 import databus.core.Event;
 import databus.network.JsonEventParser;
-import databus.util.Helper;
+import databus.util.KafkaFactory;
 
 /**
  * Created by Qu Chunhe on 2018-05-24.
@@ -26,8 +25,7 @@ public class KafkaRelayer implements Receiver {
     @Override
     public void receive(Event event) {
         EventWrapper eventWrapper = eventTransformer.transform(event);
-        if (null == eventWrapper) {
-            log.error("Can not transform event from : "+event.toString());
+        if (null == eventWrapper) { ;
             return;
         }
         send(eventWrapper.getTopic(), eventWrapper.getKey(), eventWrapper.getEvent());
@@ -39,19 +37,7 @@ public class KafkaRelayer implements Receiver {
     }
 
     public void setConfigFile(String configFile) {
-        Properties properties = Helper.loadProperties(configFile);
-        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
-        if (null == properties.getProperty("compression.type")) {
-            properties.put("compression.type", "gzip");
-        }
-
-        if (null == properties.getProperty("partitioner.class")) {
-            properties.put("partitioner.class", "databus.network.kafka.RoundRobinPartitioner");
-        }
-
-        kafkaProducer = new KafkaProducer<>(properties);
+        kafkaProducer = KafkaFactory.createKafkaProducer(configFile);
     }
 
     public void setKafkaProducer(KafkaProducer<String, String> kafkaProducer) {

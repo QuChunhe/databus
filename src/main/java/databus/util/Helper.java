@@ -161,7 +161,19 @@ public class Helper {
         }
         return value;
     }
-    
+
+    public static String decodeUrl(String url) {
+        if (null==url || url.length()==0) {
+            return "";
+        }
+        try {
+            return URLDecoder.decode(url, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            log.error("Can not decode "+url, e);
+        }
+        return "";
+    }
+
     private final static Pattern BSLASH_PATTERN = Pattern.compile("\\\\");
     private final static Pattern QUOTE_PATTERN = Pattern.compile("\\'");
     private final static Pattern WHITE_SPACE_PATTERN = Pattern.compile("\\s{2,}");

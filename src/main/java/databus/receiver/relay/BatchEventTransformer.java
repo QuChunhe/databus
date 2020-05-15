@@ -26,7 +26,6 @@ public abstract class BatchEventTransformer implements EventTransformer {
         }
         EventTransformer eventTransformer = eventTransformerMap.get(key);
         if (null == eventTransformer) {
-            log.error("Can not get EventTransformer for "+event.toString());
             return null;
         }
         return eventTransformer.transform(event);
