@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import com.datastax.driver.core.Cluster;
@@ -134,6 +135,15 @@ public abstract class Mysql2Cassandra {
                      "Cassandra import "+counter.getSuccessCount()+" rows." +
                      "but failed insertion "+counter.getFailureCount()+" rows");
         }
+        if (!executor.isTerminated()) {
+            try {
+                executor.awaitTermination(20, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.error("Interrupt waiting", e);
+            }
+
+        }
+
     }
 
     private String toCQL(String[] columnNames)  {
