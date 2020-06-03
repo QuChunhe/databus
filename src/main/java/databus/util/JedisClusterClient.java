@@ -841,8 +841,8 @@ public class JedisClusterClient implements RedisClient {
     }
 
     @Override
-    public String xgroupDelConsumer(String key, String groupname, String consumername) {
-        return null;
+    public Long xgroupDelConsumer(String key, String groupname, String consumername) {
+        return jedisCluster.xgroupDelConsumer(key, groupname, consumername);
     }
 
     @Override
@@ -869,6 +869,25 @@ public class JedisClusterClient implements RedisClient {
                                    newIdleTime, retries, force, ids);
     }
 
+    @Override
+    public List<Long> bitfieldReadonly(String s, String... strings) {
+        return jedisCluster.bitfieldReadonly(s, strings);
+    }
+
+    @Override
+    public StreamInfo xinfoStream(String s) {
+        throw new UnsupportedOperationException("xinfoStream is not support");
+    }
+
+    @Override
+    public List<StreamGroupInfo> xinfoGroup(String s) {
+        throw new UnsupportedOperationException("xinfoGroup is not support");
+    }
+
+    @Override
+    public List<StreamConsumersInfo> xinfoConsumers(String s, String s1) {
+        throw new UnsupportedOperationException("xinfoConsumers is not support");
+    }
 
     private final JedisCluster jedisCluster;
 
