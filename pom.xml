@@ -281,7 +281,7 @@
     </build>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <log.version>2.11.1</log.version>
+        <log.version>2.13.3</log.version>
         <spring.version>5.1.4.RELEASE</spring.version>
         <spring.boot.version>2.1.2.RELEASE</spring.boot.version>
         <cassandra.driver.version>3.6.0</cassandra.driver.version>
